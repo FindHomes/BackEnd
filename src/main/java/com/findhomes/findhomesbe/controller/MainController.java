@@ -1,22 +1,38 @@
 package com.findhomes.findhomesbe.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.findhomes.findhomesbe.DTO.CompletionRequestDto;
 import com.findhomes.findhomesbe.DTO.SearchRequest;
+import com.findhomes.findhomesbe.service.ChatGPTService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class MainController {
 
+    private final ChatGPTService chatGPTService;
+    private static final String API_KEY = "sk-proj-9uUBIcrwdB0N3GHJPHv5T3BlbkFJM8Rgogzlfvhmpc87jnsn";
+    private static final String API_URL = "https://api.openai.com/v1/chat/completions";
+
+    @PostMapping("/prompt")
+    public ResponseEntity<Map<String, Object>> selectPrompt(@RequestBody CompletionRequestDto completionRequestDto) {
+        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
     // 조건 입력 받기
     @PostMapping("/api/search")
-    public String search(@RequestBody SearchRequest request) {
+    public String search(@org.springframework.web.bind.annotation.RequestBody SearchRequest request) throws IOException {
         SearchRequest.ManCon manCon = request.getManCon();
         List<String> housingTypes = manCon.getHousingTypes();
         int mm = manCon.getPrices().getMm();
@@ -25,22 +41,23 @@ public class MainController {
         int rent = manCon.getPrices().getWs().getRent();
         List<String> regions = manCon.getRegions();
         String userInput = request.getUserInput();
-        // 키워드 사전 정의
-        
-        
-        // GPT 호출
+        // 키워드
+        String keywords = keyword();
+        String command = "유저의 입력문장과 키워드-데이터 매칭관계를 너에게 줄꺼야. 너는 입력문장에서 관련된 키워드를 고르고 그 키워드와 연관된 데이터와 가중치를 내게 반환해주면 돼.";
+        command +="'예를 들어 살기 좋은 집 추천해줘' 라고 문장이 들어오면 미세먼지0.5-범죄0.2-생활안전0.2-화재0.1 이렇게 반환해주면 돼. 반환양식 꼭 지켜서 반환해줘 다음은 유저입력과 키워드-데이터 관계야 \n";
+        command += "유저 입력문장:"+userInput +"\n" + "키워드-데이터 매칭관계:"+keywords;
 
-        
+        // GPT 호출
+        CompletionRequestDto completionRequestDto = new CompletionRequestDto(command);
+        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
+        System.out.println(result);
+
+
         // 매물 선정
 
 
-        // 예시 출력
-        System.out.println("Housing Types: " + housingTypes);
-        System.out.println("Prices: mm=" + mm + ", js=" + js + ", deposit=" + deposit + ", rent=" + rent);
-        System.out.println("Regions: " + regions);
-        System.out.println("User Input: " + userInput);
 
-        return "Hello";
+        return result.toString();
     }
     public String keyword() {
         String keyword = "살기 좋은:미세먼지0.5-범죄0.2-생활안전0.2-화재0.1";
@@ -48,11 +65,9 @@ public class MainController {
         keyword += "공기 좋은 집:공기질1.0";
         keyword += "편의시설 많은 집:백화점0.4-대형마트0.4-슈퍼마켓0.2";
         keyword += "교통 편리한 집:지하철역0.6-버스정류장0.4";
-        keyword += "조용한 집:교통사고0.2-유흥업소0.5-공기질0.3";
         keyword += "자연과 가까운 집:공원1.0";
         keyword += "교육 환경 좋은 집:학교0.5-학원0.5";
         keyword += "의료시설 가까운 집:병원0.7-의원0.3";
-        keyword += "조용한 주거지:교통사고0.2-유흥업소0.5-공기질0.3";
         keyword += "공원 근처:공원1.0";
         keyword += "쇼핑 편리한:백화점0.4-대형마트0.4-체인화편의점0.2";
         keyword += "문화시설 많은:서적소매업0.3-영화관0.4-공연시설0.3";
@@ -67,7 +82,6 @@ public class MainController {
         keyword += "애완동물 친화적인:애완동물시설1.0";
         keyword += "체육시설 많은:체력단련시설0.5-수영장0.3-골프연습장0.2";
         keyword += "수영장 있는:수영장1.0";
-        keyword += "강 근처:강호수1.0";
         keyword += "편의점 많은:체인화편의점1.0";
         keyword += "전통시장 근처:전통시장1.0";
         keyword += "자전거 도로 가까운:자전거도로1.0";
@@ -90,6 +104,7 @@ public class MainController {
         keyword += "공원과 체육시설 많은:공원0.6-체력단련시설0.4";
         return keyword;
     }
+
 
 
 }
