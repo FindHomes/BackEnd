@@ -1,36 +1,26 @@
 package com.findhomes.findhomesbe.DTO;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 /**
  * 프롬프트 요청 DTO
- *
- * @author : lee
- * @fileName : CompletionRequestDto
- * @since : 12/29/23
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class CompletionRequestDto {
 
-    public CompletionRequestDto(String prompt) {
-        this.prompt = prompt;
-    }
-
     private String model;
+    private List<Message> messages;
+    private double temperature;
 
-    private String prompt;
-
-    private float temperature;
-
+    @Data
     @Builder
-    CompletionRequestDto(String model, String prompt, float temperature) {
-        this.model = model;
-        this.prompt = prompt;
-        this.temperature = temperature;
+    public static class Message {
+        private String role;
+        private String content;
     }
-
 }

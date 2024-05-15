@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -19,15 +20,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MainController {
 
+    static String usertestInput = "쇼핑하기 좋고 자녀 교육에 좋은 집 추천해줘"; // 테스트 입력, 여기에 유저의 입력문장을 적는다.
     private final ChatGPTService chatGPTService;
-
-    @PostMapping("/prompt")
-    public ResponseEntity<Map<String, Object>> selectPrompt(@RequestBody CompletionRequestDto completionRequestDto) {
-        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-
     // 조건 입력 받기
     @PostMapping("/api/search")
     public String search(@org.springframework.web.bind.annotation.RequestBody SearchRequest request) throws IOException {
@@ -42,21 +36,70 @@ public class MainController {
         // 키워드
         String keywords = keyword();
         String command = "유저의 입력문장과 키워드-데이터 매칭관계를 너에게 줄꺼야. 너는 입력문장에서 관련된 키워드를 고르고 그 키워드와 연관된 데이터와 가중치를 내게 반환해주면 돼.";
-        command +="'예를 들어 살기 좋은 집 추천해줘' 라고 문장이 들어오면 미세먼지0.5-범죄0.2-생활안전0.2-화재0.1 이렇게 반환해주면 돼. 반환양식 꼭 지켜서 반환해줘 다음은 유저입력과 키워드-데이터 관계야 \n";
+        command +="'예를 들어 살기 좋은 집 추천해줘' 라고 문장이 들어오면 '미세먼지0.5-범죄0.2-생활안전0.2-화재0.1' 이렇게 반환해주면 돼. '입력문장에서 관련된 키워드를 찾고 해당 키워드와 연관된 데이터와 가중치를 반환해 드릴게요.'같은 문장쓰지말고 내가 앞에 보여준 양식 그대로 반환양식 꼭 지켜서 반환해줘. 그러니까 데이터-가중치 딱 이런 양식으로 반환해줘 다음은 유저입력과 키워드-데이터 관계야 \n";
         command += "유저 입력문장:"+userInput +"\n" + "키워드-데이터 매칭관계:"+keywords;
+        // 메시지 생성
+        List<CompletionRequestDto.Message> messages = Arrays.asList(
+                CompletionRequestDto.Message.builder()
+                        .role("system")
+                        .content("You are a helpful assistant.")
+                        .build(),
+                CompletionRequestDto.Message.builder()
+                        .role("user")
+                        .content(command)
+                        .build()
+        );
 
+        CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
+                .messages(messages)
+                .temperature(0.7)
+                .build();
         // GPT 호출
-        CompletionRequestDto completionRequestDto = new CompletionRequestDto(command);
         Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
         System.out.println(result);
 
-
         // 매물 선정
 
-
-
-        return result.toString();
+        return null;
     }
+
+
+    // 테스트 컨트롤러
+    @PostMapping("/prompt")
+    public ResponseEntity<Map<String, Object>> selectPrompt() {
+
+        // 키워드
+        String keywords = keyword();
+        String command = "유저의 입력문장과 키워드-데이터 매칭관계를 너에게 줄꺼야. 너는 입력문장에서 관련된 키워드를 고르고 그 키워드와 연관된 데이터와 가중치를 내게 반환해주면 돼.";
+        command +="'예를 들어 살기 좋은 집 추천해줘' 라고 문장이 들어오면 미세먼지0.5-범죄0.2-생활안전0.2-화재0.1 이렇게 반환해주면 돼. 반환양식 꼭 지켜서 반환해줘 다음은 유저입력과 키워드-데이터 관계야 \n";
+        command += "유저 입력문장:"+usertestInput +"\n" + "키워드-데이터 매칭관계:"+keywords;
+
+        // 여러 메시지를 포함한 요청 생성
+        List<CompletionRequestDto.Message> messages = Arrays.asList(
+                CompletionRequestDto.Message.builder()
+                        .role("system")
+                        .content("You are a helpful assistant.")
+                        .build(),
+                CompletionRequestDto.Message.builder()
+                        .role("user")
+                        .content(command)
+                        .build()
+        );
+
+        CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
+                .messages(messages)
+                .temperature(0.7)
+                .build();
+
+        // GPT 호출
+        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
+
+        System.out.println(result);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
+
     public String keyword() {
         String keyword = "살기 좋은:미세먼지0.5-범죄0.2-생활안전0.2-화재0.1";
         keyword += "안전한 집:교통사고0.3-화재0.3-범죄0.3-생활안전0.2-CCTV0.1";
