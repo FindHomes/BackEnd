@@ -20,8 +20,6 @@ import java.util.Map;
 public class MainController {
 
     private final ChatGPTService chatGPTService;
-    private static final String API_KEY = "sk-proj-9uUBIcrwdB0N3GHJPHv5T3BlbkFJM8Rgogzlfvhmpc87jnsn";
-    private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
     @PostMapping("/prompt")
     public ResponseEntity<Map<String, Object>> selectPrompt(@RequestBody CompletionRequestDto completionRequestDto) {
