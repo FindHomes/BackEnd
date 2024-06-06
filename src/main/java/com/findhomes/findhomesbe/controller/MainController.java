@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.DTO.SearchRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.service.ChatGPTService;
+import com.findhomes.findhomesbe.service.KaKaoMapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.*;
 public class MainController {
 
     private final ChatGPTService chatGPTService;
+    private final KaKaoMapService kaKaoMapService;
 
     @PostMapping("/api/search")
     public ResponseEntity<List<House>> search(@RequestBody SearchRequest request) throws IOException {
@@ -29,11 +31,14 @@ public class MainController {
         // GPT API 호출
         Map<String, Double> weights = getWeightsFromGPT(userInput);
 
-        // 매물 데이터 가져오기 (예시 데이터, 실제론 매물 데이터 받아야함)
+        // 매물 데이터 가져오기 (임시 데이터, 실제론 매물 데이터 받아야함)
         List<House> houses = getSampleHouses();
 
+        // 시설 좌표 데이터들 가져오기 (아래 예시는 버거킹)
+        List<double[]> Locations = kaKaoMapService.getLocations("버거킹");
+
         // 점수 계산 및 정렬
-        List<House> scoredHouses = calculateAndSort(houses, weights);
+        List<House> scoredHouses = calculateAndSort(houses, weights, Locations);
 
         return new ResponseEntity<>(scoredHouses, HttpStatus.OK);
     }
@@ -111,12 +116,19 @@ public class MainController {
         );
     }
 
-    private List<House> calculateAndSort(List<House> houses, Map<String, Double> weights) {
+    private List<House> calculateAndSort(List<House> houses, Map<String, Double> weights, List<double[]> Locations) {
         for (House house : houses) {
             double score = 0.0;
-            if (house.getAddress().contains("버거킹")) {
-                score += weights.getOrDefault("버거킹", 0.0);
+            double minDistance = Double.MAX_VALUE;
+
+            for (double[] location : Locations) {
+                double distance = calculateDistance(house.getX(), house.getY(), location[0], location[1]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                }
             }
+
+            score += (1 / (minDistance + 1)) * weights.getOrDefault("버거킹", 0.0); // 거리 반비례 점수 계산
             if (house.getAddress().contains("안전")) {
                 score += weights.getOrDefault("안전", 0.0);
             }
@@ -126,6 +138,23 @@ public class MainController {
         houses.sort(Comparator.comparingDouble(House::getScore).reversed());
 
         return houses;
+    }
+
+    private double calculateDistance(double x1, double y1, double x2, double y2) {
+        double theta = x1 - x2;
+        double dist = Math.sin(deg2rad(y1)) * Math.sin(deg2rad(y2)) + Math.cos(deg2rad(y1)) * Math.cos(deg2rad(y2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515 * 1.609344; // km 단위
+        return dist;
+    }
+
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
     }
 
     public String keyword() {
