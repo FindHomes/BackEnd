@@ -30,7 +30,7 @@ public class MainController {
         Map<String, Double> weights = getWeightsFromGPT(userInput);
 
         // 매물 데이터 가져오기 (예시 데이터, 실제론 매물 데이터 받아야함)
-        List<House> houses = getSampleRankings();
+        List<House> houses = getSampleHouses();
 
         // 점수 계산 및 정렬
         List<House> scoredHouses = calculateAndSort(houses, weights);
@@ -80,7 +80,7 @@ public class MainController {
         return weights;
     }
 
-    private List<House> getSampleRankings() {
+    private List<House> getSampleHouses() {
         return Arrays.asList(
                 House.builder()
                         .houseId(12345678)
