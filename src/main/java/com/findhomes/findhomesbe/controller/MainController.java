@@ -2,9 +2,9 @@ package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.CompletionRequestDto;
 import com.findhomes.findhomesbe.DTO.SearchRequest;
-import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.service.ChatGPTService;
+import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.KaKaoMapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ public class MainController {
 
     private final ChatGPTService chatGPTService;
     private final KaKaoMapService kaKaoMapService;
+    private final HouseService houseService;
 
     @PostMapping("/api/search")
     public ResponseEntity<List<House>> search(@RequestBody SearchRequest request) throws IOException {
@@ -32,7 +33,7 @@ public class MainController {
         Map<String, Double> weights = getWeightsFromGPT(userInput);
 
         // 매물 데이터 가져오기 (임시 데이터, 실제론 매물 데이터 받아야함)
-        List<House> houses = getSampleHouses();
+        List<House> houses = houseService.getHouse(request);
 
         // 시설 좌표 데이터들 가져오기 (아래 예시는 버거킹)
         List<double[]> Locations = kaKaoMapService.getLocations("버거킹");
