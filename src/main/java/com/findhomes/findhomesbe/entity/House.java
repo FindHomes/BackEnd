@@ -15,7 +15,7 @@ public class House {
     private Integer houseId;
     private String priceType;
     private Integer price;
-    private Integer priceForWS;
+    private Integer priceForWs;
     private String housingType;
     private Float size;
     private Integer roomNum;
@@ -35,7 +35,7 @@ public class House {
                 "houseId=" + houseId +
                 ", priceType='" + priceType + '\'' +
                 ", price=" + price +
-                ", priceForWS=" + priceForWS +
+                ", priceForWS=" + priceForWs +
                 ", housingType='" + housingType + '\'' +
                 ", size=" + size +
                 ", roomNum=" + roomNum +
