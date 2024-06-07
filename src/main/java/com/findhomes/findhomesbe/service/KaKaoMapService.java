@@ -29,8 +29,14 @@ public class KaKaoMapService {
         int size = 15;
         int maxPages = 45;
 
+        // 서울 중심 좌표와 반경 설정
+        double seoulX = 126.9784; // 경도
+        double seoulY = 37.5665;  // 위도
+        int radius = 10000; // 10km 반경
+
         while (page <= maxPages) {
-            String url = String.format("https://dapi.kakao.com/v2/local/search/keyword.json?query=%s&page=%d&size=%d", keyword, page, size);
+            String url = String.format("https://dapi.kakao.com/v2/local/search/keyword.json?query=%s&page=%d&size=%d&x=%f&y=%f&radius=%d",
+                    keyword, page, size, seoulX, seoulY, radius);
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
 
