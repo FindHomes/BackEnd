@@ -26,7 +26,7 @@ public class MainController {
     private final HouseService houseService;
 
     @PostMapping("/api/search")
-    public ResponseEntity<SearchResponse> search(@RequestBody SearchRequest request) throws IOException {
+    public ResponseEntity<Map<String, List<SearchResponse.Response.Ranking>>> search(@RequestBody SearchRequest request) throws IOException {
         // 유저 입력 및 매물 조건 추출
         String userInput = extractUserInput(request);
 
@@ -44,10 +44,8 @@ public class MainController {
 
         // 변환 및 반환
         List<SearchResponse.Response.Ranking> rankings = houseService.convertToRanking(scoredHouses);
-        SearchResponse.Response response = SearchResponse.Response.builder().rankings(rankings).build();
-        SearchResponse searchResponse = SearchResponse.builder().response(response).build();
 
-        return new ResponseEntity<>(searchResponse, HttpStatus.OK);
+        return new ResponseEntity<>(Map.of("rankings", rankings), HttpStatus.OK);
     }
 
     private String extractUserInput(SearchRequest request) {
