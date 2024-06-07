@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.DTO.SearchRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.service.ChatGPTService;
+import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.KaKaoMapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,9 +23,10 @@ public class MainController {
 
     private final ChatGPTService chatGPTService;
     private final KaKaoMapService kaKaoMapService;
+    private final HouseService houseService;
 
     @PostMapping("/api/search")
-    public ResponseEntity<List<House>> search(@RequestBody SearchRequest request) throws IOException {
+    public ResponseEntity<SearchResponse> search(@RequestBody SearchRequest request) throws IOException {
         // 유저 입력 및 매물 조건 추출
         String userInput = extractUserInput(request);
 
@@ -32,7 +34,7 @@ public class MainController {
         Map<String, Double> weights = getWeightsFromGPT(userInput);
 
         // 매물 데이터 가져오기 (임시 데이터, 실제론 매물 데이터 받아야함)
-        List<House> houses = getSampleHouses();
+        List<House> houses = houseService.getHouse(request);
 
         // 시설 좌표 데이터들 가져오기 (아래 예시는 버거킹)
         List<double[]> Locations = kaKaoMapService.getLocations("버거킹");
@@ -40,7 +42,12 @@ public class MainController {
         // 점수 계산 및 정렬
         List<House> scoredHouses = calculateAndSort(houses, weights, Locations);
 
-        return new ResponseEntity<>(scoredHouses, HttpStatus.OK);
+        // 변환 및 반환
+        List<SearchResponse.Response.Ranking> rankings = houseService.convertToRanking(scoredHouses);
+        SearchResponse.Response response = SearchResponse.Response.builder().rankings(rankings).build();
+        SearchResponse searchResponse = SearchResponse.builder().response(response).build();
+
+        return new ResponseEntity<>(searchResponse, HttpStatus.OK);
     }
 
     private String extractUserInput(SearchRequest request) {
@@ -91,7 +98,7 @@ public class MainController {
                         .houseId(12345678)
                         .priceType("mm")
                         .price(20000)
-                        .priceForWS(0)
+                        .priceForWs(0)
                         .housingType("ONE")
                         .size(40.0f)
                         .roomNum(1)
@@ -104,7 +111,7 @@ public class MainController {
                         .houseId(87654321)
                         .priceType("ws")
                         .price(2000)
-                        .priceForWS(100)
+                        .priceForWs(100)
                         .housingType("TWO")
                         .size(80.0f)
                         .roomNum(2)
