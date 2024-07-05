@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 
 @Controller
@@ -94,29 +95,43 @@ public class MainController {
         return Arrays.asList(
                 House.builder()
                         .houseId(12345678)
+                        .url("https://kustaurant.com")
                         .priceType("mm")
                         .price(20000)
                         .priceForWs(0)
-                        .housingType("ONE")
-                        .size(40.0f)
+                        .housingType("원룸")
+                        .isMultiLayer(false)
+                        .isSeparateType(false)
+                        .floor("3층")
+                        .size(40d)
                         .roomNum(1)
                         .washroomNum(1)
+                        .direction("남동")
+                        .completionDate(LocalDate.now())
+                        .houseOption("에어컨")
                         .address("경기도 안양시 동안구")
                         .x(127.0)
                         .y(37.4)
                         .build(),
                 House.builder()
-                        .houseId(87654321)
-                        .priceType("ws")
-                        .price(2000)
-                        .priceForWs(100)
-                        .housingType("TWO")
-                        .size(80.0f)
-                        .roomNum(2)
+                        .houseId(12345678)
+                        .url("https://kustaurant.com")
+                        .priceType("mm")
+                        .price(20000)
+                        .priceForWs(0)
+                        .housingType("원룸")
+                        .isMultiLayer(false)
+                        .isSeparateType(false)
+                        .floor("3층")
+                        .size(40d)
+                        .roomNum(1)
                         .washroomNum(1)
-                        .address("서울시 광진구 건국대")
-                        .x(127.1)
-                        .y(37.5)
+                        .direction("남동")
+                        .completionDate(LocalDate.now())
+                        .houseOption("에어컨")
+                        .address("경기도 안양시 동안구")
+                        .x(127.0)
+                        .y(37.4)
                         .build()
         );
     }

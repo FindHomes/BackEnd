@@ -33,6 +33,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
+
+    implementation ("org.seleniumhq.selenium:selenium-java:4.20.0")
+    // json
+    implementation 'org.json:json:20240303'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 tasks.named('test') {
