@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
@@ -37,8 +39,8 @@ public class MainController {
         Map<String, Double> weights = getKeywordANDWeightsFromGPT(request.getUserInput());
         // 2. 매물 데이터 가져오기
         List<House> houses = houseService.getHouse(request);
-        // 3. 시설 좌표 데이터들 가져오기 (아래 예시는 병원, 원래는 1에서 구한 키워드와 가중치를 통해 메소드를 호출해야함)
-        List<double[]> Locations = hospitalService.getAllHospitalLocations("피부과");
+        // 3. 시설 좌표 데이터들 가져오기
+        List<double[]> Locations = getLocation(weights);
         // 4. 점수 계산 및 정렬
         List<House> scoredHouses = calculateAndSort(houses, weights, Locations);
 
@@ -47,6 +49,39 @@ public class MainController {
 
         return new ResponseEntity<>(Map.of("rankings", rankings), HttpStatus.OK);
     }
+
+//    private List<double[]> getLocation(Map<String, Double> weights) {
+//        List<double[]> allLocations = new ArrayList<>();
+//
+//        for (Map.Entry<String, Double> entry : weights.entrySet()) {
+//            String keyword = entry.getKey();
+//
+//            // 각 키워드에 대해 위치 정보를 가져오는 서비스 호출
+//            List<double[]> locations = new ArrayList<>();
+//            switch (keyword) {
+//                case "음식점":
+//                    locations = restaurantService.getAllRestaurantLocations();
+//                    break;
+//                case "피시방":
+//                    locations = pcRoomService.getAllPCRoomLocations();
+//                    break;
+//                case "미용실":
+//                    locations = HairSalonService.getAllHairSalonLocations();
+//                    break;
+//                case "병원":
+//                    locations = hospitalService.getAllHospitalLocations("병원");
+//                    break;
+//                // 다른 키워드에 대해 추가
+//                // case "다른키워드":
+//                //     locations = someOtherService.getLocationsForKeyword("다른키워드");
+//                //     break;
+//            }
+//
+//            allLocations.addAll(locations);
+//        }
+//
+//        return allLocations;
+//    }
 
 
     private Map<String, Double> getKeywordANDWeightsFromGPT(String userInput) throws IOException {
@@ -80,11 +115,21 @@ public class MainController {
     }
 
     private Map<String, Double> parseGPTResponse(Map<String, Object> result) {
-        // 예제 파싱 로직, 실제 구현 시 적절한 파싱 로직을 작성
-        Map<String, Double> weights = new HashMap<>();
-        weights.put("버거킹", 0.4);
-        weights.put("안전", 0.6);
-        return weights;
+        // GPT 응답에서 content 부분 추출
+        String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
+
+        // 정규 표현식을 사용하여 항목과 값을 추출합니다.
+        Pattern pattern = Pattern.compile("([^,\\[\\]]+?)(\\d+\\.\\d+)");
+        Matcher matcher = pattern.matcher(content);
+
+        Map<String, Double> parsedData = new HashMap<>();
+
+        while (matcher.find()) {
+            String key = matcher.group(1).trim();
+            Double value = Double.parseDouble(matcher.group(2));
+            parsedData.put(key, value);
+        }
+        return parsedData;
     }
 
     private List<House> getSampleHouses() {
