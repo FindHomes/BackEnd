@@ -39,26 +39,26 @@ public class MainController {
         Map<String, Double> weights = getKeywordANDWeightsFromGPT(request.getUserInput());
         // 2. 매물 데이터 가져오기
         List<House> houses = houseService.getHouse(request);
-        // 3. 시설 좌표 데이터들 가져오기
+        // 3. 시설의 좌표 가져오기
         List<double[]> Locations = getLocation(weights);
-        // 4. 점수 계산 및 정렬
-        List<House> scoredHouses = calculateAndSort(houses, weights, Locations);
-
+        // 4. 점수 계산
+        List<House> scoredHouses = calculateScore(houses, weights, Locations);
         // 5. 변환 및 반환
         List<SearchResponse.Response.Ranking> rankings = houseService.convertToRanking(scoredHouses);
 
         return new ResponseEntity<>(Map.of("rankings", rankings), HttpStatus.OK);
     }
 
-//    private List<double[]> getLocation(Map<String, Double> weights) {
-//        List<double[]> allLocations = new ArrayList<>();
-//
-//        for (Map.Entry<String, Double> entry : weights.entrySet()) {
-//            String keyword = entry.getKey();
-//
-//            // 각 키워드에 대해 위치 정보를 가져오는 서비스 호출
-//            List<double[]> locations = new ArrayList<>();
-//            switch (keyword) {
+    private List<double[]> getLocation(Map<String, Double> weights) {
+        List<double[]> allLocations = new ArrayList<>();
+
+        for (Map.Entry<String, Double> entry : weights.entrySet()) {
+            String keyword = entry.getKey();
+
+            // 각 키워드에 대해 위치 정보를 가져오는 서비스 호출
+            List<double[]> locations = new ArrayList<>();
+            switch (keyword) {
+                // to do : 서비스 만들고 메소드 각각 구현하기
 //                case "음식점":
 //                    locations = restaurantService.getAllRestaurantLocations();
 //                    break;
@@ -72,16 +72,16 @@ public class MainController {
 //                    locations = hospitalService.getAllHospitalLocations("병원");
 //                    break;
 //                // 다른 키워드에 대해 추가
-//                // case "다른키워드":
-//                //     locations = someOtherService.getLocationsForKeyword("다른키워드");
-//                //     break;
-//            }
-//
-//            allLocations.addAll(locations);
-//        }
-//
-//        return allLocations;
-//    }
+                // case "다른키워드":
+                //     locations = someOtherService.getLocationsForKeyword("다른키워드");
+                //     break;
+            }
+
+            allLocations.addAll(locations);
+        }
+
+        return allLocations;
+    }
 
 
     private Map<String, Double> getKeywordANDWeightsFromGPT(String userInput) throws IOException {
@@ -177,27 +177,8 @@ public class MainController {
         );
     }
 
-    private List<House> calculateAndSort(List<House> houses, Map<String, Double> weights, List<double[]> Locations) {
-        for (House house : houses) {
-            double score = 0.0;
-            double minDistance = Double.MAX_VALUE;
-
-            for (double[] location : Locations) {
-                double distance = calculateDistance(house.getX(), house.getY(), location[0], location[1]);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                }
-            }
-
-            score += (1 / (minDistance + 1)) * weights.getOrDefault("버거킹", 0.0); // 거리 반비례 점수 계산
-            if (house.getAddress().contains("안전")) {
-                score += weights.getOrDefault("안전", 0.0);
-            }
-            house.setScore(score);
-        }
-
-        houses.sort(Comparator.comparingDouble(House::getScore).reversed());
-
+    private List<House> calculateScore(List<House> houses, Map<String, Double> weights, List<double[]> Locations) {
+        // to do : 매물 점수 계산하기
         return houses;
     }
     // 거리 계산 함수
