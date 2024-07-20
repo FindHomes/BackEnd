@@ -58,7 +58,7 @@ public class MainController {
             // 각 키워드에 대해 위치 정보를 가져오는 서비스 호출
             List<double[]> locations = new ArrayList<>();
             switch (keyword) {
-                // to do : 서비스 만들고 메소드 각각 구현하기
+                // to do : 위치 가져오기
 //                case "음식점":
 //                    locations = restaurantService.getAllRestaurantLocations();
 //                    break;
