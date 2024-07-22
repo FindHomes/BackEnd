@@ -16,7 +16,7 @@ public class Hospital {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer hospitalIndustryId;
-    private String place_name;
+    private String placeName;
     private String roadAddress;
     private Integer zipcode;
     private String category;
