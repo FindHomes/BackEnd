@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name="hospital_industry_tbl")
-public class Hospital {
+public class Hospital implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer hospitalIndustryId;

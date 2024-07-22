@@ -44,6 +44,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     // 파일 저장
     implementation 'commons-io:commons-io:2.4'
+    // 좌표 변환
+    implementation 'org.locationtech.proj4j:proj4j:1.1.5'
 }
 
 tasks.named('test') {

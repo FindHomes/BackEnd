@@ -9,11 +9,11 @@ import lombok.*;
 @NoArgsConstructor
 @Entity
 @Table(name="restaurant_industry_tbl")
-public class Restaurant {
+public class Restaurant implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer restaurantIndustryId;
-    private String place_name;
+    private String placeName;
     private Double x;
     private Double y;
     private String category;

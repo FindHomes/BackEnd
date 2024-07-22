@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.DTO.SearchRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
+import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +39,9 @@ public class HouseService {
                         .size(String.valueOf(house.getSize()))
                         .build())
                 .build()).collect(Collectors.toList());
+    }
+
+    public List<House> getManConHouses(SearchRequest.ManCon manCon) {
+        return houseRepository.findAll(HouseSpecification.searchHousesByManCon(manCon));
     }
 }

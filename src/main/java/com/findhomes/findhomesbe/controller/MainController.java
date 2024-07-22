@@ -4,11 +4,11 @@ import com.findhomes.findhomesbe.DTO.CompletionRequestDto;
 import com.findhomes.findhomesbe.DTO.SearchRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.service.ChatGPTService;
-import com.findhomes.findhomesbe.service.HospitalService;
-import com.findhomes.findhomesbe.service.HouseService;
-import com.findhomes.findhomesbe.service.KaKaoMapService;
+import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.Restaurant;
+import com.findhomes.findhomesbe.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,30 +23,64 @@ import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class MainController {
 
     private final ChatGPTService chatGPTService;
     private final KaKaoMapService kaKaoMapService;
     private final HouseService houseService;
     private final HospitalService hospitalService;
+    private final RestaurantIndustryService restaurantIndustryService;
 
 
     @PostMapping("/api/search")
+    public ResponseEntity<List<House>> search(@RequestBody SearchRequest request) throws IOException {
 
-    public ResponseEntity<Map<String, List<SearchResponse.Response.Ranking>>> search(@RequestBody SearchRequest request) throws IOException {
-
-        // 1. 키워드 및 가중치 선정
+        /**
+         * [1. 키워드 및 가중치 선정]
+         * GPT가 알려줘야 하는 데이터
+         * 1) 필수 조건 외에 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션)
+         * 2) 필요 시설 (ex. 버거킹, 정형외과, 다이소)
+         * 3) 필요 공공 데이터와 가중치
+         * 4) 사용자에게 추가로 물어봐야 할 조건?
+         */
         Map<String, Double> weights = getKeywordANDWeightsFromGPT(request.getUserInput());
-        // 2. 매물 데이터 가져오기
-        List<House> houses = houseService.getHouse(request);
-        // 3. 시설의 좌표 가져오기
-        List<double[]> Locations = getLocation(weights);
-        // 4. 점수 계산
-        List<House> scoredHouses = calculateScore(houses, weights, Locations);
-        // 5. 변환 및 반환
-        List<SearchResponse.Response.Ranking> rankings = houseService.convertToRanking(scoredHouses);
+        log.info("GPT 응답: {}", weights);
 
-        return new ResponseEntity<>(Map.of("rankings", rankings), HttpStatus.OK);
+        /**
+         * [2. 매물 데이터 가져오기]
+         * 매물 데이터
+         * 계약 형태, 가격, 월세, 관리비, 집 형태, 복층 여부, 분리형 여부, 층수, 크기, 방 개수, 화장실 개수, 방향, 완공일, 옵션
+         * 2-1. 필수 조건(계약 형태 및 가격, 월세, 집 형태)로 필터링
+         * 2-2. 나머지 정보(관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션)로 필터링
+         */
+        // 2-1. 필수 입력 조건을 만족하는 매물 리스트 불러오기
+        List<House> manConHouses = houseService.getManConHouses(request.getManCon());
+        log.info("매물 개수: {}개", manConHouses.size());
+        // 2-2. 나머지 매물 조건 만족하는 매물 리스트 필터링
+
+        /**
+         * [3. 필요 시설로 매물 필터링하기]
+         * 3-1. 필요 시설 가져오기
+         * 3-2. 거리 기준으로 매물 필터링하기
+         */
+        // 3-1. 필요 시설 가져오기
+        List<Restaurant> restaurants = restaurantIndustryService.getRestaurantByKeyword(new String[]{"피자헛"});
+        log.info("식당 개수: {}개", restaurants.size());
+        // 3-2. 거리 기준으로 매물 필터링하기
+        List<House> resultHouses = CoordService.filterHouseByDistance(manConHouses, restaurants, 3d);
+        log.info("필터링 후 식당 개수: {}개", resultHouses.size());
+
+        /**
+         * [4. 매물 점수 계산하기]
+         */
+
+
+        /**
+         * [5. 정렬 및 반환]
+         */
+
+        return new ResponseEntity<>(resultHouses, HttpStatus.OK);
     }
 
     private List<double[]> getLocation(Map<String, Double> weights) {

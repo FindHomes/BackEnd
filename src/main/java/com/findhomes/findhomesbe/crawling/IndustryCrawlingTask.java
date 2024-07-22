@@ -54,7 +54,7 @@ public class IndustryCrawlingTask {
                 continue;
             }
 
-            String restaurantName = restaurant.getPlace_name() + " " + roadAddress;
+            String restaurantName = restaurant.getPlaceName() + " " + roadAddress;
 
             inputElement.sendKeys(Keys.CONTROL + "a");
             inputElement.sendKeys(Keys.DELETE);
