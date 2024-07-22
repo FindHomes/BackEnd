@@ -83,7 +83,6 @@ public class MainController {
         return allLocations;
     }
 
-
     private Map<String, Double> getKeywordANDWeightsFromGPT(String userInput) throws IOException {
         String keywords = keyword();
         String command = createGPTCommand(userInput, keywords);
@@ -91,7 +90,7 @@ public class MainController {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
-                        .content("You are a machine that returns responses according to a predetermined format.")
+                        .content("You are a machine that returns responses according to a predetermined format. Return the result in the specified format without any extra text.")
                         .build(),
                 CompletionRequestDto.Message.builder()
                         .role("user")
@@ -111,15 +110,26 @@ public class MainController {
     }
 
     private String createGPTCommand(String userInput, String keywords) {
-        return "유저의 입력 문장과 현재 우리가 보유한 데이터 목록을 너한테 줄꺼야. 너는 문장과 연관이 있는 데이터를 선정한 뒤 각 데이터에 가중치를 설정하고 그 결과를 한줄로 나한테 반환해주면 돼. 예를 들어 '집 가까이 pc방과 음식점, 미용실이 있었으면 좋겠어. 그리고 제일 중요한게 병원이 가까이 있어야해' 라고 문장이 들어오면 [음식점0.2,피시방0.2,미용실0.2, 병원0.4] 이런 양식대로 문장을 반환해야해.  그 관련 데이터에 대한 가중치를 반환하면 되고 관련없으면 0을 반환해. 그리고 가중치를 다 더하면 1이 되어야해.  '다음은 반환문장입니다'와 같은 미사어구 넣지마. 다음 문장은 유저입력과 보유 데이터야. 유저 입력문장:" + userInput + ". 보유 데이터:" + keywords;
+        return String.format(
+                "유저 입력 문장: '%s'. 보유 데이터: '%s'. " +
+                "유저의 요구사항과 직접적으로 관련된 데이터만을 선정하고, 각 데이터에 가중치를 설정해 한 줄로 반환하세요. " +
+                "반환 형식: '음식점0.2,피시방0.2,미용실0.2,병원0.4'. " +
+                "가중치의 총합은 1이어야 하며, 불필요한 미사어구는 포함하지 마세요. " +
+                "포함 관계가 있다면 더 구체적인 키워드에 가중치를 설정하세요.",
+                
+                userInput, keywords
+        );
     }
+
+
+
 
     private Map<String, Double> parseGPTResponse(Map<String, Object> result) {
         // GPT 응답에서 content 부분 추출
         String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
 
         // 정규 표현식을 사용하여 항목과 값을 추출합니다.
-        Pattern pattern = Pattern.compile("([^,\\[\\]]+?)(\\d+\\.\\d+)");
+        Pattern pattern = Pattern.compile("([^,]+?)(\\d+\\.\\d+)");
         Matcher matcher = pattern.matcher(content);
 
         Map<String, Double> parsedData = new HashMap<>();
@@ -200,6 +210,5 @@ public class MainController {
     }
 
     public String keyword() {
-        return "음식점, 미용실, 피시방, 병원";
-    }
-}
+        return "음식점, 미용실, 피시방, 병원, 버거킹, 맥도날드, 노래방, 코인 노래방, 공원, 지하철역, 학교, 쇼핑몰, 카페, 도서관, 은행, 약국, 편의점, 체육관, 영화관, 서점, 수영장, 동물병원, 유치원, 초등학교, 중학교, 대학교, 학원";
+    }}
