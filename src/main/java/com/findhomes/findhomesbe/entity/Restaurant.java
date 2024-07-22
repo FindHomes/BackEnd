@@ -12,7 +12,7 @@ import lombok.*;
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer restaurant_industry_id;
+    private Integer restaurantIndustryId;
     private String place_name;
     private Double x;
     private Double y;

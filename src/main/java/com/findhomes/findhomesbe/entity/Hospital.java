@@ -15,7 +15,7 @@ import lombok.Setter;
 public class Hospital {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer hospital_industry_id;
+    private Integer hospitalIndustryId;
     private String place_name;
     private String roadAddress;
     private Integer zipcode;

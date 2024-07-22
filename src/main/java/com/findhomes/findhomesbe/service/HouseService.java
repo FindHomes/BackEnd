@@ -16,10 +16,12 @@ public class HouseService {
     private final HouseRepository houseRepository;
 
     public List<House> getHouse(SearchRequest searchRequest) {
-        List<House> houseList = houseRepository.findByPriceType("mm");
-        for (House house : houseList) {
-            System.out.println("house = " + house.toString());
-        }
+//        List<House> houseList = houseRepository.findByPriceType("mm");
+        List<House> houseList = houseRepository.findAll();
+
+//        for (House house : houseList) {
+//            System.out.println("house = " + house.toString());
+//        }
         return houseList;
     }
 
