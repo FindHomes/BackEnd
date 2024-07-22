@@ -11,17 +11,17 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="hospitals_tbl")
+@Table(name="hospital_industry_tbl")
 public class Hospital {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String name;
-    private String fullAddress;
+    private Integer hospital_industry_id;
+    private String place_name;
     private String roadAddress;
     private Integer zipcode;
     private String category;
     private Double x;
     private Double y;
     private String major;
+    private String placeTags;
 }

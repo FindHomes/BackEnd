@@ -1,13 +1,15 @@
 package com.findhomes.findhomesbe.controller;
 
+import com.findhomes.findhomesbe.crawling.IndustryCrawlingTask;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.housecrawling.HouseCrawlingTask;
+import com.findhomes.findhomesbe.crawling.HouseCrawlingTask;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 
@@ -15,11 +17,18 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class CrawlingController {
     private final HouseCrawlingTask houseCrawlingTask;
+    private final IndustryCrawlingTask industryCrawlingTask;
     private final HouseRepository houseRepository;
 
     @GetMapping("/api/crawling")
     public ResponseEntity<Void> crawlingHouse() {
         houseCrawlingTask.exec();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/api/crawling/restaurant")
+    public ResponseEntity<Void> crawlingRestaurant(@RequestParam Integer start, @RequestParam Integer end) {
+        industryCrawlingTask.exec(start, end);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

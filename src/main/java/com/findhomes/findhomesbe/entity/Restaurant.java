@@ -2,24 +2,21 @@ package com.findhomes.findhomesbe.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="restaurants_tbl")
+@Table(name="restaurant_industry_tbl")
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String name;
+    private Integer restaurant_industry_id;
+    private String place_name;
     private Double x;
     private Double y;
-    private Integer roadPostcode;
-    private String tags;
+    private String category;
+    private String roadAddress;
+    private String placeTags;
 }

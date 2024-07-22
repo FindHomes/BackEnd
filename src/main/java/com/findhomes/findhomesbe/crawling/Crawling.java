@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.housecrawling;
+package com.findhomes.findhomesbe.crawling;
 
 import java.time.Duration;
 
@@ -32,6 +32,19 @@ public class Crawling {
     public Crawling setDriverWithoutShowing() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // 브라우저를 화면에 표시하지 않고 실행
+        this.driver = new ChromeDriver(options);
+        return this;
+    }
+    public Crawling setDriverAtServer() {
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+//        options.addArguments("--disable-software-rasterizer");
+//        options.addArguments("--remote-debugging-port=9222");
         this.driver = new ChromeDriver(options);
         return this;
     }
@@ -104,6 +117,18 @@ public class Crawling {
             System.out.println("ERROR: 시간 초과(Element) - " + e.getLocalizedMessage());
         } catch (NoSuchElementException e) {
             System.out.println("ERROR: No Element Css: " + selector + " - " + e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    public WebElement getElementByTag(By tag) {
+        try {
+            this.wait.until(ExpectedConditions.visibilityOfElementLocated(tag));
+            return driver.findElement(tag);
+        } catch (TimeoutException e) {
+            System.out.println("ERROR: 시간 초과(Element) - " + e.getLocalizedMessage());
+        } catch (NoSuchElementException e) {
+            System.out.println("ERROR: No Element Css: " + tag + " - " + e.getLocalizedMessage());
         }
         return null;
     }
