@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.service;
 
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.proj4j.BasicCoordinateTransform;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
@@ -10,6 +11,7 @@ import org.locationtech.proj4j.ProjCoordinate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class CoordService {
     private static final double EARTH_RADIUS_KM = 6371.0;
 
@@ -52,7 +54,7 @@ public class CoordService {
 
         // 거리 반환 (킬로미터 단위)
         if (EARTH_RADIUS_KM * c <= radius) {
-            System.out.println("탐지 완료 - 매물 번호: " +  house.getHouseId() + ", 거리: " + EARTH_RADIUS_KM * c);
+            log.info("탐지 완료 - 매물 번호: {}, 거리: {}", house.getHouseId(), EARTH_RADIUS_KM * c);
         }
         return EARTH_RADIUS_KM * c;
     }

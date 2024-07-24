@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe.service;
 
-import com.findhomes.findhomesbe.DTO.SearchRequest;
+import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class HouseService {
     private final HouseRepository houseRepository;
 
-    public List<House> getHouse(SearchRequest searchRequest) {
+    public List<House> getHouse(ManConRequest searchRequest) {
 //        List<House> houseList = houseRepository.findByPriceType("mm");
         List<House> houseList = houseRepository.findAll();
 
@@ -41,7 +41,7 @@ public class HouseService {
                 .build()).collect(Collectors.toList());
     }
 
-    public List<House> getManConHouses(SearchRequest.ManCon manCon) {
-        return houseRepository.findAll(HouseSpecification.searchHousesByManCon(manCon));
+    public List<House> getManConHouses(ManConRequest manConRequest) {
+        return houseRepository.findAll(HouseSpecification.searchHousesByManCon(manConRequest));
     }
 }

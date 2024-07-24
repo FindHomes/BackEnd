@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe.specification;
 
-import com.findhomes.findhomesbe.DTO.SearchRequest;
+import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.entity.House;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,19 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HouseSpecification {
-    public static Specification<House> searchHousesByManCon(SearchRequest.ManCon manCon) {
+    public static Specification<House> searchHousesByManCon(ManConRequest manConRequest) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (manCon != null) {
+            if (manConRequest != null) {
                 // Housing Type 조건
-                if (manCon.getHousingTypes() != null && !manCon.getHousingTypes().isEmpty()) {
-                    predicates.add(root.get("housingType").in(manCon.getHousingTypes()));
+                if (manConRequest.getHousingTypes() != null && !manConRequest.getHousingTypes().isEmpty()) {
+                    predicates.add(root.get("housingType").in(manConRequest.getHousingTypes()));
                 }
 
                 // Price 조건
-                if (manCon.getPrices() != null) {
-                    SearchRequest.ManCon.Prices prices = manCon.getPrices();
+                if (manConRequest.getPrices() != null) {
+                    ManConRequest.Prices prices = manConRequest.getPrices();
 
                     // 매매 조건
                     predicates.add(criteriaBuilder.or(
