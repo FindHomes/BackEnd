@@ -8,6 +8,7 @@ import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Restaurant;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -41,7 +43,8 @@ public class MainController {
     private String userInput;
 
     @PostMapping("/api/search/man-con")
-    @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다.")
+    @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
+            "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
     public ResponseEntity<Void> setManConSearch(@RequestBody ManConRequest request) {
         /**
@@ -111,7 +114,12 @@ public class MainController {
     @GetMapping("/api/search/update")
     @Operation(summary = "사용자 지도 상호작용 시 매물 리스트 갱신", description = "사용자가 지도를 움직이거나 확대/축소될 때, 해당 지도에 표시되는 매물 정보를 새로 받아옵니다.")
     @ApiResponse(responseCode = "200", description = "매물 리스트를 반환합니다.")
-    public ResponseEntity<List<House>> getUpdatedHouseList() {
+    public ResponseEntity<List<House>> getUpdatedHouseList(
+            @RequestParam @Parameter(description = "경도 최댓값") double xMax,
+            @RequestParam @Parameter(description = "경도 최솟값") double xMin,
+            @RequestParam @Parameter(description = "위도 최댓값") double yMax,
+            @RequestParam @Parameter(description = "위도 최솟값") double yMin
+    ) {
         return new ResponseEntity<>(this.preHouseData, HttpStatus.OK);
     }
 
