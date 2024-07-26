@@ -32,7 +32,6 @@ public class MainController {
 
 
     @PostMapping("/api/search")
-
     public ResponseEntity<Map<String, List<SearchResponse.Response.Ranking>>> search(@RequestBody SearchRequest request) throws IOException {
 
         // 1. 키워드 및 가중치 선정
@@ -113,10 +112,9 @@ public class MainController {
         return String.format(
                 "유저 입력 문장: '%s'. 보유 데이터: '%s'. " +
                 "유저의 요구사항과 직접적으로 관련된 데이터만을 선정하고, 각 데이터에 가중치를 설정해 한 줄로 반환하세요. " +
-                "반환 형식: '음식점0.2,피시방0.2,미용실0.2,병원0.4'. " +
+                "반환 형식: '음식점0.2,피시방0.2,미용실0.2,병원0.4'. " +   // 롯데타워,건대, 네이버 본사 // 직장, 친구집
                 "가중치의 총합은 1이어야 하며, 불필요한 미사어구는 포함하지 마세요. " +
-                "포함 관계가 있다면 더 구체적인 키워드에 가중치를 설정하세요.",
-                
+                "포함 관계가 있다면 더 구체적인 키워드에 가중치를 설정하세요.", //
                 userInput, keywords
         );
     }
