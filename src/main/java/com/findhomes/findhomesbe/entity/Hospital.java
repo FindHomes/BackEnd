@@ -1,4 +1,3 @@
-
 package com.findhomes.findhomesbe.entity;
 
 import jakarta.persistence.*;
@@ -12,17 +11,17 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="hospitals_tbl")
-public class Hospital {
+@Table(name="hospital_industry_tbl")
+public class Hospital implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String name;
-    private String fullAddress;
+    private Integer hospitalIndustryId;
+    private String placeName;
     private String roadAddress;
     private Integer zipcode;
     private String category;
     private Double x;
     private Double y;
     private String major;
+    private String placeTags;
 }

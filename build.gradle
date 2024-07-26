@@ -38,9 +38,17 @@ dependencies {
 
 
     implementation ("org.seleniumhq.selenium:selenium-java:4.20.0")
+    implementation "org.jsoup:jsoup:1.14.3"
     // json
     implementation 'org.json:json:20240303'
     implementation 'com.google.code.gson:gson:2.10.1'
+    // 파일 저장
+    implementation 'commons-io:commons-io:2.4'
+    // 좌표 변환
+    implementation 'org.locationtech.proj4j:proj4j:1.1.5'
+
+    // swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 }
 
 tasks.named('test') {

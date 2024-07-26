@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,8 +37,10 @@ public class House {
     private transient Double score; // 직렬화에서 제외됨
 
     //
+    @JsonIgnore
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
     private List<SavedRoom> savedRoomList;
+    @JsonIgnore
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
     private List<ViewedRoom> viewedRoomList;
 

@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.housecrawling;
+package com.findhomes.findhomesbe.crawling;
 
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
@@ -51,17 +51,17 @@ public class HouseCrawlingTask {
 
     // 페이지 url
     List<String> urls = List.of(
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4821378&m_lng=126.9910284&m_zoom=16",
-            "https://www.dabangapp.com/map/apt?m_lat=37.4781192&m_lng=126.9703432&m_zoom=16",
-            "https://www.dabangapp.com/map/house?m_lat=37.4788898&m_lng=126.9682886&m_zoom=17",
-            "https://www.dabangapp.com/map/officetel?m_lat=37.495997&m_lng=126.9690236&m_zoom=14"
+            "https://www.dabangapp.com/map/officetel?m_lat=37.495997&m_lng=126.9690236&m_zoom=13",
+            "https://www.dabangapp.com/map/onetwo?m_lat=37.4821378&m_lng=126.9910284&m_zoom=15",
+            "https://www.dabangapp.com/map/apt?m_lat=37.4781192&m_lng=126.9703432&m_zoom=15",
+            "https://www.dabangapp.com/map/house?m_lat=37.4788898&m_lng=126.9682886&m_zoom=15"
     );
 
     public void exec() {
         Crawling mainCrawling = new Crawling()
-                .setDriverWithShowing()
+                .setDriverAtServer()
                 .setWaitTime(MAX_WAIT_TIME);
-        mainCrawling.getDriver().manage().window().maximize();
+        //mainCrawling.getDriver().manage().window().maximize();
 
         for (String url : urls) {
             mainCrawling.openUrl(url);
@@ -71,11 +71,31 @@ public class HouseCrawlingTask {
                     // 클릭
                     element.click();
 
+//                    try {
+//                        File screenshot = ((TakesScreenshot) mainCrawling.getDriver()).getScreenshotAs(OutputType.FILE);
+//                        FileUtils.copyFile(screenshot, new File("screenshot.png"));
+//                    } catch (IOException e) {
+//
+//                    }
+
                     // 새로운 탭으로 전환
                     ArrayList<String> tabs = new ArrayList<>(mainCrawling.getDriver().getWindowHandles());
                     mainCrawling.getDriver().switchTo().window(tabs.get(1));
 
-                    postProcessing(mainCrawling);
+//                    try {
+//                        File screenshot = ((TakesScreenshot) mainCrawling.getDriver()).getScreenshotAs(OutputType.FILE);
+//                        FileUtils.copyFile(screenshot, new File("screenshot2.png"));
+//                    } catch (IOException e) {
+//
+//                    }
+
+                    try {
+                        postProcessing(mainCrawling);
+                    } catch (InterruptedException e) {
+
+                    } catch (IOException e) {
+
+                    }
 
                     mainCrawling.getDriver().close();
 
@@ -103,8 +123,7 @@ public class HouseCrawlingTask {
         mainCrawling.quitDriver();
     }
 
-    public void postProcessing(Crawling curCrawling) {
-        Thread currentThread = Thread.currentThread();
+    public void postProcessing(Crawling curCrawling) throws InterruptedException, IOException {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
