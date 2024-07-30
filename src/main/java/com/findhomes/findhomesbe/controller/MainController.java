@@ -22,11 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
@@ -40,8 +37,8 @@ public class MainController {
     private final RestaurantIndustryService restaurantIndustryService;
 
     private List<House> preHouseData;
-    private String userInput;
-
+    private String userInput = "2층에 복층이었으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
+    private String publicData = "교통사고율,화재율,범죄율,생활안전,자살율,감염병율";
     @PostMapping("/api/search/man-con")
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
@@ -83,8 +80,8 @@ public class MainController {
          * 3) 필요 공공 데이터와 가중치
          * 4) 사용자에게 추가로 물어봐야 할 조건?
          */
-        Map<String, Double> weights = getKeywordANDWeightsFromGPT(this.userInput);
-        log.info("GPT 응답: {}", weights);
+        String weights = getKeywordANDWeightsFromGPT(this.userInput);
+        log.info("GPT 응답: \n{}", weights);
 
         /**
          * [2. 매물 자체 조건으로 매물 필터링]
@@ -157,9 +154,9 @@ public class MainController {
 
 
 
-    private Map<String, Double> getKeywordANDWeightsFromGPT(String userInput) {
+    private String getKeywordANDWeightsFromGPT(String userInput) {
         String keywords = keyword();
-        String command = createGPTCommand(userInput, keywords);
+        String command = createGPTCommand(userInput, keywords, publicData);
 
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
@@ -178,41 +175,36 @@ public class MainController {
                 .build();
 
         Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
-        System.out.println(result);
 
         return parseGPTResponse(result);
     }
 
-    private String createGPTCommand(String userInput, String keywords) {
+    private String createGPTCommand(String userInput, String keywords, String publicData) {
         return String.format(
-                "유저 입력 문장: '%s'. 보유 데이터: '%s'. " +
-                "유저의 요구사항과 직접적으로 관련된 데이터만을 선정하고, 각 데이터에 가중치를 설정해 한 줄로 반환하세요. " +
-                "반환 형식: '음식점0.2,피시방0.2,미용실0.2,병원0.4'. " +   // 롯데타워,건대, 네이버 본사 // 직장, 친구집
-                "가중치의 총합은 1이어야 하며, 불필요한 미사어구는 포함하지 마세요. " +
-                "포함 관계가 있다면 더 구체적인 키워드에 가중치를 설정하세요.", //
-                userInput, keywords
+                "유저 입력 문장: '%s'. 보유 시설 데이터: '%s'. 보유 공공 데이터: '%s'. " +
+                        "유저의 요구사항을 분석하여 반환 형식에 맞게 응답해주세요. 반환 형식은 세 가지 섹션으로 구성됩니다. " +
+                        "각 섹션은 1,2,3 숫자로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 피시방-0.1 이렇게 나타냅니다 " +
+                        "반환양식의 1번은 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션) 을 의미하고 방 수-2, 관리비-10이하 와 같이 나타냅니다"+
+                        "반환양식의 2번은 유저의 입력문장과 관련한 보유 시설 데이터와 가중치를 나타내고 음식점-0.2 와 같이 나타냅니다."+
+                        "반환양식의 3번은 유저의 입력문장과 관련한 공공 데이터와 가중치를 나타내고 범죄율-0.2 와 같이 나타냅니다."+
+                        "가중치는 유저의 요구사항에 따라 해당 데이터의 중요도를 나타내며, 2번과 3번 데이터의 가중치의 총합은 1이어야 합니다. " +
+                        "불필요한 텍스트 없이 형식에 맞게 정확히 응답해주세요. 반환 형식 예시는 다음과 같습니다: " +
+                        "'1. 관리비-20이하, 층수-3층, 복층-없음 2. 음식점-0.2, 피시방-0.2, 미용실-0.2, 병원-0.1 " +
+                        "3. 교통사고율-0.1, 화재율-0.1, 범죄율-0.1'.",
+                userInput, keywords, publicData
         );
     }
 
 
 
 
-    private Map<String, Double> parseGPTResponse(Map<String, Object> result) {
+
+    private String parseGPTResponse(Map<String, Object> result) {
         // GPT 응답에서 content 부분 추출
         String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
 
-        // 정규 표현식을 사용하여 항목과 값을 추출합니다.
-        Pattern pattern = Pattern.compile("([^,]+?)(\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(content);
 
-        Map<String, Double> parsedData = new HashMap<>();
-
-        while (matcher.find()) {
-            String key = matcher.group(1).trim();
-            Double value = Double.parseDouble(matcher.group(2));
-            parsedData.put(key, value);
-        }
-        return parsedData;
+        return content;
     }
 
     private List<House> getSampleHouses() {
