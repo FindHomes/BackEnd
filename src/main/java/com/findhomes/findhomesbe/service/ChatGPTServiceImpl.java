@@ -23,7 +23,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
 
     private final ChatGPTConfig chatGPTConfig;
 
-    @Value("${openai.model}")
+    @Value("gpt-4o")
     private String model;
 
     public ChatGPTServiceImpl(ChatGPTConfig chatGPTConfig) {

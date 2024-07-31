@@ -22,11 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
@@ -40,8 +37,8 @@ public class MainController {
     private final RestaurantIndustryService restaurantIndustryService;
 
     private List<House> preHouseData;
-    private String userInput;
-
+    private String userInput = "방이 3개이고 화장실 수가 두개였으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
+    private String publicData = "교통사고율,화재율,범죄율,생활안전,자살율,감염병율";
     @PostMapping("/api/search/man-con")
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
@@ -83,15 +80,13 @@ public class MainController {
          * 3) 필요 공공 데이터와 가중치
          * 4) 사용자에게 추가로 물어봐야 할 조건?
          */
-        Map<String, Double> weights = getKeywordANDWeightsFromGPT(this.userInput);
-        log.info("GPT 응답: {}", weights);
+        String weights = getKeywordANDWeightsFromGPT(this.userInput);
+        log.info("GPT 응답: \n{}", weights);
 
         /**
          * [2. 매물 자체 조건으로 매물 필터링]
          * 데이터: 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션
          */
-
-
         /**
          * [3. 필요 시설로 매물 필터링하기]
          * 3-1. 필요 시설 가져오기
@@ -158,14 +153,15 @@ public class MainController {
     }
 
 
-    private Map<String, Double> getKeywordANDWeightsFromGPT(String userInput) {
+
+    private String getKeywordANDWeightsFromGPT(String userInput) {
         String keywords = keyword();
-        String command = createGPTCommand(userInput, keywords);
+        String command = createGPTCommand(userInput, keywords, publicData);
 
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
-                        .content("You are a machine that returns responses according to a predetermined format.")
+                        .content("You are a machine that returns responses according to a predetermined format. Return the result in the specified format without any extra text.")
                         .build(),
                 CompletionRequestDto.Message.builder()
                         .role("user")
@@ -179,31 +175,36 @@ public class MainController {
                 .build();
 
         Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
-        System.out.println(result);
 
         return parseGPTResponse(result);
     }
 
-    private String createGPTCommand(String userInput, String keywords) {
-        return "유저의 입력 문장과 현재 우리가 보유한 데이터 목록을 너한테 줄꺼야. 너는 문장과 연관이 있는 데이터를 선정한 뒤 각 데이터에 가중치를 설정하고 그 결과를 한줄로 나한테 반환해주면 돼. 예를 들어 '집 가까이 pc방과 음식점, 미용실이 있었으면 좋겠어. 그리고 제일 중요한게 병원이 가까이 있어야해' 라고 문장이 들어오면 [음식점0.2,피시방0.2,미용실0.2, 병원0.4] 이런 양식대로 문장을 반환해야해.  그 관련 데이터에 대한 가중치를 반환하면 되고 관련없으면 0을 반환해. 그리고 가중치를 다 더하면 1이 되어야해.  '다음은 반환문장입니다'와 같은 미사어구 넣지마. 다음 문장은 유저입력과 보유 데이터야. 유저 입력문장:" + userInput + ". 보유 데이터:" + keywords;
+    private String createGPTCommand(String userInput, String keywords, String publicData) {
+        return String.format(
+                "유저 입력 문장: '%s'. 보유 시설 데이터: '%s'. 보유 공공 데이터: '%s'. " +
+                        "유저의 요구사항을 분석하여 반환 형식에 맞게 응답해주세요. 반환 형식은 세 가지 섹션으로 구성됩니다. " +
+                        "각 섹션은 1,2,3 숫자로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 피시방-0.1 이렇게 나타냅니다 " +
+                        "반환양식의 1번은 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션) 을 의미하고 방 수-2, 관리비-10이하 와 같이 나타냅니다"+
+                        "반환양식의 2번은 유저의 입력문장과 관련한 보유 시설 데이터와 가중치를 나타내고 음식점-0.2 와 같이 나타냅니다."+
+                        "반환양식의 3번은 유저의 입력문장과 관련한 공공 데이터와 가중치를 나타내고 범죄율-0.2 와 같이 나타냅니다."+
+                        "가중치는 유저의 요구사항에 따라 해당 데이터의 중요도를 나타내며, 2번과 3번 데이터의 가중치의 총합은 1이어야 합니다. " +
+                        "불필요한 텍스트 없이 형식에 맞게 정확히 응답해주세요. 반환 형식 예시는 다음과 같습니다: " +
+                        "'1. 관리비-20이하, 층수-3층, 복층-없음 2. 음식점-0.2, 피시방-0.2, 미용실-0.2, 병원-0.1 " +
+                        "3. 교통사고율-0.1, 화재율-0.1, 범죄율-0.1'.",
+                userInput, keywords, publicData
+        );
     }
 
-    private Map<String, Double> parseGPTResponse(Map<String, Object> result) {
+
+
+
+
+    private String parseGPTResponse(Map<String, Object> result) {
         // GPT 응답에서 content 부분 추출
         String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
 
-        // 정규 표현식을 사용하여 항목과 값을 추출합니다.
-        Pattern pattern = Pattern.compile("([^,\\[\\]]+?)(\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(content);
 
-        Map<String, Double> parsedData = new HashMap<>();
-
-        while (matcher.find()) {
-            String key = matcher.group(1).trim();
-            Double value = Double.parseDouble(matcher.group(2));
-            parsedData.put(key, value);
-        }
-        return parsedData;
+        return content;
     }
 
     private List<House> getSampleHouses() {
@@ -275,5 +276,4 @@ public class MainController {
 
     public String keyword() {
         return "음식점, 미용실, 피시방, 병원";
-    }
-}
+    }}
