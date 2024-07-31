@@ -3,6 +3,9 @@ package com.findhomes.findhomesbe.crawling;
 import java.time.Duration;
 
 import lombok.Getter;
+import net.lightbody.bmp.BrowserMobProxy;
+import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.client.ClientUtil;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -20,21 +23,9 @@ public class Crawling {
     private WebElement preWaitingElement;
     private List<WebElement> preElements;
     private WebElement preElement;
+    private final BrowserMobProxy proxy = new BrowserMobProxyServer();
 
     // driver 설정
-    public Crawling setDriverWithProxy(Proxy proxy) {
-        ChromeOptions options = new ChromeOptions();
-        options.setProxy(proxy);
-        options.setAcceptInsecureCerts(true);  // 셀레늄에서 비신뢰 인증서 허용
-        this.driver = new ChromeDriver(options);
-        return this;
-    }
-    public Crawling setDriverWithoutShowing() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // 브라우저를 화면에 표시하지 않고 실행
-        this.driver = new ChromeDriver(options);
-        return this;
-    }
     public Crawling setDriverAtServer() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
@@ -45,11 +36,13 @@ public class Crawling {
         options.addArguments("--window-size=1920,1080");
 //        options.addArguments("--disable-software-rasterizer");
 //        options.addArguments("--remote-debugging-port=9222");
+
         this.driver = new ChromeDriver(options);
         return this;
     }
     public Crawling setDriverWithShowing() {
         this.driver = new ChromeDriver();
+
         return this;
     }
 

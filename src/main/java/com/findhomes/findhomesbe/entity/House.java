@@ -34,6 +34,8 @@ public class House {
     private String address; // Not NULL
     private Double x; // Not NULL
     private Double y; // Not NULL
+    private String imgUrl; // Nullable
+
     private transient Double score; // 직렬화에서 제외됨
 
     //

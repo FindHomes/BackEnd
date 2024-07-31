@@ -7,9 +7,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
+import net.lightbody.bmp.BrowserMobProxy;
+import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.client.ClientUtil;
+import net.lightbody.bmp.core.har.Har;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -23,6 +29,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -51,10 +58,10 @@ public class HouseCrawlingTask {
 
     // 페이지 url
     List<String> urls = List.of(
-            "https://www.dabangapp.com/map/officetel?m_lat=37.495997&m_lng=126.9690236&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4821378&m_lng=126.9910284&m_zoom=15",
-            "https://www.dabangapp.com/map/apt?m_lat=37.4781192&m_lng=126.9703432&m_zoom=15",
-            "https://www.dabangapp.com/map/house?m_lat=37.4788898&m_lng=126.9682886&m_zoom=15"
+            "https://dabangapp.com/map/onetwo?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
+            "https://dabangapp.com/map/apt?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
+            "https://dabangapp.com/map/house?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
+            "https://dabangapp.com/map/officetel?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10"
     );
 
     public void exec() {
@@ -91,9 +98,7 @@ public class HouseCrawlingTask {
 
                     try {
                         postProcessing(mainCrawling);
-                    } catch (InterruptedException e) {
-
-                    } catch (IOException e) {
+                    } catch (Exception ignored) {
 
                     }
 
@@ -175,7 +180,7 @@ public class HouseCrawlingTask {
         if (maintenanceFeeList.length > 1) {
             String temp = maintenanceFeeList[1];
             try {
-                maintenanceFee = convertToNumber(temp.substring(0, temp.indexOf("만")));
+                maintenanceFee = convertToNumber(temp.trim().substring(0, temp.indexOf("만")));
             } catch (NumberFormatException ignored) {
             }
         }
@@ -272,6 +277,12 @@ public class HouseCrawlingTask {
                 }
                 option.append(options.get(i).getText());
             }
+        }
+
+        // img url
+        WebElement firstImgElement = curCrawling.getElementByCssSelector(".styled__Photo-sc-173484h-2");
+        if (firstImgElement != null) {
+
         }
 
         //
