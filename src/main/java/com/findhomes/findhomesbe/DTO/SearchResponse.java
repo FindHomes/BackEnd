@@ -1,37 +1,20 @@
 package com.findhomes.findhomesbe.DTO;
 
+import com.findhomes.findhomesbe.entity.House;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.checkerframework.checker.units.qual.N;
 
 import java.util.List;
 
 @Data
-@Builder
+@NoArgsConstructor
 public class SearchResponse {
-    private Response response;
+    private List<House> houses;
 
-    @Data
-    @Builder
-    public static class Response {
-        private List<Ranking> rankings;
-
-        @Data
-        @Builder
-        public static class Ranking {
-            private int rank;
-            private String priceType;
-            private int price;
-            private int rent;
-            private String address;
-            private String housingType;
-            private Info info;
-
-            @Data
-            @Builder
-            public static class Info {
-                private int floor;
-                private String size;
-            }
-        }
-    }
+    private Double xMin;
+    private Double xMax;
+    private Double yMin;
+    private Double yMax;
 }

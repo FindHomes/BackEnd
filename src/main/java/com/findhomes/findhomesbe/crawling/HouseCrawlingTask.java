@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class HouseCrawlingTask {
     private final HouseRepository houseRepository;
@@ -58,15 +60,12 @@ public class HouseCrawlingTask {
 
     // 페이지 url
     List<String> urls = List.of(
-            "https://dabangapp.com/map/onetwo?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
-            "https://dabangapp.com/map/apt?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
-            "https://dabangapp.com/map/house?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10",
-            "https://dabangapp.com/map/officetel?m_lat=37.4371762&m_lng=127.2186163&m_zoom=10"
+            "https://www.dabangapp.com/map/house?m_lat=37.3142326&m_lng=127.0345524&m_zoom=12"
     );
 
     public void exec() {
         Crawling mainCrawling = new Crawling()
-                .setDriverAtServer()
+                .setDriverWithShowing()
                 .setWaitTime(MAX_WAIT_TIME);
         //mainCrawling.getDriver().manage().window().maximize();
 
@@ -74,7 +73,11 @@ public class HouseCrawlingTask {
             mainCrawling.openUrl(url);
 
             while (true) {
-                for (WebElement element : mainCrawling.getElementListByCssSelector(saleElSelector)) {
+                List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
+                if (salesElementList == null) {
+                    break;
+                }
+                for (WebElement element : salesElementList) {
                     // 클릭
                     element.click();
 
@@ -128,19 +131,18 @@ public class HouseCrawlingTask {
         mainCrawling.quitDriver();
     }
 
-    public void postProcessing(Crawling curCrawling) throws InterruptedException, IOException {
+    public void postProcessing(Crawling curCrawling) {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
             return;
         }
         //TODO: 여기 서울만 되게 해놨음.
-        if (!curAddress.startsWith("서울")) {
-            return;
-        }
+//        if (!curAddress.startsWith("서울")) {
+//            return;
+//        }
         String curCoordinate = getCoordinate(curAddress);
         if (curCoordinate == null) {
-            System.out.println("null");
             return;
         }
         // 3번 이상 본 경우를 위해 추가함
@@ -155,18 +157,21 @@ public class HouseCrawlingTask {
         // house id
         Integer houseId = 0;
         try {
-            houseId = Integer.parseInt(curCrawling.getTextByCssSelector(houseIdSelector).split(" ")[1]);
+//            houseId = Integer.parseInt(curCrawling.getTextByCssSelector(houseIdSelector).split(" ")[1]);
+            houseId = Integer.parseInt(curCrawling.getDriver().findElement(By.cssSelector(houseIdSelector)).getText().split(" ")[1]);
         } catch (NumberFormatException e) {
             return;
         }
         // url
         String curUrl = curCrawling.getDriver().getCurrentUrl();
         // price
-        String priceType = curCrawling.getTextByCssSelector(priceTypeSelector);
+//        String priceType = curCrawling.getTextByCssSelector(priceTypeSelector);
+        String priceType = curCrawling.getDriver().findElement(By.cssSelector(priceTypeSelector)).getText();
         Integer price = 0;
         Integer priceForWs = null;
         try {
-            String[] priceList = curCrawling.getTextByCssSelector(priceSelector).split("/");
+//            String[] priceList = curCrawling.getTextByCssSelector(priceSelector).split("/");
+            String[] priceList = curCrawling.getDriver().findElement(By.cssSelector(priceSelector)).getText().split("/");
             price = convertToNumber(priceList[0]);
             if (priceType.equals("월세")) {
                 priceForWs = convertToNumber(priceList[1]);
@@ -175,7 +180,8 @@ public class HouseCrawlingTask {
             return;
         }
         // maintenance fee
-        String[] maintenanceFeeList = curCrawling.getTextByCssSelector(maintenanceFeeSelector).split(" ");
+//        String[] maintenanceFeeList = curCrawling.getTextByCssSelector(maintenanceFeeSelector).split(" ");
+        String[] maintenanceFeeList = curCrawling.getDriver().findElement(By.cssSelector(maintenanceFeeSelector)).getText().split(" ");
         Integer maintenanceFee = null;
         if (maintenanceFeeList.length > 1) {
             String temp = maintenanceFeeList[1];
@@ -194,7 +200,8 @@ public class HouseCrawlingTask {
         Integer washroomNum = 0;
         String direction = "";
         LocalDate completionDate = LocalDate.now();
-        List<WebElement> basicInfoOuter = curCrawling.getElementListByCssSelector(basicInfoSelector);
+//        List<WebElement> basicInfoOuter = curCrawling.getElementListByCssSelector(basicInfoSelector);
+        List<WebElement> basicInfoOuter = curCrawling.getDriver().findElements(By.cssSelector(basicInfoSelector));
         List<WebElement> basicInfos = basicInfoOuter.get(1).findElements(By.cssSelector("li"));
         for (WebElement element : basicInfos) {
             String elText = element.findElement(By.cssSelector(basicInfoNameSelector)).getText();
@@ -280,10 +287,10 @@ public class HouseCrawlingTask {
         }
 
         // img url
-        WebElement firstImgElement = curCrawling.getElementByCssSelector(".styled__Photo-sc-173484h-2");
-        if (firstImgElement != null) {
-
-        }
+//        WebElement firstImgElement = curCrawling.getElementByCssSelector(".styled__Photo-sc-173484h-2");
+//        if (firstImgElement != null) {
+//
+//        }
 
         //
         House house = new House(
@@ -309,6 +316,10 @@ public class HouseCrawlingTask {
         );
 
         count++;
+
+        if (count % 100 == 0) {
+            log.info("매물 {}개 크롤링 완료", count);
+        }
 
         houseRepository.save(house);
 //        System.out.println(++count);
@@ -360,50 +371,26 @@ public class HouseCrawlingTask {
         sb.append("&refine=false");
         sb.append("&address=").append(URLEncoder.encode(address, StandardCharsets.UTF_8));
 
-        int maxRetries = 3;
-        int attempts = 0;
-        boolean success = false;
-        while (attempts < maxRetries && !success) {
-            try {
-                // HttpClient 생성
-                HttpClient client = HttpClient.newHttpClient();
-                // HttpRequest 생성
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(sb.toString()))
-                        .build();
-                // 요청 보내기
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                // 응답 처리
-                JsonElement jsonElement = JsonParser.parseString(response.body());
-                JsonObject jsonObj = jsonElement.getAsJsonObject();
+        try {
+            // HttpClient 생성
+            HttpClient client = HttpClient.newHttpClient();
+            // HttpRequest 생성
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(sb.toString()))
+                    .build();
+            // 요청 보내기
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            // 응답 처리
+            JsonElement jsonElement = JsonParser.parseString(response.body());
+            JsonObject jsonObj = jsonElement.getAsJsonObject();
 
-                JsonObject jsrs = jsonObj.getAsJsonObject("response");
-                JsonObject jsResult = jsrs.getAsJsonObject("result");
-                JsonObject jspoitn = jsResult.getAsJsonObject("point");
+            JsonObject jsrs = jsonObj.getAsJsonObject("response");
+            JsonObject jsResult = jsrs.getAsJsonObject("result");
+            JsonObject jspoitn = jsResult.getAsJsonObject("point");
 
-                success = true; // 성공적으로 처리되었음을 표시
-                return jspoitn.get("x").getAsString() + "/" + jspoitn.get("y").getAsString();
-            } catch (NullPointerException e) {
-                attempts++;
-                System.out.println("NullPointerException occurred. Retrying... (" + attempts + "/" + maxRetries + ")");
-
-                if (attempts == maxRetries) {
-                    System.out.println("Max retries reached. Unable to process the response.");
-                    throw new RuntimeException("Max retries reached.", e);
-                }
-
-            } catch (IOException e) {
-                System.out.println("geocoder IOException: " + e.getMessage());
-                throw new RuntimeException(e);
-
-            } catch (InterruptedException e) {
-                System.out.println("geocoder InterruptedException: " + e.getMessage());
-                throw new RuntimeException(e);
-            } catch (JsonSyntaxException e) {
-                System.out.println(e);
-                return null;
-            }
+            return jspoitn.get("x").getAsString() + "/" + jspoitn.get("y").getAsString();
+        } catch (Exception e) {
+            return null;
         }
-        return null; // 모든 시도가 실패한 경우
     }
 }

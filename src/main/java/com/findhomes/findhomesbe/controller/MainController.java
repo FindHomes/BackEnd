@@ -1,9 +1,6 @@
 package com.findhomes.findhomesbe.controller;
 
-import com.findhomes.findhomesbe.DTO.CompletionRequestDto;
-import com.findhomes.findhomesbe.DTO.ManConRequest;
-import com.findhomes.findhomesbe.DTO.UserChatRequest;
-import com.findhomes.findhomesbe.DTO.UserChatResponse;
+import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Restaurant;
 import com.findhomes.findhomesbe.service.*;
@@ -36,7 +33,7 @@ public class MainController {
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
 
-    private List<House> preHouseData;
+    private List<House> preHouseData = new ArrayList<>();
     private String userInput = "방이 3개이고 화장실 수가 두개였으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
     private String publicData = "교통사고율,화재율,범죄율,생활안전,자살율,감염병율";
     @PostMapping("/api/search/man-con")
@@ -71,7 +68,7 @@ public class MainController {
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.")
     @ApiResponse(responseCode = "200", description = "매물 응답 완료")
-    public ResponseEntity<List<House>> getHouseList() {
+    public ResponseEntity<SearchResponse> getHouseList() {
         /**
          * [1. 키워드 및 가중치 선정]
          * GPT가 알려줘야 하는 데이터
@@ -82,28 +79,40 @@ public class MainController {
          */
         String weights = getKeywordANDWeightsFromGPT(this.userInput);
         log.info("GPT 응답: \n{}", weights);
+        List<Map<String, String>> parsingResult = parsingGptResponse(weights);
+        for (Map<String, String> stringStringMap : parsingResult) {
+            log.info("조건 파싱: {}", stringStringMap);
+        }
 
         /**
          * [2. 매물 자체 조건으로 매물 필터링]
          * 데이터: 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션
          */
+        this.preHouseData = houseService.filterByUserInput(parsingResult.get(0), preHouseData);
+        log.info("사용자 입력 조건으로 필터링 후 매물 개수: {}개", preHouseData.size());
+
         /**
-         * [3. 필요 시설로 매물 필터링하기]
+         * [3. 필요 시설로 매물 필터링 + 점수 계산]
          * 3-1. 필요 시설 가져오기
-         * 3-2. 거리 기준으로 매물 필터링하기
+         * 3-2. 거리 기준으로 매물 필터링 + 점수 계산하기
+         * 3-3. 공공데이터로 점수 계산하기
          */
         // 3-1. 필요 시설 가져오기
-        List<Restaurant> restaurants = restaurantIndustryService.getRestaurantByKeyword(new String[]{"버거"});
+        List<Restaurant> restaurants = restaurantIndustryService.getRestaurantByKeyword(new String[]{"버거킹"});
         log.info("식당 개수: {}개", restaurants.size());
-        // 3-2. 거리 기준으로 매물 필터링하기
-        List<House> resultHouses = CoordService.filterHouseByDistance(this.preHouseData, restaurants, 3d);
-        log.info("필터링 후 식당 개수: {}개", resultHouses.size());
+        // 3-2. 거리 기준으로 매물 필터링 + 점수 계산하기
+        List<House> resultHouses = CoordService.filterHouseByDistance(this.preHouseData, restaurants, 5d);
+        log.info("시설 필터링 후 매물 개수: {}개", resultHouses.size());
+        // 3-3. 공공데이터로 점수 계산하기
+
 
         /**
-         * [4. 매물 점수 계산 및 정렬]
+         * [4. 점수로 매물 정렬 및 반환]
          */
-
-        return new ResponseEntity<>(this.preHouseData, HttpStatus.OK);
+        // 정렬
+        //this.preHouseData.sort(Comparator.comparingDouble(House::getScore).reversed());
+        // 응답 생성 및 반환
+        return new ResponseEntity<>(houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size()))), HttpStatus.OK);
     }
 
     @GetMapping("/api/search/update")
@@ -115,7 +124,27 @@ public class MainController {
             @RequestParam @Parameter(description = "위도 최댓값") double yMax,
             @RequestParam @Parameter(description = "위도 최솟값") double yMin
     ) {
-        return new ResponseEntity<>(this.preHouseData, HttpStatus.OK);
+        List<House> updateResponse = this.preHouseData.stream()
+                .filter(house -> house.getX() > xMin && house.getX() < xMax && house.getY() > yMin && house.getY() < yMax)
+                .toList();
+
+        return new ResponseEntity<>(updateResponse, HttpStatus.OK);
+    }
+
+    private List<Map<String, String>> parsingGptResponse(String str) {
+        List<Map<String, String>> results = new ArrayList<>();
+        String[] sentences = str.split("\\r?\\n");
+        for (String sentence : sentences) {
+            HashMap<String, String> newMap = new HashMap<>();
+            String exceptNumberStr = sentence.substring(sentence.indexOf(' ')).trim();
+            String[] conditions = exceptNumberStr.split(",");
+            for (String condition : conditions) {
+                newMap.put(condition.split("-")[0].trim(), condition.split("-")[1].trim());
+            }
+            results.add(newMap);
+        }
+
+        return results;
     }
 
     private List<double[]> getLocation(Map<String, Double> weights) {

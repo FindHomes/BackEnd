@@ -54,7 +54,7 @@ public class CoordService {
 
         // 거리 반환 (킬로미터 단위)
         if (EARTH_RADIUS_KM * c <= radius) {
-            log.info("탐지 완료 - 매물 번호: {}, 거리: {}", house.getHouseId(), EARTH_RADIUS_KM * c);
+            log.debug("탐지 완료 - 매물 번호: {}, 거리: {}", house.getHouseId(), EARTH_RADIUS_KM * c);
         }
         return EARTH_RADIUS_KM * c;
     }
