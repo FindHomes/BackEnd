@@ -1,9 +1,6 @@
 package com.findhomes.findhomesbe.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(name="user_chat_tbl")
 public class UserChat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +18,8 @@ public class UserChat {
     private String sessionId;
     private String userInput;
     private String gptResponse;
-    private LocalDateTime timestamp;
+
+    private LocalDateTime createdAt;
 
     // Getters and Setters
 }
