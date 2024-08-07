@@ -145,8 +145,8 @@ public class MainController {
          * 4) 사용자에게 추가로 물어봐야 할 조건?
          */
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
-        log.info("GPT 응답: \n{}", weights);
-        List<Map<String, String>> parsingResult = parsingGptResponse(weights);
+        log.info("GPT 응답: {}", weights);
+        List<Map<String, String>> parsingResult = parsingGptResponse(weights, "/");
         for (Map<String, String> stringStringMap : parsingResult) {
             log.info("조건 파싱: {}", stringStringMap);
         }
@@ -216,13 +216,13 @@ public class MainController {
         return new ResponseEntity<>(updateResponse, HttpStatus.OK);
     }
 
-    private List<Map<String, String>> parsingGptResponse(String str) {
+    private List<Map<String, String>> parsingGptResponse(String str, String splitRegex) {
         List<Map<String, String>> results = new ArrayList<>();
-        String[] sentences = str.split("\\r?\\n");
+        String[] sentences = str.split(splitRegex);
         for (String sentence : sentences) {
             HashMap<String, String> newMap = new HashMap<>();
-            String exceptNumberStr = sentence.substring(sentence.indexOf(' ')).trim();
-            String[] conditions = exceptNumberStr.split(",");
+            String trimmedSentence = sentence.trim();
+            String[] conditions = trimmedSentence.split(",");
             for (String condition : conditions) {
                 newMap.put(condition.split("-")[0].trim(), condition.split("-")[1].trim());
             }
