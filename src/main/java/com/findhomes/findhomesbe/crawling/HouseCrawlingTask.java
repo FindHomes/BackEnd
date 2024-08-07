@@ -60,7 +60,10 @@ public class HouseCrawlingTask {
 
     // 페이지 url
     List<String> urls = List.of(
-            "https://www.dabangapp.com/map/house?m_lat=37.3142326&m_lng=127.0345524&m_zoom=12"
+            "https://www.dabangapp.com/map/apt?m_lat=37.4616726&m_lng=127.0110348&m_zoom=11",
+            "https://www.dabangapp.com/map/officetel?m_lat=37.4616726&m_lng=127.0110348&m_zoom=11",
+            "https://www.dabangapp.com/map/onetwo?m_lat=37.4616726&m_lng=127.0110348&m_zoom=11",
+            "https://www.dabangapp.com/map/house?m_lat=37.4616726&m_lng=127.0110348&m_zoom=11"
     );
 
     public void exec() {

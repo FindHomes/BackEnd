@@ -1,5 +1,7 @@
-package com.findhomes.findhomesbe.service;
+package com.findhomes.findhomesbe.calculate;
 
+import com.findhomes.findhomesbe.calculate.data.FacilityCountDistance;
+import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +11,7 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.locationtech.proj4j.ProjCoordinate;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Slf4j
 public class CoordService {
@@ -59,10 +61,34 @@ public class CoordService {
         return EARTH_RADIUS_KM * c;
     }
 
-    public static <T extends Industry> List<House> filterHouseByDistance(List<House> houseList, List<T> industryList, double radius) {
+    /**
+     * 매물을 radius 거리 기준으로 필터링한 후에 radius 내의 각 시설이 몇 개 있는지 카운트하고, 가장 가까운 시설의 거리를 저장합니다.
+     * @param houseList 매물 리스트
+     * @param industryListMap 매물 이름과 해당 이름에 해당하는 매물 리스트의 맵
+     * @param radius 필터링 기준 거리
+     * @return
+     */
+    public static List<HouseWithCondition> filterAndCalculateByFacility(List<House> houseList, Map<String, List<Industry>> industryListMap, double radius) {
         return houseList.stream()
-                .filter(house -> industryList.stream()
-                        .anyMatch(industry -> calculateDistance(house, industry, radius) <= radius))
-                .collect(Collectors.toList());
+                .filter(house -> industryListMap.entrySet().stream()
+                        .allMatch(entry -> entry.getValue().stream()
+                                .anyMatch(industry -> calculateDistance(house, industry, radius) <= radius)))
+                .map(house -> {
+                    HouseWithCondition houseWithCondition = new HouseWithCondition();
+                    houseWithCondition.setHouse(house);
+                    industryListMap.forEach((key, industries) -> {
+                        FacilityCountDistance newFacility = new FacilityCountDistance();
+                        industries.stream()
+                                .map(industry -> calculateDistance(house, industry, radius))
+                                .filter(distance -> distance <= radius)
+                                .forEach(distance -> {
+                                    newFacility.countUp();
+                                    newFacility.updateMinDistance(distance);
+                                });
+                        houseWithCondition.getFacilityInfoMap().put(key, newFacility);
+                    });
+                    return houseWithCondition;
+                })
+                .toList();
     }
 }
