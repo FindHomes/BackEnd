@@ -79,8 +79,10 @@ public class HouseService {
         // 매물 필터링
         return houses.stream()
                 .filter(house ->
-                    house.getRoomNum() >= (Integer) dataParsing[5]
-                        && house.getWashroomNum() >= (Integer) dataParsing[6]
+                        {
+                            return house.getRoomNum() >= (Integer) dataParsing[5]
+                                    && house.getWashroomNum() >= (Integer) dataParsing[6];
+                        }
                 )
                 .toList();
     }
@@ -98,7 +100,7 @@ public class HouseService {
             searchResponse.setYMin(housesSubList.stream().min(Comparator.comparingDouble(House::getY)).get().getY());
             searchResponse.setYMax(housesSubList.stream().max(Comparator.comparingDouble(House::getY)).get().getY());
         } catch (NoSuchElementException ignored) {
-            log.warn("아니 이거 발생하면 안되는데...;;");
+            log.warn("없음.");
             return null;
         }
         searchResponse.setHouses(housesSubList);

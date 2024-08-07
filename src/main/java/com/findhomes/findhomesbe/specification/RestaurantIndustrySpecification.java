@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RestaurantIndustrySpecification {
+    public static Specification<Restaurant> containsKeywordInDescription(String keyword) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(root.get("placeName"), "%" + keyword + "%");
+    }
+
     public static Specification<Restaurant> containsKeywordsInDescription(String[] keywords) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();

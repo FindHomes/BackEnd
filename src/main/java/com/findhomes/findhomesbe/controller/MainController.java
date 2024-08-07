@@ -1,8 +1,13 @@
 package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
+import com.findhomes.findhomesbe.calculate.CalculateService;
+import com.findhomes.findhomesbe.calculate.CoordService;
+import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
+import com.findhomes.findhomesbe.calculate.SafetyGradeService;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Restaurant;
+import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
@@ -16,7 +21,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -33,12 +37,15 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class MainController {
+
+    public static final double RADIUS = 5d;
     private final UserChatRepository userChatRepository;
     private final ChatGPTService chatGPTService;
     private final KaKaoMapService kaKaoMapService;
     private final HouseService houseService;
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
+    private final SafetyGradeService safetyGradeService;
     private final ChatService chatService;
 
     private List<House> preHouseData = new ArrayList<>();
@@ -57,6 +64,9 @@ public class MainController {
          */
         // 필수 조건을 만족하는 매물 리스트 불러오기
         List<House> manConHouses = houseService.getManConHouses(request);
+        // TODO: 나중에 지워야 됨.
+        this.preHouseData = manConHouses;
+        //
         log.info("매물 개수: {}개", manConHouses.size());
 
         // 세션에 필터링된 매물 리스트 저장
@@ -193,23 +203,41 @@ public class MainController {
         /**
          * [3. 필요 시설로 매물 필터링 + 점수 계산]
          * 3-1. 필요 시설 가져오기
-         * 3-2. 거리 기준으로 매물 필터링 + 점수 계산하기
-         * 3-3. 공공데이터로 점수 계산하기
+         * 3-2. 거리 기준으로 매물 필터링
+         * 3-3. 매물에 공공 데이터 정보 넣기
          */
         // 3-1. 필요 시설 가져오기
-        List<Restaurant> restaurants = restaurantIndustryService.getRestaurantByKeyword(new String[]{"버거킹"});
-        log.info("식당 개수: {}개", restaurants.size());
-        // 3-2. 거리 기준으로 매물 필터링 + 점수 계산하기
-        List<House> resultHouses = CoordService.filterHouseByDistance(this.preHouseData, restaurants, 5d);
-        log.info("시설 필터링 후 매물 개수: {}개", resultHouses.size());
-        // 3-3. 공공데이터로 점수 계산하기
-
+        Map<String, Double> parsingFacilityMap = new HashMap<>();
+        parsingFacilityMap.put("버거킹", 0.1);
+        parsingFacilityMap.put("피자헛", 0.2);
+        Map<String, List<Industry>> facilitiesMap = new HashMap<>();
+        for (String facilityName : parsingFacilityMap.keySet()) {
+            facilitiesMap.put(facilityName, restaurantIndustryService.getRestaurantByKeyword(facilityName));
+            log.info("시설 {} 개수: {}개", facilityName, facilitiesMap.get(facilityName).size());
+        }
+        // 3-2. 거리 기준으로 매물 필터링
+        List<HouseWithCondition> resultHouseWithConditions = CoordService.filterAndCalculateByFacility(this.preHouseData, facilitiesMap, RADIUS);
+        log.info("시설 필터링 후 매물 개수: {}개", resultHouseWithConditions.size());
+        // 3-3. 매물에 공공 데이터 정보 넣기
+        Map<SafetyEnum, Double> parsingSafetyMap = new HashMap<>();
+        parsingResult.get(2).forEach((key, value) -> {
+            try {
+                parsingSafetyMap.put(SafetyEnum.valueOf(key), Double.parseDouble(value));
+            } catch (NumberFormatException e) {
+                log.error("GPT응답 파싱에서 공공데이터 가중치가 잘못됨. {}", e.getMessage());
+            } catch (IllegalArgumentException e) {
+                log.error("GPT응답 파싱에서 공공데이터 이름이 잘못됨. {}", e.getMessage());
+            }
+        });
+        safetyGradeService.insertSafetyGradeInfoInHouseCondition(resultHouseWithConditions, parsingSafetyMap.keySet());
 
         /**
          * [4. 점수로 매물 정렬 및 반환]
+         * 4-1. 점수 계산 및 정렬
          */
-        // 정렬
-        //this.preHouseData.sort(Comparator.comparingDouble(House::getScore).reversed());
+        // 4-1. 점수 계산 및 정렬
+        List<House> resultHouses = CalculateService.calculateScore(resultHouseWithConditions, parsingFacilityMap, parsingSafetyMap);
+        this.preHouseData = resultHouses;
         // 응답 생성 및 반환
         return new ResponseEntity<>(houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size()))), HttpStatus.OK);
     }

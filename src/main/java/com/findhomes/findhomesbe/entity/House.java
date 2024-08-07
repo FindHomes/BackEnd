@@ -36,7 +36,11 @@ public class House {
     private Double y; // Not NULL
     private String imgUrl; // Nullable
 
-    private transient Double score; // 직렬화에서 제외됨
+    private transient Double score = 0d; // 직렬화에서 제외됨
+
+    public void addScore(double score) {
+        this.score += score;
+    }
 
     //
     @JsonIgnore
