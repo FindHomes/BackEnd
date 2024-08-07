@@ -81,30 +81,9 @@ public class MainController {
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
     public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest) {
-        // 요청 헤더에서 세션 ID를 추출 (클라이언트의 세션 ID)
-        String sessionId = null;
-        if (httpRequest.getCookies() != null) {
-            for (Cookie cookie : httpRequest.getCookies()) {
-                if ("JSESSIONID".equals(cookie.getName())) {
-                    sessionId = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        // 세션 ID가 없으면 UNAUTHORIZED 응답 반환
-        if (sessionId == null) {
-            System.out.println("세션 id 없음");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        // HttpServletRequest 객체에서 세션을 가져옴 (서버의 세션 객체)
-        HttpSession session = httpRequest.getSession(false); // 세션이 없으면 null 반환
-
-        // 서버의 세션 객체가 null이거나, 서버의 세션 ID와 클라이언트가 보낸 세션 ID가 일치하지 않으면 UNAUTHORIZED 응답 반환 (만료될 수 있음)
-        if (session == null || !session.getId().equals(sessionId)) {
-            System.out.println("서버에서의 세션 id 없음");
-
+        // 세션 ID 추출 및 검증
+        String sessionId = extractSessionId(httpRequest);
+        if (sessionId == null || !isValidSession(httpRequest, sessionId)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
@@ -143,27 +122,9 @@ public class MainController {
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.")
     @ApiResponse(responseCode = "200", description = "매물 응답 완료")
     public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest) {
-        // 요청 헤더에서 세션 ID를 추출 (클라이언트의 세션 ID)
-        String sessionId = null;
-        if (httpRequest.getCookies() != null) {
-            for (Cookie cookie : httpRequest.getCookies()) {
-                if ("JSESSIONID".equals(cookie.getName())) {
-                    sessionId = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        // 세션 ID가 없으면 UNAUTHORIZED 응답 반환
-        if (sessionId == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        // HttpServletRequest 객체에서 세션을 가져옴 (세션이 없으면 null 반환)
-        HttpSession session = httpRequest.getSession(false);
-
-        // 서버의 세션 객체가 null이거나, 서버의 세션 ID와 클라이언트가 보낸 세션 ID가 일치하지 않으면 UNAUTHORIZED 응답 반환
-        if (session == null || !session.getId().equals(sessionId)) {
+        // 세션 ID 추출 및 검증
+        String sessionId = extractSessionId(httpRequest);
+        if (sessionId == null || !isValidSession(httpRequest, sessionId)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
@@ -339,7 +300,7 @@ public class MainController {
         return String.format(
                 "유저 입력 문장: '%s'. 보유 시설 데이터: '%s'. 보유 공공 데이터: '%s'. " +
                         "유저의 요구사항을 분석하여 반환 형식에 맞게 응답해주세요. 반환 형식은 세 가지 섹션으로 구성됩니다. " +
-                        "각 섹션은 '/'로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 피시방-0.1 이렇게 나타냅니다 " +
+                        "각 섹션은 '/'로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 층수-3층/피시방-0.1/범죄율-0.9 이렇게 나타냅니다 " +
                         "반환양식의 1번은 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션) 을 의미하고 방 수-2, 관리비-10이하 와 같이 나타냅니다"+
                         "반환양식의 2번은 유저의 입력문장과 관련한 보유 시설 데이터와 가중치를 나타내고 음식점-0.2 와 같이 나타냅니다."+
                         "반환양식의 3번은 유저의 입력문장과 관련한 공공 데이터와 가중치를 나타내고 범죄율-0.2 와 같이 나타냅니다."+
@@ -432,4 +393,20 @@ public class MainController {
 
     public String keyword() {
         return "음식점, 미용실, 피시방, 병원";
-    }}
+    }
+    private String extractSessionId(HttpServletRequest httpRequest) {
+        if (httpRequest.getCookies() != null) {
+            for (Cookie cookie : httpRequest.getCookies()) {
+                if ("JSESSIONID".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isValidSession(HttpServletRequest httpRequest, String sessionId) {
+        HttpSession session = httpRequest.getSession(false);
+        return session != null && sessionId.equals(session.getId());
+    }
+}
