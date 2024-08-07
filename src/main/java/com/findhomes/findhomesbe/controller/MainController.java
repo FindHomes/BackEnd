@@ -8,12 +8,17 @@ import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
 import com.findhomes.findhomesbe.calculate.SafetyGradeService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.UserChat;
+import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -33,12 +39,14 @@ import java.util.*;
 public class MainController {
 
     public static final double RADIUS = 5d;
+    private final UserChatRepository userChatRepository;
     private final ChatGPTService chatGPTService;
     private final KaKaoMapService kaKaoMapService;
     private final HouseService houseService;
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
     private final SafetyGradeService safetyGradeService;
+    private final ChatService chatService;
 
     private List<House> preHouseData = new ArrayList<>();
     private String userInput = "방이 3개이고 화장실 수가 두개였으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
@@ -47,35 +55,130 @@ public class MainController {
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
-    public ResponseEntity<Void> setManConSearch(@RequestBody ManConRequest request) {
+    public ResponseEntity<HashMap> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
+        HttpSession session = httpRequest.getSession(); // 헤더에 있는 세션 id로 세션이 있으면 찾고, 세션이 없으면 새로 생성
+
         /**
          * [매물 데이터 가져오기]
          * 필수 조건(계약 형태 및 가격, 월세, 집 형태)으로 필터링
          */
-        // 필수 입력 조건을 만족하는 매물 리스트 불러오기
+        // 필수 조건을 만족하는 매물 리스트 불러오기
         List<House> manConHouses = houseService.getManConHouses(request);
+        // TODO: 나중에 지워야 됨.
+        this.preHouseData = manConHouses;
+        //
         log.info("매물 개수: {}개", manConHouses.size());
 
-        this.preHouseData = manConHouses;
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        // 세션에 필터링된 매물 리스트 저장
+        session.setAttribute("preHouseData", manConHouses);
+        // 세션 id 반환
+        HashMap hashMap = new HashMap<>();
+        hashMap.put("JSESSIONID", session.getId());
+        return new ResponseEntity<>(hashMap, HttpStatus.OK);
     }
 
     @PostMapping("/api/search/user-chat")
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
-    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest) {
+    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest) {
+        // 요청 헤더에서 세션 ID를 추출 (클라이언트의 세션 ID)
+        String sessionId = null;
+        if (httpRequest.getCookies() != null) {
+            for (Cookie cookie : httpRequest.getCookies()) {
+                if ("JSESSIONID".equals(cookie.getName())) {
+                    sessionId = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 세션 ID가 없으면 UNAUTHORIZED 응답 반환
+        if (sessionId == null) {
+            System.out.println("세션 id 없음");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        // HttpServletRequest 객체에서 세션을 가져옴 (서버의 세션 객체)
+        HttpSession session = httpRequest.getSession(false); // 세션이 없으면 null 반환
+
+        // 서버의 세션 객체가 null이거나, 서버의 세션 ID와 클라이언트가 보낸 세션 ID가 일치하지 않으면 UNAUTHORIZED 응답 반환 (만료될 수 있음)
+        if (session == null || !session.getId().equals(sessionId)) {
+            System.out.println("서버에서의 세션 id 없음");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 이전 대화 내용을 가져오기
+        List<UserChat> previousChats = userChatRepository.findBySessionId(sessionId);
+        StringBuilder conversation = new StringBuilder();
+        for (UserChat chat : previousChats) {
+            conversation.append("User: ").append(chat.getUserInput()).append("\n");
+            if (chat.getGptResponse() != null) {
+                conversation.append("Bot: ").append(chat.getGptResponse()).append("\n");
+            }
+        }
+
+        // 사용자 입력 추가
+        conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n");
+
+        // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
+        String gptResponse = chatService.getResponse(conversation.toString());
+        System.out.println(gptResponse);
+
+        // 사용자 입력과 GPT 응답 저장
+        UserChat userChat = new UserChat();
+        userChat.setSessionId(sessionId);
+        userChat.setUserInput(userChatRequest.getUserInput());
+        userChat.setGptResponse(gptResponse);
+        userChat.setCreatedAt(LocalDateTime.now());
+        userChatRepository.save(userChat);
+
+        // 응답 반환
         UserChatResponse response = new UserChatResponse();
-
-        this.userInput = userChatRequest.getUserInput();
-
+        response.setChatResponse(gptResponse);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.")
     @ApiResponse(responseCode = "200", description = "매물 응답 완료")
-    public ResponseEntity<SearchResponse> getHouseList() {
+    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest) {
+        // 요청 헤더에서 세션 ID를 추출 (클라이언트의 세션 ID)
+        String sessionId = null;
+        if (httpRequest.getCookies() != null) {
+            for (Cookie cookie : httpRequest.getCookies()) {
+                if ("JSESSIONID".equals(cookie.getName())) {
+                    sessionId = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 세션 ID가 없으면 UNAUTHORIZED 응답 반환
+        if (sessionId == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        // HttpServletRequest 객체에서 세션을 가져옴 (세션이 없으면 null 반환)
+        HttpSession session = httpRequest.getSession(false);
+
+        // 서버의 세션 객체가 null이거나, 서버의 세션 ID와 클라이언트가 보낸 세션 ID가 일치하지 않으면 UNAUTHORIZED 응답 반환
+        if (session == null || !session.getId().equals(sessionId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 이전 대화 내용을 가져오기
+        List<UserChat> previousChats = userChatRepository.findBySessionId(sessionId);
+        StringBuilder conversation = new StringBuilder();
+        for (UserChat chat : previousChats) {
+            conversation.append("User: ").append(chat.getUserInput()).append("\n");
+            if (chat.getGptResponse() != null) {
+                conversation.append("ChatBot: ").append(chat.getGptResponse()).append("\n");
+            }
+        }
+
+        // 필수 조건을 추가한 후 전체 대화를 GPT에게 전달
+        conversation.append("User: ").append(this.userInput).append("\n");
         /**
          * [1. 키워드 및 가중치 선정]
          * GPT가 알려줘야 하는 데이터
@@ -84,7 +187,7 @@ public class MainController {
          * 3) 필요 공공 데이터와 가중치
          * 4) 사용자에게 추가로 물어봐야 할 조건?
          */
-        String weights = getKeywordANDWeightsFromGPT(this.userInput);
+        String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: \n{}", weights);
         List<Map<String, String>> parsingResult = parsingGptResponse(weights);
         for (Map<String, String> stringStringMap : parsingResult) {
@@ -208,9 +311,9 @@ public class MainController {
 
 
 
-    private String getKeywordANDWeightsFromGPT(String userInput) {
+    private String getKeywordANDWeightsFromGPT(String converstation) {
         String keywords = keyword();
-        String command = createGPTCommand(userInput, keywords, publicData);
+        String command = createGPTCommand(converstation, keywords, publicData);
 
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
