@@ -232,41 +232,6 @@ public class MainController {
         return results;
     }
 
-    private List<double[]> getLocation(Map<String, Double> weights) {
-        List<double[]> allLocations = new ArrayList<>();
-
-        for (Map.Entry<String, Double> entry : weights.entrySet()) {
-            String keyword = entry.getKey();
-
-            // 각 키워드에 대해 위치 정보를 가져오는 서비스 호출
-            List<double[]> locations = new ArrayList<>();
-            switch (keyword) {
-                // to do : 위치 가져오기
-//                case "음식점":
-//                    locations = restaurantService.getAllRestaurantLocations();
-//                    break;
-//                case "피시방":
-//                    locations = pcRoomService.getAllPCRoomLocations();
-//                    break;
-//                case "미용실":
-//                    locations = HairSalonService.getAllHairSalonLocations();
-//                    break;
-//                case "병원":
-//                    locations = hospitalService.getAllHospitalLocations("병원");
-//                    break;
-//                // 다른 키워드에 대해 추가
-                // case "다른키워드":
-                //     locations = someOtherService.getLocationsForKeyword("다른키워드");
-                //     break;
-            }
-
-            allLocations.addAll(locations);
-        }
-
-        return allLocations;
-    }
-
-
 
     private String getKeywordANDWeightsFromGPT(String converstation) {
         String keywords = keyword();
@@ -295,15 +260,15 @@ public class MainController {
     private String createGPTCommand(String userInput, String keywords, String publicData) {
         return String.format(
                 "유저 입력 문장: '%s'. 보유 시설 데이터: '%s'. 보유 공공 데이터: '%s'. " +
-                        "유저의 요구사항을 분석하여 반환 형식에 맞게 응답해주세요. 반환 형식은 세 가지 섹션으로 구성됩니다. " +
-                        "각 섹션은 '/'로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 층수-3층/피시방-0.1/범죄율-0.9 이렇게 나타냅니다 " +
-                        "반환양식의 1번은 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션) 을 의미하고 방 수-2, 관리비-10이하 와 같이 나타냅니다"+
-                        "반환양식의 2번은 유저의 입력문장과 관련한 보유 시설 데이터와 가중치를 나타내고 음식점-0.2 와 같이 나타냅니다."+
-                        "반환양식의 3번은 유저의 입력문장과 관련한 공공 데이터와 가중치를 나타내고 범죄율-0.2 와 같이 나타냅니다."+
-                        "가중치는 유저의 요구사항에 따라 해당 데이터의 중요도를 나타내며, 2번과 3번 데이터의 가중치의 총합은 1이어야 합니다. " +
-                        "불필요한 텍스트 없이 형식에 맞게 정확히 응답해주세요. 반환 형식 예시는 다음과 같습니다: " +
-                        "'관리비-20이하, 층수-3층, 복층-없음/음식점-0.2, 피시방-0.2, 미용실-0.2, 병원-0.1" +
-                        "/교통사고율-0.1, 화재율-0.1, 범죄율-0.1'.",
+                "유저의 요구사항을 분석하여 반환 형식에 맞게 응답해주세요. 반환 형식은 세 가지 섹션으로 구성됩니다. " +
+                "각 섹션은 '/'로 구분되고 콤마로 구분된 키-값 쌍을 포함하며, 키와 값은 하이픈(-)으로 연결됩니다. 예를들어 층수-3층/피시방-0.1/범죄율-0.9 이렇게 나타냅니다 " +
+                "반환양식의 1번은 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션) 을 의미하고 방 수-2, 관리비-10이하 와 같이 나타냅니다"+
+                "반환양식의 2번은 유저의 입력문장과 관련한 보유 시설 데이터와 가중치를 나타내고 음식점-0.2 와 같이 나타냅니다."+
+                "반환양식의 3번은 유저의 입력문장과 관련한 공공 데이터와 가중치를 나타내고 범죄율-0.2 와 같이 나타냅니다."+
+                "가중치는 유저의 요구사항에 따른 해당 데이터의 중요도를 나타내며, 반환양식의 2번의 데이터들과 3번 데이터들을 합친 전체 데이터의 가중치의 총합은 1이어야 합니다.  " +
+                "불필요한 텍스트 없이 형식에 맞게 정확히 응답해주세요. 반환 형식 예시는 다음과 같습니다: " +
+                "'관리비-20이하, 층수-3층, 복층-없음/음식점-0.2, 피시방-0.2, 미용실-0.2, 병원-0.1" +
+                "/교통사고율-0.1, 화재율-0.1, 범죄율-0.1'.",
                 userInput, keywords, publicData
         );
     }

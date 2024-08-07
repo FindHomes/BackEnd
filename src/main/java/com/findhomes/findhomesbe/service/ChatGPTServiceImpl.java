@@ -43,7 +43,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
         completionRequestDto = CompletionRequestDto.builder()
                 .model(model)
                 .messages(completionRequestDto.getMessages()) // 여러 메시지 추가
-                .temperature(0)
+                .temperature(0.1)
                 .build();
 
         String requestBody;

@@ -29,7 +29,7 @@ public class ChatService {
 
         CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
                 .messages(messages)
-                .temperature(0)
+                .temperature(0.1)
                 .build();
 
         Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
