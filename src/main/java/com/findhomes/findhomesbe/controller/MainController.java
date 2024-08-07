@@ -40,13 +40,14 @@ public class MainController {
 
     public static final double RADIUS = 5d;
     private final UserChatRepository userChatRepository;
-    private final ChatGPTService chatGPTService;
+    private final ChatGPTServiceImpl chatGPTServiceImpl;
     private final KaKaoMapService kaKaoMapService;
     private final HouseService houseService;
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
     private final SafetyGradeService safetyGradeService;
     private final ChatService chatService;
+    private final UserChatService userChatService;
 
     private List<House> preHouseData = new ArrayList<>();
     private String userInput = "방이 3개이고 화장실 수가 두개였으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
@@ -88,7 +89,7 @@ public class MainController {
         }
 
         // 이전 대화 내용을 가져오기
-        List<UserChat> previousChats = userChatRepository.findBySessionId(sessionId);
+        List<UserChat> previousChats = userChatService.getUserChatsBySessionId(sessionId);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("User: ").append(chat.getUserInput()).append("\n");
@@ -105,12 +106,8 @@ public class MainController {
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
-        UserChat userChat = new UserChat();
-        userChat.setSessionId(sessionId);
-        userChat.setUserInput(userChatRequest.getUserInput());
-        userChat.setGptResponse(gptResponse);
-        userChat.setCreatedAt(LocalDateTime.now());
-        userChatRepository.save(userChat);
+        userChatService.saveUserChat(sessionId, userChatRequest.getUserInput(), gptResponse);
+
 
         // 응답 반환
         UserChatResponse response = new UserChatResponse();
@@ -129,7 +126,7 @@ public class MainController {
         }
 
         // 이전 대화 내용을 가져오기
-        List<UserChat> previousChats = userChatRepository.findBySessionId(sessionId);
+        List<UserChat> previousChats = userChatService.getUserChatsBySessionId(sessionId);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("User: ").append(chat.getUserInput()).append("\n");
@@ -288,10 +285,9 @@ public class MainController {
 
         CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
                 .messages(messages)
-                .temperature(0.7)
                 .build();
 
-        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
+        Map<String, Object> result = chatGPTServiceImpl.prompt(completionRequestDto);
 
         return parseGPTResponse(result);
     }
@@ -394,6 +390,7 @@ public class MainController {
     public String keyword() {
         return "음식점, 미용실, 피시방, 병원";
     }
+    // 클라이언트 헤더의 쿠키에서 세션 ID 추출
     private String extractSessionId(HttpServletRequest httpRequest) {
         if (httpRequest.getCookies() != null) {
             for (Cookie cookie : httpRequest.getCookies()) {
@@ -404,7 +401,7 @@ public class MainController {
         }
         return null;
     }
-
+    // 해당 세션이 유효한지 검사
     private boolean isValidSession(HttpServletRequest httpRequest, String sessionId) {
         HttpSession session = httpRequest.getSession(false);
         return session != null && sessionId.equals(session.getId());
