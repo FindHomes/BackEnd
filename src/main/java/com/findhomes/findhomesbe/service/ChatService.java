@@ -19,7 +19,7 @@ public class ChatService {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
-                        .content("You are a helpful assistant. Continue the conversation based on the previous messages.")
+                        .content("You are a helpful assistant specialized in understanding user preferences for housing searches. If the user's request includes ambiguous, confusing, or unclear keywords such as 'girlfriend's house,' politely ask the user to clarify or provide more specific details.")
                         .build(),
                 CompletionRequestDto.Message.builder()
                         .role("user")
@@ -29,7 +29,7 @@ public class ChatService {
 
         CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
                 .messages(messages)
-                .temperature(0.3)
+                .temperature(0.1)
                 .build();
 
         Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
