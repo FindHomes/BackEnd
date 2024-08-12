@@ -10,4 +10,6 @@ import java.util.List;
 @ComponentScan
 public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpecificationExecutor<House> {
     List<House> findByPriceType(String priceType);
+
+    List<House> findByPriceTypeAndHousingType(String priceType, String housingType);
 }
