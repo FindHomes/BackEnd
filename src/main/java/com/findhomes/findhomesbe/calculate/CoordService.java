@@ -15,11 +15,15 @@ import java.util.Map;
 
 @Slf4j
 public class CoordService {
+    public static long accumulateTransform = 0;
+    public static long accumulateCalculateDistance = 0;
     private static final double EARTH_RADIUS_KM = 6371.0;
 
     // TODO: 좌표 변환 및 경도, 위도 순서가 제대로 설정되어 있는지 확인해야함.
 
     public static Double[] transform(Double dblLon, Double dblLat) {
+        long startTime = System.nanoTime();
+
         CRSFactory factory = new CRSFactory();
         // 중부 원점 좌표계 (EPSG:2097)
         CoordinateReferenceSystem grs80 = factory.createFromName("EPSG:2097");
@@ -32,17 +36,25 @@ public class CoordService {
 
         transformer.transform(beforeCoord, afterCoord);
 
+        accumulateTransform += (System.nanoTime() - startTime);
+
         return new Double[] {afterCoord.x, afterCoord.y};
     }
 
     public static double calculateDistance(House house, Industry industry, double radius) {
+        long startTime = System.nanoTime();
+
         // 위도와 경도를 라디안으로 변환
         double lat1Rad = Math.toRadians(house.getY());
         double lon1Rad = Math.toRadians(house.getX());
 
-        Double[] industryCoord = transform(industry.getX(), industry.getY());
-        double lat2Rad = Math.toRadians(industryCoord[1]);
-        double lon2Rad = Math.toRadians(industryCoord[0]);
+//        long startTime2 = System.nanoTime();
+//        Double[] industryCoord = transform(industry.getX(), industry.getY());
+//        long endTime2 = System.nanoTime();
+//        double lat2Rad = Math.toRadians(industryCoord[1]);
+//        double lon2Rad = Math.toRadians(industryCoord[0]);
+        double lat2Rad = Math.toRadians(industry.getY());
+        double lon2Rad = Math.toRadians(industry.getX());
 
         // 위도와 경도의 차이 계산
         double dLat = lat2Rad - lat1Rad;
@@ -58,6 +70,11 @@ public class CoordService {
         if (EARTH_RADIUS_KM * c <= radius) {
             log.debug("탐지 완료 - 매물 번호: {}, 거리: {}", house.getHouseId(), EARTH_RADIUS_KM * c);
         }
+
+        long endTime = System.nanoTime();
+        //log.info("전체 걸린 시간: {}ns / transform에 걸린 시간: {}ns", endTime - startTime, endTime2 - startTime2);
+        accumulateCalculateDistance += (endTime - startTime);
+
         return EARTH_RADIUS_KM * c;
     }
 

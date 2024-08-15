@@ -92,8 +92,8 @@ public class HouseService {
         return floorStr.isEmpty() ? -1 : Integer.parseInt(floorStr);
     }
 
-    public SearchResponse makeResponse(List<House> housesSubList) {
-        SearchResponse searchResponse = new SearchResponse();
+    public SearchResponse.SearchResult makeResponse(List<House> housesSubList) {
+        SearchResponse.SearchResult searchResponse = new SearchResponse.SearchResult();
         try {
             searchResponse.setXMin(housesSubList.stream().min(Comparator.comparingDouble(House::getX)).get().getX());
             searchResponse.setXMax(housesSubList.stream().max(Comparator.comparingDouble(House::getX)).get().getX());
