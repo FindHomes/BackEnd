@@ -19,7 +19,7 @@ public class CalculateService {
         return houseWithConditions.stream()
                 // TODO: 점수 계산 방식 바꿔야 됨.
                 .peek(houseWithCondition -> {
-                    log.info("매물번호:{}, 시설 정보:{}, 안전데이터 정보:{}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getFacilityInfoMap(), houseWithCondition.getSafetyGradeMap());
+                    //log.info("매물번호:{}, 시설 정보:{}, 안전데이터 정보:{}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getFacilityInfoMap(), houseWithCondition.getSafetyGradeMap());
 
                     houseWithCondition.getFacilityInfoMap().forEach((key, facilityInfo) -> {
                         Double facilityWeight = facilityMap.get(key);
@@ -39,7 +39,7 @@ public class CalculateService {
                         }
                     });
 
-                    log.info("매물번호:{}, 점수:{}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getScore());
+                    //log.info("매물번호:{}, 점수:{}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getScore());
                 })
                 .map(HouseWithCondition::getHouse)
                 .sorted(Comparator.comparingDouble(House::getScore).reversed())

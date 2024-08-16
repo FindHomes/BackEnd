@@ -36,6 +36,19 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class MainController {
+    public static long millisecond = 0;
+
+    public static long logMillisecond(String str) {
+        if (millisecond == 0) {
+            millisecond = System.currentTimeMillis();
+            return 0;
+        } else {
+            long temp = System.currentTimeMillis() - millisecond;
+            log.info("※ {} 걸린 시간: {}ms", str, temp);
+            millisecond = System.currentTimeMillis();
+            return temp;
+        }
+    }
 
     public static final double RADIUS = 5d;
     private final UserChatRepository userChatRepository;
@@ -143,20 +156,21 @@ public class MainController {
          * 3) 필요 공공 데이터와 가중치
          * 4) 사용자에게 추가로 물어봐야 할 조건?
          */
+        logMillisecond("");
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: {}", weights);
         List<Map<String, String>> parsingResult = parsingGptResponse(weights, "/");
         for (Map<String, String> stringStringMap : parsingResult) {
             log.info("조건 파싱: {}", stringStringMap);
         }
-
+        logMillisecond("1. GPT 응답 파싱");
         /**
          * [2. 매물 자체 조건으로 매물 필터링]
          * 데이터: 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션
          */
         this.preHouseData = houseService.filterByUserInput(parsingResult.get(0), preHouseData);
         log.info("사용자 입력 조건으로 필터링 후 매물 개수: {}개", preHouseData.size());
-
+        logMillisecond("2. 사용자 입력 조건으로 매물 필터링");
         /**
          * [3. 필요 시설로 매물 필터링 + 점수 계산]
          * 3-1. 필요 시설 가져오기
@@ -172,8 +186,14 @@ public class MainController {
             facilitiesMap.put(facilityName, restaurantIndustryService.getRestaurantByKeyword(facilityName));
             log.info("시설 {} 개수: {}개", facilityName, facilitiesMap.get(facilityName).size());
         }
+        logMillisecond("3-1. 필요 시설 가져오기");
         // 3-2. 거리 기준으로 매물 필터링
         List<HouseWithCondition> resultHouseWithConditions = CoordService.filterAndCalculateByFacility(this.preHouseData, facilitiesMap, RADIUS);
+        long temp = logMillisecond("3-2. 거리 기준으로 매물 필터링");
+        log.info("※ 좌표 변환에 들어간 시간: {}ns", CoordService.accumulateTransform);
+        log.info("※ 거리 계산에 들어간 시간: {}ns", CoordService.accumulateCalculateDistance);
+        log.info("※ 3-2에서 좌표 변환의 비중: {}", CoordService.accumulateTransform / (1000 * temp));
+
         log.info("시설 필터링 후 매물 개수: {}개", resultHouseWithConditions.size());
         // 3-3. 매물에 공공 데이터 정보 넣기
         Map<SafetyEnum, Double> parsingSafetyMap = new HashMap<>();
@@ -187,6 +207,7 @@ public class MainController {
             }
         });
         safetyGradeService.insertSafetyGradeInfoInHouseCondition(resultHouseWithConditions, parsingSafetyMap.keySet());
+        logMillisecond("3-3. 매물에 공공 데이터 정보 넣기");
 
         /**
          * [4. 점수로 매물 정렬 및 반환]
@@ -195,8 +216,11 @@ public class MainController {
         // 4-1. 점수 계산 및 정렬
         List<House> resultHouses = CalculateService.calculateScore(resultHouseWithConditions, parsingFacilityMap, parsingSafetyMap);
         this.preHouseData = resultHouses;
+        logMillisecond("4-1. 점수 계산 및 정렬");
         // 응답 생성 및 반환
-        return new ResponseEntity<>(houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size()))), HttpStatus.OK);
+        SearchResponse.SearchResult searchResult = houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size())));
+        SearchResponse searchResponse = new SearchResponse(true, 200, "성공", searchResult);
+        return new ResponseEntity<>(searchResponse, HttpStatus.OK);
     }
 
     @GetMapping("/api/search/update")
