@@ -122,8 +122,7 @@ public class MainController {
 
 
         // 응답 반환
-        UserChatResponse response = new UserChatResponse();
-        response.setChatResponse(gptResponse);
+        UserChatResponse response = new UserChatResponse(true, 200, "성공", new UserChatResponse.ChatResponse(gptResponse));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -223,9 +222,9 @@ public class MainController {
         return new ResponseEntity<>(searchResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/api/search/update")
-    @Operation(summary = "사용자 지도 상호작용 시 매물 리스트 갱신", description = "사용자가 지도를 움직이거나 확대/축소될 때, 해당 지도에 표시되는 매물 정보를 새로 받아옵니다.")
-    @ApiResponse(responseCode = "200", description = "매물 리스트를 반환합니다.")
+//    @GetMapping("/api/search/update")
+//    @Operation(summary = "사용자 지도 상호작용 시 매물 리스트 갱신", description = "사용자가 지도를 움직이거나 확대/축소될 때, 해당 지도에 표시되는 매물 정보를 새로 받아옵니다.")
+//    @ApiResponse(responseCode = "200", description = "매물 리스트를 반환합니다.")
     public ResponseEntity<List<House>> getUpdatedHouseList(
             @RequestParam @Parameter(description = "경도 최댓값") double xMax,
             @RequestParam @Parameter(description = "경도 최솟값") double xMin,
