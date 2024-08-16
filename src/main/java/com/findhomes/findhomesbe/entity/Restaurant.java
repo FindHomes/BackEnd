@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="restaurant_industry_tbl")
+@Table(name="restaurant_industry_old_tbl")
 public class Restaurant implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

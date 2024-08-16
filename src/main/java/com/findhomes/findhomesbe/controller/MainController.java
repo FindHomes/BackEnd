@@ -114,7 +114,7 @@ public class MainController {
         conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n");
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatService.getResponse(conversation.toString());
+        String gptResponse = chatService.getResponse(conversation.toString(), keyword()+","+publicData);
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
