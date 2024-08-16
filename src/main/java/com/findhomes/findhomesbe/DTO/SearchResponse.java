@@ -15,7 +15,6 @@ import java.util.List;
 public class SearchResponse {
     private Boolean success;
     private Integer code;
-    private Integer status;
     private String message;
     private SearchResult result;
 

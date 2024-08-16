@@ -219,7 +219,7 @@ public class MainController {
         logMillisecond("4-1. 점수 계산 및 정렬");
         // 응답 생성 및 반환
         SearchResponse.SearchResult searchResult = houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size())));
-        SearchResponse searchResponse = new SearchResponse(true, 200, 200, "성공", searchResult);
+        SearchResponse searchResponse = new SearchResponse(true, 200, "성공", searchResult);
         return new ResponseEntity<>(searchResponse, HttpStatus.OK);
     }
 

@@ -79,7 +79,7 @@ public class TestController {
                 .toList();
         searchResult.setHouses(result.subList(0, Math.min(100, result.size())));
 
-        SearchResponse response = new SearchResponse(true, 200, 200, "성공", searchResult);
+        SearchResponse response = new SearchResponse(true, 200, "성공", searchResult);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
