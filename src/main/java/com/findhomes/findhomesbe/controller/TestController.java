@@ -76,6 +76,8 @@ public class TestController {
 
         List<House> result = tempResult.stream()
                 .filter(house -> house.getX() >= searchResult.getXMin() && house.getX() <= searchResult.getXMax() && house.getY() <= searchResult.getYMax() && house.getY() >= searchResult.getYMin())
+                // TODO: 지워야됨.
+                .peek(house -> house.setImgUrl("https://d1774jszgerdmk.cloudfront.net/512/f404d34c-633f-421b-b3dd-35125f5c4c7a"))
                 .toList();
         searchResult.setHouses(result.subList(0, Math.min(100, result.size())));
 
