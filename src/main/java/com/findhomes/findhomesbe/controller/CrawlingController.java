@@ -27,7 +27,7 @@ public class CrawlingController {
     }
 
     @GetMapping("/api/crawling/restaurant")
-    public ResponseEntity<Void> crawlingRestaurant(@RequestParam Integer start, @RequestParam Integer end) {
+    public ResponseEntity<Void> crawlingRestaurant(@RequestParam Integer start, @RequestParam Integer end) throws InterruptedException {
         industryCrawlingTask.exec(start, end);
         return new ResponseEntity<>(HttpStatus.OK);
     }

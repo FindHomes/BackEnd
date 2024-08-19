@@ -138,4 +138,9 @@ public class Crawling {
         }
         return null;
     }
+
+    // iframe 변경하기
+    public void changeIframe(String iframeId) {
+        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id(iframeId)));
+    }
 }
