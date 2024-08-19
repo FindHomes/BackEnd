@@ -1,22 +1,15 @@
 package com.findhomes.findhomesbe.crawling;
 
-import com.findhomes.findhomesbe.entity.Restaurant;
+import com.findhomes.findhomesbe.entity.RestaurantIndustry;
 import com.findhomes.findhomesbe.repository.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -57,12 +50,12 @@ public class IndustryCrawlingTask {
             }
 
             String restaurantName = restaurant.getPlaceName() + " " + roadAddress;*/
-            Restaurant restaurant = new Restaurant();
+            RestaurantIndustry restaurantIndustry = new RestaurantIndustry();
 
             WebElement inputElement = crawling.getElementByCssSelector(".input_search");
             if (inputElement == null) {
                 System.out.println("[input 못찾음]");
-                System.out.println(restaurant);
+                System.out.println(restaurantIndustry);
                 continue;
             }
 

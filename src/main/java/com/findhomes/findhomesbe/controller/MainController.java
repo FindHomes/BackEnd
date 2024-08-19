@@ -1,12 +1,18 @@
 package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
+import com.findhomes.findhomesbe.argument_resolver.SessionValue;
+import com.findhomes.findhomesbe.calculate.CalculateService;
+import com.findhomes.findhomesbe.calculate.CoordService;
 import com.findhomes.findhomesbe.calculate.SafetyGradeService;
+import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
 import com.findhomes.findhomesbe.condition.ConditionService;
 import com.findhomes.findhomesbe.condition.domain.HouseDirection;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
@@ -37,6 +43,8 @@ import java.util.*;
 public class MainController {
 
     public static final double RADIUS = 5d;
+    public static final String MAN_CON_KEY = "man-con";
+
     private final UserChatRepository userChatRepository;
     private final ChatGPTServiceImpl chatGPTServiceImpl;
     private final KaKaoMapService kaKaoMapService;
@@ -57,24 +65,8 @@ public class MainController {
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
     public ResponseEntity<HashMap> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
         HttpSession session = httpRequest.getSession(); // 헤더에 있는 세션 id로 세션이 있으면 찾고, 세션이 없으면 새로 생성
-
-        log.info("{}", HouseDirection.getAllData());
-        log.info("{}", HouseOption.getAllData());
-        log.info("{}", PublicData.getAllData());
-
-        /**
-         * [매물 데이터 가져오기]
-         * 필수 조건(계약 형태 및 가격, 월세, 집 형태)으로 필터링
-         */
-        // 필수 조건을 만족하는 매물 리스트 불러오기
-        List<House> manConHouses = houseService.getManConHouses(request);
-        // TODO: 나중에 지워야 됨.
-        this.preHouseData = manConHouses;
-        //
-        log.info("매물 개수: {}개", manConHouses.size());
-
-        // 세션에 필터링된 매물 리스트 저장
-        session.setAttribute("preHouseData", manConHouses);
+        // 세션에 필터링된 필수 조건 저장
+        session.setAttribute(MAN_CON_KEY, request);
         // 세션 id 반환
         HashMap hashMap = new HashMap<>();
         hashMap.put("JSESSIONID", session.getId());
@@ -120,7 +112,10 @@ public class MainController {
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.")
     @ApiResponse(responseCode = "200", description = "매물 응답 완료")
-    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest) {
+    public ResponseEntity<SearchResponse> getHouseList(
+            HttpServletRequest httpRequest,
+            @SessionValue(MAN_CON_KEY) ManConRequest manConRequest
+    ) {
         // 세션 ID 추출 및 검증
         String sessionId = extractSessionId(httpRequest);
         if (sessionId == null || !isValidSession(httpRequest, sessionId)) {
@@ -137,105 +132,16 @@ public class MainController {
             }
         }
 
-
-        /**
-         * [1. 키워드 및 가중치 선정]
-         * GPT가 알려줘야 하는 데이터
-         * 1) 필수 조건 외에 매물 자체에 대한 추가 조건 (관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션)
-         * 2) 필요 시설 (ex. 버거킹, 정형외과, 다이소)
-         * 3) 필요 공공 데이터와 가중치
-         * 4) 사용자에게 추가로 물어봐야 할 조건?
-         */
+        // 조건 처리
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: {}", weights);
-        List<Map<String, String>> parsingResult = conditionService.parsingGptOutput(weights);
-        //List<Map<String, String>> parsingResult = parsingGptResponse(weights, "/");
-        /*for (Map<String, String> stringStringMap : parsingResult) {
-            log.info("조건 파싱: {}", stringStringMap);
-        }
-        *//**
-         * [2. 매물 자체 조건으로 매물 필터링]
-         * 데이터: 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션
-         *//*
-        this.preHouseData = houseService.filterByUserInput(parsingResult.get(0), preHouseData);
-        log.info("사용자 입력 조건으로 필터링 후 매물 개수: {}개", preHouseData.size());
-        *//**
-         * [3. 필요 시설로 매물 필터링 + 점수 계산]
-         * 3-1. 필요 시설 가져오기
-         * 3-2. 거리 기준으로 매물 필터링
-         * 3-3. 매물에 공공 데이터 정보 넣기
-         *//*
-        // 3-1. 필요 시설 가져오기
-        Map<String, Double> parsingFacilityMap = new HashMap<>();
-        parsingFacilityMap.put("버거킹", 0.1);
-        parsingFacilityMap.put("피자헛", 0.2);
-        Map<String, List<Industry>> facilitiesMap = new HashMap<>();
-        for (String facilityName : parsingFacilityMap.keySet()) {
-            facilitiesMap.put(facilityName, restaurantIndustryService.getRestaurantByKeyword(facilityName));
-            log.info("시설 {} 개수: {}개", facilityName, facilitiesMap.get(facilityName).size());
-        }
-        // 3-2. 거리 기준으로 매물 필터링
-        List<HouseWithCondition> resultHouseWithConditions = CoordService.filterAndCalculateByFacility(this.preHouseData, facilitiesMap, RADIUS);
 
-        log.info("시설 필터링 후 매물 개수: {}개", resultHouseWithConditions.size());
-        // 3-3. 매물에 공공 데이터 정보 넣기
-        Map<SafetyEnum, Double> parsingSafetyMap = new HashMap<>();
-        parsingResult.get(2).forEach((key, value) -> {
-            try {
-                parsingSafetyMap.put(SafetyEnum.valueOf(key), Double.parseDouble(value));
-            } catch (NumberFormatException e) {
-                log.error("GPT응답 파싱에서 공공데이터 가중치가 잘못됨. {}", e.getMessage());
-            } catch (IllegalArgumentException e) {
-                log.error("GPT응답 파싱에서 공공데이터 이름이 잘못됨. {}", e.getMessage());
-            }
-        });
-        safetyGradeService.insertSafetyGradeInfoInHouseCondition(resultHouseWithConditions, parsingSafetyMap.keySet());
+        SearchResponse.SearchResult searchResult = conditionService.exec(manConRequest, weights);
 
-        *//**
-         * [4. 점수로 매물 정렬 및 반환]
-         * 4-1. 점수 계산 및 정렬
-         *//*
-        // 4-1. 점수 계산 및 정렬
-        List<House> resultHouses = CalculateService.calculateScore(resultHouseWithConditions, parsingFacilityMap, parsingSafetyMap);
-        this.preHouseData = resultHouses;
-        // 응답 생성 및 반환
-        SearchResponse.SearchResult searchResult = houseService.makeResponse(resultHouses.subList(0, Math.min(100, resultHouses.size())));
         SearchResponse searchResponse = new SearchResponse(true, 200, "성공", searchResult);
-        return new ResponseEntity<>(searchResponse, HttpStatus.OK);*/
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity<>(searchResponse, HttpStatus.OK);
     }
 
-//    @GetMapping("/api/search/update")
-//    @Operation(summary = "사용자 지도 상호작용 시 매물 리스트 갱신", description = "사용자가 지도를 움직이거나 확대/축소될 때, 해당 지도에 표시되는 매물 정보를 새로 받아옵니다.")
-//    @ApiResponse(responseCode = "200", description = "매물 리스트를 반환합니다.")
-    public ResponseEntity<List<House>> getUpdatedHouseList(
-            @RequestParam @Parameter(description = "경도 최댓값") double xMax,
-            @RequestParam @Parameter(description = "경도 최솟값") double xMin,
-            @RequestParam @Parameter(description = "위도 최댓값") double yMax,
-            @RequestParam @Parameter(description = "위도 최솟값") double yMin
-    ) {
-        List<House> updateResponse = this.preHouseData.stream()
-                .filter(house -> house.getX() > xMin && house.getX() < xMax && house.getY() > yMin && house.getY() < yMax)
-                .toList();
-
-        return new ResponseEntity<>(updateResponse, HttpStatus.OK);
-    }
-
-    private List<Map<String, String>> parsingGptResponse(String str, String splitRegex) {
-        List<Map<String, String>> results = new ArrayList<>();
-        String[] sentences = str.split(splitRegex);
-        for (String sentence : sentences) {
-            HashMap<String, String> newMap = new HashMap<>();
-            String trimmedSentence = sentence.trim();
-            String[] conditions = trimmedSentence.split(",");
-            for (String condition : conditions) {
-                newMap.put(condition.split("-")[0].trim(), condition.split("-")[1].trim());
-            }
-            results.add(newMap);
-        }
-
-        return results;
-    }
 
 
     private String getKeywordANDWeightsFromGPT(String converstation) {

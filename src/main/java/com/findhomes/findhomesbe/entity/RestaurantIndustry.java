@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Entity
 @Table(name="restaurant_industry_old_tbl")
-public class Restaurant implements Industry {
+public class RestaurantIndustry implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer restaurantIndustryId;

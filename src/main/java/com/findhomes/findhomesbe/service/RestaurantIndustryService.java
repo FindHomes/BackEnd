@@ -1,7 +1,6 @@
 package com.findhomes.findhomesbe.service;
 
 import com.findhomes.findhomesbe.entity.Industry;
-import com.findhomes.findhomesbe.entity.Restaurant;
 import com.findhomes.findhomesbe.repository.RestaurantIndustryRepository;
 import com.findhomes.findhomesbe.specification.RestaurantIndustrySpecification;
 import lombok.AllArgsConstructor;
