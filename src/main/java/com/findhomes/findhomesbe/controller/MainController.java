@@ -132,10 +132,10 @@ public class MainController {
             }
         }
 
-        // 조건 처리
+        // GPT 응답 반환
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: {}", weights);
-
+        // 매물 점수 계산해서 가져오기
         SearchResponse.SearchResult searchResult = conditionService.exec(manConRequest, weights);
 
         SearchResponse searchResponse = new SearchResponse(true, 200, "성공", searchResult);
@@ -197,9 +197,6 @@ public class MainController {
         );
     }
 
-
-
-
     private String parseGPTResponse(Map<String, Object> result) {
         // GPT 응답에서 content 부분 추출
         String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
@@ -208,76 +205,10 @@ public class MainController {
         return content;
     }
 
-    private List<House> getSampleHouses() {
-        return Arrays.asList(
-                House.builder()
-                        .houseId(12345678)
-                        .url("https://kustaurant.com")
-                        .priceType("mm")
-                        .price(20000)
-                        .priceForWs(0)
-                        .housingType("원룸")
-                        .isMultiLayer(false)
-                        .isSeparateType(false)
-                        .floor("3층")
-                        .size(40d)
-                        .roomNum(1)
-                        .washroomNum(1)
-                        .direction("남동")
-                        .completionDate(LocalDate.now())
-                        .houseOption("에어컨")
-                        .address("경기도 안양시 동안구")
-                        .x(127.0)
-                        .y(37.4)
-                        .build(),
-                House.builder()
-                        .houseId(12345678)
-                        .url("https://kustaurant.com")
-                        .priceType("mm")
-                        .price(20000)
-                        .priceForWs(0)
-                        .housingType("원룸")
-                        .isMultiLayer(false)
-                        .isSeparateType(false)
-                        .floor("3층")
-                        .size(40d)
-                        .roomNum(1)
-                        .washroomNum(1)
-                        .direction("남동")
-                        .completionDate(LocalDate.now())
-                        .houseOption("에어컨")
-                        .address("경기도 안양시 동안구")
-                        .x(127.0)
-                        .y(37.4)
-                        .build()
-        );
-    }
-
-    private List<House> calculateScore(List<House> houses, Map<String, Double> weights, List<double[]> Locations) {
-        // to do : 매물 점수 계산하기
-        return houses;
-    }
-    // 거리 계산 함수
-    private double calculateDistance(double x1, double y1, double x2, double y2) {
-        double theta = x1 - x2;
-        double dist = Math.sin(deg2rad(y1)) * Math.sin(deg2rad(y2)) + Math.cos(deg2rad(y1)) * Math.cos(deg2rad(y2)) * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515 * 1.609344; // km 단위
-        return dist;
-    }
-
-    private double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    private double rad2deg(double rad) {
-        return (rad * 180 / Math.PI);
-    }
-
     public String keyword() {
         return "음식점, 미용실, 피시방, 병원";
     }
+
     // 클라이언트 헤더의 쿠키에서 세션 ID 추출
     private String extractSessionId(HttpServletRequest httpRequest) {
         if (httpRequest.getCookies() != null) {
