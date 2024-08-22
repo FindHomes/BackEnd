@@ -54,7 +54,7 @@ public class House {
 
     }
 
-    public House(Integer houseId, String url, String priceType, Integer price, Integer priceForWs, Integer maintenanceFee, String housingType, Boolean isMultiLayer, Boolean isSeparateType, String floor, Double size, Integer roomNum, Integer washroomNum, String direction, LocalDate completionDate, String houseOption, String address, Double x, Double y) {
+    public House(Integer houseId, String url, String priceType, Integer price, Integer priceForWs, Integer maintenanceFee, String housingType, Boolean isMultiLayer, Boolean isSeparateType, String floor, Double size, Integer roomNum, Integer washroomNum, String direction, LocalDate completionDate, String houseOption, String address, Double x, Double y, String imgUrl) {
         this.houseId = houseId;
         this.url = url;
         this.priceType = priceType;
@@ -74,6 +74,7 @@ public class House {
         this.address = address;
         this.x = x;
         this.y = y;
+        this.imgUrl = imgUrl;
     }
 
     @Override
