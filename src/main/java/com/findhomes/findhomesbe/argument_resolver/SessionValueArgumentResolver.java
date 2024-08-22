@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.argument_resolver;
 
+import com.findhomes.findhomesbe.exception.exception.PreconditionRequiredException;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -24,8 +25,8 @@ public class SessionValueArgumentResolver implements HandlerMethodArgumentResolv
         if (sessionValueAnnotation != null) {
             HttpSession session = webRequest.getNativeRequest(jakarta.servlet.http.HttpServletRequest.class).getSession();
             return session.getAttribute(sessionValueAnnotation.value());
+        } else {
+            throw new PreconditionRequiredException("필수 조건이 입력되지 않았습니다.");
         }
-
-        return null;
     }
 }
