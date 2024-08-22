@@ -63,14 +63,14 @@ public class MainController {
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
-    public ResponseEntity<HashMap> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
         HttpSession session = httpRequest.getSession(); // 헤더에 있는 세션 id로 세션이 있으면 찾고, 세션이 없으면 새로 생성
         // 세션에 필터링된 필수 조건 저장
         session.setAttribute(MAN_CON_KEY, request);
-        // 세션 id 반환
-        HashMap hashMap = new HashMap<>();
-        hashMap.put("JSESSIONID", session.getId());
-        return new ResponseEntity<>(hashMap, HttpStatus.OK);
+
+        // 응답 반환
+        ManConResponse response = new ManConResponse(true, 200, "성공", new ManConResponse.JSESSIONID(session.getId()));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/api/search/user-chat")
