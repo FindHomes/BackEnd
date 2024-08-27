@@ -2,22 +2,13 @@ package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.argument_resolver.SessionValue;
-import com.findhomes.findhomesbe.calculate.CalculateService;
-import com.findhomes.findhomesbe.calculate.CoordService;
 import com.findhomes.findhomesbe.calculate.SafetyGradeService;
-import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
-import com.findhomes.findhomesbe.condition.ConditionService;
-import com.findhomes.findhomesbe.condition.domain.HouseDirection;
-import com.findhomes.findhomesbe.condition.domain.HouseOption;
-import com.findhomes.findhomesbe.condition.domain.PublicData;
+import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,9 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Controller
@@ -136,10 +125,7 @@ public class MainController {
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: {}", weights);
         // 매물 점수 계산해서 가져오기
-        SearchResponse.SearchResult searchResult = conditionService.exec(manConRequest, weights);
-
-        SearchResponse searchResponse = new SearchResponse(true, 200, "성공", searchResult);
-        return new ResponseEntity<>(searchResponse, HttpStatus.OK);
+        return new ResponseEntity<>(conditionService.exec(manConRequest, weights), HttpStatus.OK);
     }
 
 

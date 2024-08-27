@@ -6,14 +6,20 @@ import lombok.Getter;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
+import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.NetworkInterceptor;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.http.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class Crawling {
@@ -23,7 +29,7 @@ public class Crawling {
     private WebElement preWaitingElement;
     private List<WebElement> preElements;
     private WebElement preElement;
-    private final BrowserMobProxy proxy = new BrowserMobProxyServer();
+    private BrowserMobProxy proxy;
 
     // driver 설정
     public Crawling setDriverAtServer() {
@@ -38,10 +44,26 @@ public class Crawling {
 //        options.addArguments("--remote-debugging-port=9222");
 
         this.driver = new ChromeDriver(options);
+
         return this;
     }
     public Crawling setDriverWithShowing() {
-        this.driver = new ChromeDriver();
+        // Start the BrowserMob Proxy
+        proxy = new BrowserMobProxyServer();
+        proxy.setTrustAllServers(true);
+        proxy.start(0); // Start on an available port
+
+        // Configure Selenium to use this proxy
+        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+
+        // Setup ChromeOptions
+        ChromeOptions options = new ChromeOptions();
+        options.setProxy(seleniumProxy);
+        options.setAcceptInsecureCerts(true);
+        options.addArguments("--ignore-certificate-errors");
+
+        // Create ChromeDriver instance
+        this.driver = new ChromeDriver(options);
 
         return this;
     }
@@ -57,6 +79,8 @@ public class Crawling {
     public void quitDriver() {
         this.driver.quit();
     }
+
+
 
     // action 설정
     public Crawling setAction() {

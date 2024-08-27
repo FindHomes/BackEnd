@@ -5,18 +5,13 @@ import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.lightbody.bmp.BrowserMobProxy;
-import net.lightbody.bmp.BrowserMobProxyServer;
-import net.lightbody.bmp.client.ClientUtil;
 import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,6 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,7 +62,7 @@ public class HouseCrawlingTask {
             "https://www.dabangapp.com/map/house?m_lat=37.4616726&m_lng=127.0110348&m_zoom=11"
     );
 
-    public void exec() {
+    public void exec() throws InterruptedException {
         Crawling mainCrawling = new Crawling()
                 .setDriverWithShowing()
                 .setWaitTime(MAX_WAIT_TIME);
@@ -81,29 +77,34 @@ public class HouseCrawlingTask {
                     break;
                 }
                 for (WebElement element : salesElementList) {
+                    mainCrawling.getProxy().newHar("new_har");
+
                     // 클릭
                     element.click();
-
-//                    try {
-//                        File screenshot = ((TakesScreenshot) mainCrawling.getDriver()).getScreenshotAs(OutputType.FILE);
-//                        FileUtils.copyFile(screenshot, new File("screenshot.png"));
-//                    } catch (IOException e) {
-//
-//                    }
 
                     // 새로운 탭으로 전환
                     ArrayList<String> tabs = new ArrayList<>(mainCrawling.getDriver().getWindowHandles());
                     mainCrawling.getDriver().switchTo().window(tabs.get(1));
 
-//                    try {
-//                        File screenshot = ((TakesScreenshot) mainCrawling.getDriver()).getScreenshotAs(OutputType.FILE);
-//                        FileUtils.copyFile(screenshot, new File("screenshot2.png"));
-//                    } catch (IOException e) {
-//
-//                    }
+                    // Wait for the page to load (you can add explicit waits here if necessary)
+                    System.out.println("---------------------");
+                    Thread.sleep(3000);
+
+                    // Get the HAR data and extract network requests
+                    Har har = mainCrawling.getProxy().getHar();
+                    List<HarEntry> entries = har.getLog().getEntries();
+
+                    // Print all requests, filtering by "cloudfront" if needed
+                    List<String> img_urls = new ArrayList<>();
+                    for (HarEntry entry : entries) {
+                        String requestUrl = entry.getRequest().getUrl();
+                        if (requestUrl.contains("cloudfront")) {
+                            img_urls.add(requestUrl);
+                        }
+                    }
 
                     try {
-                        postProcessing(mainCrawling);
+                        postProcessing(mainCrawling, img_urls);
                     } catch (Exception ignored) {
 
                     }
@@ -134,7 +135,7 @@ public class HouseCrawlingTask {
         mainCrawling.quitDriver();
     }
 
-    public void postProcessing(Crawling curCrawling) {
+    public void postProcessing(Crawling curCrawling, List<String> imgUrls) {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
@@ -315,7 +316,8 @@ public class HouseCrawlingTask {
                 option.toString(),
                 curAddress,
                 Double.parseDouble(curCoordinate.split("/")[0]),
-                Double.parseDouble(curCoordinate.split("/")[1])
+                Double.parseDouble(curCoordinate.split("/")[1]),
+                String.join("@@@", imgUrls)
         );
 
         count++;
@@ -328,16 +330,6 @@ public class HouseCrawlingTask {
 //        System.out.println(++count);
 //        System.out.println(house);
 //        results.add(house);
-    }
-
-    public static int printCountAndHouse(String threadName, String house) {
-        System.out.println(++count);
-        if (count % 100 == 0) {
-            System.out.println(threadName + " / " + house);
-            return count;
-        }
-        System.out.println(threadName + " / " + house);
-        return -1;
     }
 
     public static int convertToNumber(String text) {
