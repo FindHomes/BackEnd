@@ -93,7 +93,11 @@ public class MainController {
 
         // 사용자 입력과 GPT 응답 저장
         userChatService.saveUserChat(sessionId, userChatRequest.getUserInput(), gptResponse);
+        // 대화 종료 조건 확인
+        if (gptResponse.contains("대화 종료")) {
+            // TODO: '/api/search/complete' 로 데이터와 함께 요청보내기
 
+        }
 
         // 응답 반환
         UserChatResponse response = new UserChatResponse(true, 200, "성공", new UserChatResponse.ChatResponse(gptResponse));
@@ -182,7 +186,9 @@ public class MainController {
                 "예를 들어 '네이버 본사와 강남역이랑 가까웠으면 좋겠다'와 같은 조건을 받으면 네이버본사_(37.359512+127.105220)-2, 강남역_(37.497940+127.027620)-2 와 같이 나타냅니다."+
                 "모든 섹션의 형식을 정확히 준수하여, 불필요한 텍스트 없이 응답해주세요. 반환 형식 예시는 다음과 같습니다."+
                 "'관리비-20, 층수-3, 복층-true/가스레인지,샤워부스/음식점_버거킹-5, 피시방-2, 미용실-1, 병원-3" +
-                "/교통사고율-3, 화재율-1, 범죄율-4/강남역_(37.497940+127.027620)-3'."
+                "/교통사고율-3, 화재율-1, 범죄율-4/강남역_(37.497940+127.027620)-3'." +
+                "대화가 끝난 것 같으면 '대화 종료'라고 반환해주세요.."
+
                 ,userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData()
         );
     }
