@@ -21,7 +21,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
     @Column(unique = true, nullable = false)
-    private String kakao_id;  // 카카오 고유 ID
+    private String kakaoId;  // 카카오 고유 ID
     private String userNickname;
     private String userPassword;
     private String loginApi;
