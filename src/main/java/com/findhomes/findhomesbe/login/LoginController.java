@@ -1,10 +1,9 @@
-package com.findhomes.findhomesbe.controller;
+package com.findhomes.findhomesbe.login;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.findhomes.findhomesbe.entity.User;
 import com.findhomes.findhomesbe.repository.UserRepository;
-import com.findhomes.findhomesbe.service.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -17,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -75,7 +73,7 @@ public class LoginController {
         String kakaoId = getKakaoId(accessToken);
 
         // 4. 사용자 조회 및 회원가입 처리
-        Optional<User> userOptional = userRepository.findBykakaoId(kakaoId);
+        Optional<User> userOptional = userRepository.findByKakaoId(kakaoId);
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
@@ -86,7 +84,7 @@ public class LoginController {
         }
 
         // 5. JWT 생성
-        String jwtToken = jwtTokenProvider.createToken(kakaoId);
+        String jwtToken = jwtTokenProvider.createToken(user.getUserId());
 
         // 6. 클라이언트에 JWT 반환
         return ResponseEntity.ok(jwtToken);
@@ -114,6 +112,7 @@ public class LoginController {
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            System.out.println(jsonNode.toString());
             return jsonNode.get("id").asText(); // 사용자의 카카오 고유 ID 추출
         } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve user info from Kakao", e);

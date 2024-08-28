@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.service;
+package com.findhomes.findhomesbe.login;
 
 
 import io.jsonwebtoken.Claims;
