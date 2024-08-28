@@ -20,10 +20,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
+    @Column(unique = true, nullable = false)
+    private String kakao_id;  // 카카오 고유 ID
     private String userNickname;
     private String userPassword;
     private String loginApi;
-    private String userEmail;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
