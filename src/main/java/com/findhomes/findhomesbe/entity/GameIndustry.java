@@ -18,7 +18,5 @@ public class GameIndustry implements Industry {
     private String roadAddress;
     private Double latitude;
     private Double longitude;
-    private Double tempX;
-    private Double tempY;
     private String placeTags;
 }

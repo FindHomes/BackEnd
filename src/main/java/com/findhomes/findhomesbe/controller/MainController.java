@@ -49,8 +49,6 @@ public class MainController {
     private final UserChatService userChatService;
     private final ConditionService conditionService;
 
-    private List<House> preHouseData = new ArrayList<>();
-    private String userInput = "방이 3개이고 화장실 수가 두개였으면 좋겠어. 버거킹이 가깝고, 역세권인 집 찾아줘. 또 나는 중학생인 딸을 키우고 있어. 지역이 학구열이 있었으면 좋겠어";
     private String publicData = "교통사고율,화재율,범죄율,생활안전,자살율,감염병율";
     @PostMapping("/api/search/man-con")
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
