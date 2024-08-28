@@ -44,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userId, null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                System.out.println("id:"+userId+" 인증완료");
             }
         } else {
             // 토큰이 유효하지 않으면 401 에러 응답을 반환
