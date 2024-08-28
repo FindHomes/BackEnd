@@ -2,7 +2,7 @@ package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.argument_resolver.SessionValue;
-import com.findhomes.findhomesbe.calculate.SafetyGradeService;
+import com.findhomes.findhomesbe.calculate.service.SafetyGradeService;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
