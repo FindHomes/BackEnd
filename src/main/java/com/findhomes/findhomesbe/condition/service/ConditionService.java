@@ -3,10 +3,7 @@ package com.findhomes.findhomesbe.condition.service;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
-import com.findhomes.findhomesbe.condition.domain.HouseCondition;
-import com.findhomes.findhomesbe.condition.domain.HouseOption;
-import com.findhomes.findhomesbe.condition.domain.PublicData;
+import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +56,7 @@ public class ConditionService {
         System.out.println(HouseOption.getAllData());
         System.out.println(FacilityCategory.getAllData());
         System.out.println(PublicData.getAllData());
+        System.out.println(HouseDirection.getAllData());
 
 
         return new SearchResponse(true, 200, "성공", null);
@@ -76,22 +74,91 @@ public class ConditionService {
      * PublicData.getAllData() -> 공공데이터 및 가중치
      */
 
-    public List<Map<String, String>> parsingGptOutput(String gptOutput, String splitRegex) {
-        List<Map<String, String>> results = new ArrayList<>();
-        String[] sentences = gptOutput.split(splitRegex);
 
-        for (String sentence : sentences) {
-            HashMap<String, String> newMap = new HashMap<>();
-            String trimmedSentence = sentence.trim();
-            String[] conditions = trimmedSentence.split(",");
-            for (String condition : conditions) {
-                newMap.put(condition.split("-")[0].trim(), condition.split("-")[1].trim());
-            }
-            results.add(newMap);
+
+    /**
+     * 매물 자체 조건 파싱
+     * @param houseConditionStr - 형태: 방 수-2, 화장실 수-2, 층수-1
+     * @return not null. 빈 Map을 반환할 수 있음.
+     */
+    public Map<HouseCondition, String> parsingHouseCondition(String houseConditionStr) {
+        // 결과
+        Map<HouseCondition, String> resultMap = new HashMap<>();
+        // 예외 처리
+        if (houseConditionStr == null || houseConditionStr.isEmpty()) {
+            return resultMap;
         }
+        // HouseCondition Enum 클래스의 Map으로 바꿈.
+        String[] conditions = houseConditionStr.trim().toLowerCase().split(",");
+        for (String condition : conditions) {
+            try {
+                String[] parts = condition.split("-");
+                if (parts.length != 2) {
+                    log.error("GPT가 옳지 않은 매물 조건 응답을 반환함. 해당 조건: {}", condition);
+                    continue;
+                }
 
-        return results;
+                String conditionKey = parts[0].trim();
+                String conditionValue = parts[1].trim();
+
+                HouseCondition conditionObj = HouseCondition.valueOf(conditionKey.toUpperCase());
+                resultMap.put(conditionObj, conditionValue);
+            } catch (IllegalArgumentException | NullPointerException exception) {
+                log.error("GPT가 옳지 않은 매물 조건 응답을 반환함. 해당 조건: {}", condition);
+            }
+        }
+        return resultMap;
     }
+
+    /**
+     * 매물 옵션 조건 파싱
+     * @param houseOptionStr - 형태: 인덕션, 세탁기
+     * @return not null. 빈 List를 반환할 수 있음.
+     */
+    public List<HouseOption> parsingOptionCondition(String houseOptionStr) {
+        // 결과
+        List<HouseOption> resultList = new ArrayList<>();
+        // 예외 처리
+        if (houseOptionStr == null || houseOptionStr.isEmpty()) {
+            return resultList;
+        }
+        // HouseOption Enum 클래스의 List로 바꿈.
+        String[] conditions = houseOptionStr.trim().toLowerCase().split(",");
+        for (String condition : conditions) {
+            try {
+                HouseOption optionObj = HouseOption.valueOf(condition.trim());
+                resultList.add(optionObj);
+            } catch (IllegalArgumentException | NullPointerException exception) {
+                log.error("GPT가 옳지 않은 매물 조건 응답을 반환함. 해당 조건: {}", condition);
+            }
+        }
+        return resultList;
+    }
+
+//    /**
+//     * 시설 조건 파싱
+//     * @param facilityConditionStr - 형태: 음식점_버거킹-10, 병원_이비인후과-5
+//     * @return not null. 빈 Map을 반환할 수 있음.
+//     */
+//    public Map<FacilityCategory, List<String>> parsingFacilityCondition(String facilityConditionStr) {
+//        // 결과
+//        Map<FacilityCategory, List<String>> resultMap = new HashMap<>();
+//        // 예외 처리
+//        if (facilityConditionStr == null || facilityConditionStr.isEmpty()) {
+//            return resultMap;
+//        }
+//        // FacilityCategory Enum 클래스의 Map으로 바꿈.
+//        String[] conditions = facilityConditionStr.trim().toLowerCase().split(",");
+//        for (String condition : conditions) {
+//            String[] parts = condition.split("_");
+//            if (parts.length != 2) {
+//                log.error("GPT가 옳지 않은 매물 조건 응답을 반환함. 해당 조건: {}", condition);
+//                continue;
+//            }
+//
+//
+//        }
+//    }
 
     private Object[] houseConditionPreprocessing(Map<String, String> houseCondition) {
         // 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션

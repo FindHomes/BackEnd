@@ -2,9 +2,12 @@ package com.findhomes.findhomesbe.condition.domain;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 @Getter
 public enum FacilityCategory {
-    RestaurantIndustry("음식점"), GameIndustry("피시방"), HospitalIndustry("병원");
+    음식점("RestaurantIndustry"), 피시방("GameIndustry"), 병원("HospitalIndustry");
 
     private final String facilityCategory;
 
@@ -13,16 +16,8 @@ public enum FacilityCategory {
     }
 
     public static String getAllData() {
-        StringBuilder result = new StringBuilder();
-
-        // 모든 enum 값을 순회하며 houseOption 값을 추가
-        for (FacilityCategory option : FacilityCategory.values()) {
-            if (!result.isEmpty()) {
-                result.append(", ");
-            }
-            result.append(option.getFacilityCategory());
-        }
-
-        return result.toString();
+        return Arrays.stream(FacilityCategory.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(", "));
     }
 }
