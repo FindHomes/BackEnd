@@ -95,8 +95,9 @@ public class MainController {
         userChatService.saveUserChat(sessionId, userChatRequest.getUserInput(), gptResponse);
         // 대화 종료 조건 확인
         if (gptResponse.contains("대화 종료")) {
-            // TODO: '/api/search/complete' 로 데이터와 함께 요청보내기
-
+            // 대화 종료를 클라이언트에 알리기
+            UserChatResponse response = new UserChatResponse(true, 204, "대화가 종료되었습니다", new UserChatResponse.ChatResponse(gptResponse));
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
 
         // 응답 반환
