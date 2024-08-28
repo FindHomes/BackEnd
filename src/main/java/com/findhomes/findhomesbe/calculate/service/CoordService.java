@@ -29,8 +29,8 @@ public class CoordService {
 //        long endTime2 = System.nanoTime();
 //        double lat2Rad = Math.toRadians(industryCoord[1]);
 //        double lon2Rad = Math.toRadians(industryCoord[0]);
-        double lat2Rad = Math.toRadians(industry.getY());
-        double lon2Rad = Math.toRadians(industry.getX());
+        double lat2Rad = Math.toRadians(industry.getLatitude());
+        double lon2Rad = Math.toRadians(industry.getLongitude());
 
         // 위도와 경도의 차이 계산
         double dLat = lat2Rad - lat1Rad;
