@@ -87,7 +87,6 @@ public class HouseCrawlingTask {
                     mainCrawling.getDriver().switchTo().window(tabs.get(1));
 
                     // Wait for the page to load (you can add explicit waits here if necessary)
-                    System.out.println("---------------------");
                     Thread.sleep(3000);
 
                     // Get the HAR data and extract network requests

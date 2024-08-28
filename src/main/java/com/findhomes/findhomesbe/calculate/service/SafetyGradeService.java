@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.calculate;
+package com.findhomes.findhomesbe.calculate.service;
 
 import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
 import com.findhomes.findhomesbe.calculate.data.SafetyEnum;

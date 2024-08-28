@@ -2,16 +2,12 @@ package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
-import com.findhomes.findhomesbe.calculate.CalculateService;
-import com.findhomes.findhomesbe.calculate.CoordService;
 import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
 import com.findhomes.findhomesbe.condition.domain.HouseCondition;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,6 +65,7 @@ public class ConditionService {
     }
 
     // 방 수-2, 화장실 수-2, 층수-1
+    // / 옵션 종류
     // /음식점_버거킹-10
     // /교통사고율-0, 화재율-0, 범죄율-0, 생활안전-0, 자살율-0, 감염병율-0
     // /네이버 본사_(37.359512+127.105220)-10
