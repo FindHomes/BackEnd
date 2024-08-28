@@ -23,11 +23,18 @@ public class User {
     @Column(unique = true, nullable = false)
     private String kakaoId;  // 카카오 고유 ID
     private String userNickname;
-    private String userPassword;
     private String loginApi;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public User(String kakaoId, String userNickname, String loginApi, String status, LocalDateTime createdAt) {
+        this.kakaoId = kakaoId;
+        this.userNickname = userNickname;
+        this.loginApi = loginApi;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
 
     //
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,14 +80,13 @@ public class LoginController {
         if (userOptional.isPresent()) {
             user = userOptional.get();
         } else {
-            user = new User();
-            user.setKakaoId(kakaoId);
-            user.setLoginApi("kakao");
+            user = new User(kakaoId, "임시 닉네임", "kakao", "ACTIVE", LocalDateTime.now());
+
             userRepository.save(user);
         }
 
         // 5. JWT 생성
-        String jwtToken = jwtTokenProvider.createToken(user.getUserId().toString());
+        String jwtToken = jwtTokenProvider.createToken(kakaoId);
 
         // 6. 클라이언트에 JWT 반환
         return ResponseEntity.ok(jwtToken);
