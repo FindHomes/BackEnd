@@ -1,6 +1,5 @@
 package com.findhomes.findhomesbe.login;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -14,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private String secretKey = "my-very-secret-key-for-jwt-signing-and-validation"; // 하드코딩된 비밀 키
+    private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
     private long validityInMilliseconds = 3600000; // 1 hour in milliseconds
 
     private Key key;

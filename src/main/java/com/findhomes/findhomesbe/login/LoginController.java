@@ -23,15 +23,15 @@ import java.util.Optional;
 public class LoginController {
 
     private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${KAKAO_CLIENT_ID}")
     private String clientId;
 
     @Value("${KAKAO_REDIRECT_URI}")
     private String redirectUri;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    private String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
+    private final String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
 
     @GetMapping("/api/login")
     public String login() {
@@ -73,15 +73,11 @@ public class LoginController {
         String kakaoId = getKakaoId(accessToken);
 
         // 4. 사용자 조회 및 회원가입 처리
-        Optional<User> userOptional = userRepository.findByKakaoId(kakaoId);
-        User user;
-        if (userOptional.isPresent()) {
-            user = userOptional.get();
-        } else {
-            user = new User(kakaoId, "임시 닉네임", "kakao", "ACTIVE", LocalDateTime.now());
-
-            userRepository.save(user);
-        }
+        User user = userRepository.findByKakaoId(kakaoId)
+                .orElseGet(() -> {
+                    User newUser = new User(kakaoId, "임시 닉네임", "kakao", "ACTIVE", LocalDateTime.now());
+                    return userRepository.save(newUser);
+                });
 
         // 5. JWT 생성
         String jwtToken = jwtTokenProvider.createToken(user.getUserId());
@@ -112,7 +108,7 @@ public class LoginController {
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            System.out.println(jsonNode.toString());
+            System.out.println(jsonNode);
             return jsonNode.get("id").asText(); // 사용자의 카카오 고유 ID 추출
         } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve user info from Kakao", e);
