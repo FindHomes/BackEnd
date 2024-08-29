@@ -24,12 +24,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 요청 URL 확인
         String requestURI = request.getRequestURI();
 
-        // /api로 시작하는 경로에 대해서는 필터를 건너뛰도록 설정
-        if (requestURI.startsWith("/api")) {
+//        // /api로 시작하는 경로에 대해서는 필터를 건너뛰도록 설정
+//        if (requestURI.startsWith("/api")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+        // /api/login 또는 /api/oauth/kakao 경로에 대해서는 필터를 건너뛰도록 설정
+        if (requestURI.equals("/api/login") || requestURI.equals("/api/oauth/kakao")) {
             filterChain.doFilter(request, response);
             return;
         }
-
         // JWT 추출
 
         String token = extractTokenFromRequest(request);
@@ -44,6 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userId, null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                System.out.println("id:"+userId+" 인증완료");
             }
         } else {
             // 토큰이 유효하지 않으면 401 에러 응답을 반환

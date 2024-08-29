@@ -81,7 +81,7 @@ public class LoginController {
 
         // 5. JWT 생성
         String jwtToken = jwtTokenProvider.createToken(user.getUserId());
-
+        System.out.println("토큰 생성완료");
         // 6. 클라이언트에 JWT 반환
         return ResponseEntity.ok(jwtToken);
     }
