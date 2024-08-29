@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.argument_resolver.SessionValue;
 import com.findhomes.findhomesbe.calculate.service.SafetyGradeService;
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
+import com.findhomes.findhomesbe.condition.domain.HouseCondition;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
@@ -57,6 +58,7 @@ public class MainController {
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
         HttpSession session = httpRequest.getSession(); // 헤더에 있는 세션 id로 세션이 있으면 찾고, 세션이 없으면 새로 생성
         // 세션에 필터링된 필수 조건 저장
+        log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
 
         // 응답 반환
@@ -165,15 +167,16 @@ public class MainController {
                 "각 섹션 중 해당하는 값이 없으면 관리비-10//// 와 같이 생략합니다. " +
                 "\n\n응답 형식에는 5가지 섹션이 있고 각 섹션은 다음과 같습니다:\n" +
                 "1. **매물 조건**: 매물 자체와 관련된 추가 조건을 명시합니다. 이 조건들은 매물의 특성에 대한 사용자 요구를 나타냅니다. " +
-                "매물 조건에는 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일이 포함될 수 있습니다. " +
-                "예시: '관리비-10, 복층-false, 분리형-true, 층수-3, 크기-30, 방 수-3, 화장실 수-2, 방향-동, 완공일-20241023' 와 같은 양식으로 나타냅니다. 복층과 분리형은 true나 false로 표현하고 방향은 동, 서,남,북으로, 완공일은 날짜, 나머지 옵션은 정수로 표현합니다.\n\n" +
+                "매물 조건에는 '%s'이 포함될 수 있습니다. " +
+                "예시: '관리비-10, 복층-false, 분리형-true, 층수-3, 크기-30, 방_수-3, 화장실_수-2, 방향-동, 완공일-20241023' 와 같은 양식으로 나타냅니다. 복층과 분리형은 true나 false로 표현하고 방향은 동, 서,남,북으로, 완공일은 날짜, 나머지 옵션은 정수로 표현합니다.\n\n" +
                 "2. 매물 옵션 : 매물에 관한 옵션 중 사용자에게 필요한 옵션을 명시합니다. 예시: 화재경보기,신발장,옷장"+
                 "3. **시설 데이터**: 사용자 요구와 관련된 필요한 시설 데이터를 명시하고, 각 시설의 중요도를 가중치로 표시합니다. " +
                 "이 가중치는 해당 시설이 사용자 요구와 얼마나 관련이 있는지를 나타냅니다. 가중치는 1부터 10사이의 값입니다." +
                 "예를 들어 '음식점_버거킹-0.3'는 사용자가 버거킹과 가까운 집을 원할 경우, 음식점 중에서 버거킹의 중요도가 0.3임을 의미합니다. " +
                 "'음식점_버거킹'과 같은 형식에서 '음식점'은 큰 범주를, '버거킹'은 그 범주 안의 특정 키워드를 의미합니다. " +
-                "이처럼 포함관계의 속하는 데이터는 '_'로 표시합니다"+
-                "예시: '음식점_버거킹-3, 피시방-2, 미용실-1, 병원-4'.\n\n" +
+                "이처럼 포함관계에 속하는 데이터는 '_'로 표시합니다. "+
+                "또한 특정 카테고리 전부일 경우 특정 이름이 아니라 all로 표시합니다."+
+                "예시: '음식점_버거킹-3, 피시방_all-2, 미용실_all-1, 병원_이비인후과-4, 병원_소아과-3'.\n\n" +
                 "4. **공공 데이터**: 공공 데이터와 관련된 항목을 명시하고, 각 항목의 중요도를 가중치로 표시합니다. " +
                 "이 가중치는 해당 공공 데이터가 사용자 요구와 얼마나 관련이 있는지를 나타냅니다. 예를 들어 '범죄율-3'는 " +
                 "사용자가 안전한 지역을 원할 경우, 범죄율이 7의 중요도를 가지는 것을 의미합니다. " +
@@ -183,7 +186,7 @@ public class MainController {
                 "모든 섹션의 형식을 정확히 준수하여, 불필요한 텍스트 없이 응답해주세요. 반환 형식 예시는 다음과 같습니다."+
                 "'관리비-20, 층수-3, 복층-true/가스레인지,샤워부스/음식점_버거킹-5, 피시방-2, 미용실-1, 병원-3" +
                 "/교통사고율-3, 화재율-1, 범죄율-4/강남역_(37.497940+127.027620)-3'."
-                ,userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData()
+                ,userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData()
         );
     }
 
