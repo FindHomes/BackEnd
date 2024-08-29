@@ -15,12 +15,5 @@ public class WebConfig implements WebMvcConfigurer {
         resolvers.add(new SessionValueArgumentResolver());
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*") // 모든 도메인 허용, 필요에 따라 특정 도메인으로 제한 가능
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+
 }

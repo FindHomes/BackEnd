@@ -16,6 +16,7 @@ public class LoginResponse {
     private String message;
     private JwtToken result;
     @AllArgsConstructor
+    @Data
     public static class JwtToken{
         @Schema(description = "토큰 값 입니다.")
         String token;
