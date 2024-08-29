@@ -42,8 +42,8 @@ public class LoginController {
     private final String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
 
     @GetMapping("/api/login")
-    @Operation(summary = "카카오 로그인 버튼 클릭", description = "로그인 버튼을 누르면 이 api가 호출 되고 리다이렉트 명령을 반환하여 카카오 로그인 창이 나타납니다. 로그인을 마치면 /api/oauth/kakao로 리다이렉트 되어 토큰을 반환받습니다.")
-    @ApiResponse(responseCode = "200", description = "카카오 로그인을 진행하는 창으로 리다이렉트합니다", content = @Content(schema = @Schema(implementation = RedirectResponse.class)))
+    @Operation(summary = "카카오 로그인 버튼 클릭", description = "카카오 로그인 창 주소를 반환합니다. 로그인을 마치면 /api/oauth/kakao로 리다이렉트 되어 토큰을 반환받습니다.")
+    @ApiResponse(responseCode = "200", description = "카카오 로그인을 진행하는 주소를 반환합니다", content = @Content(schema = @Schema(implementation = RedirectResponse.class)))
     public ResponseEntity<RedirectResponse> login() {
         String kakaoAuthUrl = UriComponentsBuilder.fromHttpUrl("https://kauth.kakao.com/oauth/authorize")
                 .queryParam("response_type", "code")
@@ -56,7 +56,7 @@ public class LoginController {
     }
 
     @GetMapping("/api/oauth/kakao")
-    @Operation(summary = "토큰 값 반환", description = "토큰 값을 반환하기 위한 내부 다이렉트 URL 입니다. 클라이언트에서는 /api/login으로 요청을 보내고 /apo/oauth/kakao로 리다이렉트 된 뒤 토큰을 반환받습니다.")
+    @Operation(summary = "토큰 값 반환", description = "카카오 로그인을 마치면 이 주소로 자동으로 리다이렉트 되어 토큰을 반환받습니다. 리다이렉트되면서 자동으로 code값이 설정됩니다.")
     @ApiResponse(responseCode = "200", description = "토큰 값을 반환함", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))})
     public ResponseEntity<LoginResponse> kakaoCallback(@RequestParam String code) {
         RestTemplate restTemplate = new RestTemplate();
