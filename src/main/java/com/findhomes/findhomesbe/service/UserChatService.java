@@ -14,13 +14,13 @@ public class UserChatService {
 
     private final UserChatRepository userChatRepository;
 
-    public List<UserChat> getUserChatsBySessionId(String sessionId) {
-        return userChatRepository.findBySessionId(sessionId);
+    public List<UserChat> getUserChatsByToken(String token) {
+        return userChatRepository.findByToken(token);
     }
 
-    public void saveUserChat(String sessionId, String userInput, String gptResponse) {
+    public void saveUserChat(String token, String userInput, String gptResponse) {
         UserChat userChat = new UserChat();
-        userChat.setSessionId(sessionId);
+        userChat.setToken(token);
         userChat.setUserInput(userInput);
         userChat.setGptResponse(gptResponse);
         userChat.setCreatedAt(LocalDateTime.now());

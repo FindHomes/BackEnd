@@ -10,6 +10,7 @@ import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
+import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,20 +50,24 @@ public class MainController {
     private final ChatService chatService;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    private String publicData = "교통사고율,화재율,범죄율,생활안전,자살율,감염병율";
     @PostMapping("/api/search/man-con")
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
+        String token = extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
+
         HttpSession session = httpRequest.getSession(); // 헤더에 있는 세션 id로 세션이 있으면 찾고, 세션이 없으면 새로 생성
+
         // 세션에 필터링된 필수 조건 저장
         log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
 
         // 응답 반환
-        ManConResponse response = new ManConResponse(true, 200, "성공", new ManConResponse.JSESSIONID(session.getId()));
+        ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", null);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -70,14 +75,12 @@ public class MainController {
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
     public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest) {
-        // 세션 ID 추출 및 검증
-        String sessionId = extractSessionId(httpRequest);
-        if (sessionId == null || !isValidSession(httpRequest, sessionId)) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+
+        String token = extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
 
         // 이전 대화 내용을 가져오기
-        List<UserChat> previousChats = userChatService.getUserChatsBySessionId(sessionId);
+        List<UserChat> previousChats = userChatService.getUserChatsByToken(token);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("User: ").append(chat.getUserInput()).append("\n");
@@ -90,11 +93,11 @@ public class MainController {
         conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n");
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatService.getResponse(conversation.toString(), keyword()+","+publicData);
+        String gptResponse = chatService.getResponse(conversation.toString(), FacilityCategory.getAllData()+","+PublicData.getAllData());
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
-        userChatService.saveUserChat(sessionId, userChatRequest.getUserInput(), gptResponse);
+        userChatService.saveUserChat(token, userChatRequest.getUserInput(), gptResponse);
         // 대화 종료 조건 확인
         if (gptResponse.contains("대화 종료")) {
             // 대화 종료를 클라이언트에 알리기
@@ -114,14 +117,11 @@ public class MainController {
             HttpServletRequest httpRequest,
             @SessionValue(MAN_CON_KEY) ManConRequest manConRequest
     ) {
-        // 세션 ID 추출 및 검증
-        String sessionId = extractSessionId(httpRequest);
-        if (sessionId == null || !isValidSession(httpRequest, sessionId)) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+        String token = extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
 
         // 이전 대화 내용을 가져오기
-        List<UserChat> previousChats = userChatService.getUserChatsBySessionId(sessionId);
+        List<UserChat> previousChats = userChatService.getUserChatsByToken(token);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("User: ").append(chat.getUserInput()).append("\n");
@@ -205,24 +205,13 @@ public class MainController {
         return content;
     }
 
-    public String keyword() {
-        return "음식점, 미용실, 피시방, 병원";
-    }
 
-    // 클라이언트 헤더의 쿠키에서 세션 ID 추출
-    private String extractSessionId(HttpServletRequest httpRequest) {
-        if (httpRequest.getCookies() != null) {
-            for (Cookie cookie : httpRequest.getCookies()) {
-                if ("JSESSIONID".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+    // 클라이언트 요청 헤더에서 JWT 토큰 추출
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // "Bearer " 이후의 토큰만 추출
         }
         return null;
-    }
-    // 해당 세션이 유효한지 검사
-    private boolean isValidSession(HttpServletRequest httpRequest, String sessionId) {
-        HttpSession session = httpRequest.getSession(false);
-        return session != null && sessionId.equals(session.getId());
     }
 }
