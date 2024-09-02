@@ -15,7 +15,7 @@ public class UserChat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String token;
+    private String sessionId;
     private String userInput;
     private String gptResponse;
 
