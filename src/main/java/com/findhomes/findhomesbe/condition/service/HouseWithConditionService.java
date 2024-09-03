@@ -6,11 +6,13 @@ import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.SafetyGrade;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class HouseWithConditionService {
     private final PublicDataService publicDataService;
@@ -18,7 +20,6 @@ public class HouseWithConditionService {
     public List<HouseWithCondition> convertHouseList(List<House> houses) {
         return houses.stream().map(this::convertHouse).toList();
     }
-
     private HouseWithCondition convertHouse(House house) {
         return new HouseWithCondition(house);
     }
@@ -31,15 +32,18 @@ public class HouseWithConditionService {
             }
         }
     }
-
     private void injectPublicData(HouseWithCondition houseWithCondition, PublicData publicData) {
         String[] districtAndCity = extractDistrictAndCity(houseWithCondition.getHouse().getAddress());
         if (districtAndCity != null) {
             SafetyGrade safetyGrade = publicDataService.getSafetyGradeByAddress(districtAndCity[0], districtAndCity[1]);
+            if (safetyGrade == null) {
+                log.error("{}", districtAndCity);
+                return;
+            }
 
             switch (publicData.name()) {
                 case "교통사고율":
-                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getTraffic_accidents());
+                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getTrafficAccidents());
                     break;
                 case "화재율":
                     houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getFire());
@@ -48,20 +52,19 @@ public class HouseWithConditionService {
                     houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getCrime());
                     break;
                 case "생활안전":
-                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getPublic_safety());
+                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getPublicSafety());
                     break;
                 case "자살율":
                     houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getSuicide());
                     break;
                 case "감염병율":
-                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getInfectious_diseases());
+                    houseWithCondition.getSafetyGradeMap().put(publicData, safetyGrade.getInfectiousDiseases());
                     break;
             }
         }
     }
-
     private String[] extractDistrictAndCity(String address) {
-        String[] splitAddress = address.split(address);
+        String[] splitAddress = address.split(" ");
         try {
             String district = splitAddress[0];
             if (district.equals("경기도")) {
@@ -97,9 +100,10 @@ public class HouseWithConditionService {
             } else if (district.contains("울산")) {
                 district = "울산";
             }
-            return new String[]{district, splitAddress[2]};
+            return new String[]{district, splitAddress[1]};
         } catch (Exception e) {
             // TODO: 예외 처리 제대로 해야됨.
+            log.error("FacilityCategory클래스 extractDistrictAndCity함수", e);
             return null;
         }
     }

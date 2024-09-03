@@ -23,12 +23,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 요청 URL 확인
         String requestURI = request.getRequestURI();
-
-        // /api/login 또는 /api/oauth/kakao 경로에 대해서는 필터를 건너뛰도록 설정
-        if (requestURI.equals("/api/login") || requestURI.equals("/api/oauth/kakao")) {
+        
+        
+        // 테스트를 위해 임시로 풀어놓기
+        if (requestURI.startsWith("/")) {
             filterChain.doFilter(request, response);
             return;
         }
+//        // /api/login 또는 /api/oauth/kakao 경로에 대해서는 필터를 건너뛰도록 설정
+//        if (requestURI.equals("/api/login") || requestURI.equals("/api/oauth/kakao")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         // 스웨거 관련 URL에 대해서는 필터를 건너뛰도록 설정
         if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-ui")) {

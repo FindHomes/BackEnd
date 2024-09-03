@@ -33,7 +33,9 @@ public class ConditionService {
         // 2. 공공 데이터 조건 처리
         houseWithConditionService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
 
-        log.info("{}", houseWithConditions);
+        for (HouseWithCondition houseWithCondition : houseWithConditions) {
+            log.info("매물id: {}, 주소: {}, 등급 정보: {}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getAddress(), houseWithCondition.getSafetyGradeMap());
+        }
 
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
 
