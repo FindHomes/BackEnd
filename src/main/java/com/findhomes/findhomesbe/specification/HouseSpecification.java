@@ -1,6 +1,7 @@
 package com.findhomes.findhomesbe.specification;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
+import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,10 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HouseSpecification {
-    public static Specification<House> searchHousesByManCon(ManConRequest manConRequest) {
+    public static Specification<House> searchHousesByAllCon(AllConditions allConditions) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            // 필수 조건 추가
+            ManConRequest manConRequest = allConditions.getManConRequest();
             if (manConRequest != null) {
                 // Housing Type 조건
                 if (manConRequest.getHousingTypes() != null && !manConRequest.getHousingTypes().isEmpty()) {

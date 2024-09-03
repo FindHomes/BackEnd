@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.service;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
+import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
@@ -22,74 +23,8 @@ import java.util.stream.Collectors;
 public class HouseService {
     private final HouseRepository houseRepository;
 
-    public List<House> getHouse(ManConRequest searchRequest) {
-//        List<House> houseList = houseRepository.findByPriceType("mm");
-        List<House> houseList = houseRepository.findAll();
-
-//        for (House house : houseList) {
-//            System.out.println("house = " + house.toString());
-//        }
-        return houseList;
-    }
-
-
-    public List<House> getManConHouses(ManConRequest manConRequest) {
-        return houseRepository.findAll(HouseSpecification.searchHousesByManCon(manConRequest));
-    }
-
-    public List<House> filterByUserInput(Map<String, String> condition, List<House> houses) {
-        // 관리비, 복층, 분리형, 층수, 크기, 방 수, 화장실 수, 방향, 완공일, 옵션
-        Object[] dataParsing = new Object[]{0, false, false, 0, 0, 0, 0, "동", LocalDate.now(), ""};
-        // 조건 전처리
-        for (Map.Entry<String, String> entry : condition.entrySet()) {
-            switch (entry.getKey()) {
-                case "관리비":
-                    dataParsing[0] = entry.getValue();
-                    break;
-                case "복층":
-                    dataParsing[1] = entry.getValue();
-                    break;
-                case "분리형":
-                    dataParsing[2] = entry.getValue();
-                    break;
-                case "층수":
-                    dataParsing[3] = toInteger(entry.getValue());
-                    break;
-                case "크기":
-                    dataParsing[4] = entry.getValue();
-                    break;
-                case "방 수":
-                    dataParsing[5] = toInteger(entry.getValue());
-                    break;
-                case "화장실 수":
-                    dataParsing[6] = toInteger(entry.getValue());
-                    break;
-                case "방향":
-                    dataParsing[7] = entry.getValue();
-                    break;
-                case "완공일":
-                    dataParsing[8] = entry.getValue();
-                    break;
-                case "옵션":
-                    dataParsing[9] = entry.getValue();
-                    break;
-            }
-        }
-
-        // 매물 필터링
-        return houses.stream()
-                .filter(house ->
-                        {
-                            return house.getRoomNum() >= (Integer) dataParsing[5]
-                                    && house.getWashroomNum() >= (Integer) dataParsing[6];
-                        }
-                )
-                .toList();
-    }
-
-    private static int toInteger(String value) {
-        String floorStr = value.replaceAll("[^0-9]", "");
-        return floorStr.isEmpty() ? -1 : Integer.parseInt(floorStr);
+    public List<House> getHouseByAllConditions(AllConditions allConditions) {
+        return houseRepository.findAll(HouseSpecification.searchHousesByAllCon(allConditions));
     }
 
     public SearchResponse.SearchResult makeResponse(List<House> housesSubList) {

@@ -2,13 +2,9 @@ package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.argument_resolver.SessionValue;
-import com.findhomes.findhomesbe.calculate.service.SafetyGradeService;
-import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
-import com.findhomes.findhomesbe.condition.domain.HouseCondition;
-import com.findhomes.findhomesbe.condition.domain.HouseOption;
-import com.findhomes.findhomesbe.condition.domain.PublicData;
+import com.findhomes.findhomesbe.condition.calculate.service.SafetyGradeService;
+import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
-import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
@@ -23,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -132,6 +127,16 @@ public class MainController {
         return new ResponseEntity<>(conditionService.exec(manConRequest, weights), HttpStatus.OK);
     }
 
+    @GetMapping("/test/api/search")
+    public ResponseEntity<SearchResponse> getHouseListTest(
+            @RequestBody ManConRequest manConRequest
+    ) {
+        // GPT 응답 반환
+        String weights = getKeywordANDWeightsFromGPT("너 응답을 파싱하는 테스트를 하려고 하는데, 너가 활용할 수 데이터를 다양하게 활용해서 조건을 알아서 구성해 줄 수 있을까? 마지막 파트의 지역을 두 개 이상 나오게 해줘");
+        log.info("GPT 응답: {}", weights);
+        // 매물 점수 계산해서 가져오기
+        return new ResponseEntity<>(conditionService.exec(manConRequest, weights), HttpStatus.OK);
+    }
 
 
     private String getKeywordANDWeightsFromGPT(String converstation) {
@@ -168,7 +173,7 @@ public class MainController {
                 "\n\n응답 형식에는 5가지 섹션이 있고 각 섹션은 다음과 같습니다:\n" +
                 "1. **매물 조건**: 매물 자체와 관련된 추가 조건을 명시합니다. 이 조건들은 매물의 특성에 대한 사용자 요구를 나타냅니다. " +
                 "매물 조건에는 '%s'이 포함될 수 있습니다. " +
-                "예시: '관리비-10, 복층-false, 분리형-true, 층수-3, 크기-30, 방_수-3, 화장실_수-2, 방향-동, 완공일-20241023' 와 같은 양식으로 나타냅니다. 복층과 분리형은 true나 false로 표현하고 방향은 동, 서,남,북으로, 완공일은 날짜, 나머지 옵션은 정수로 표현합니다.\n\n" +
+                "예시: '관리비-10, 복층-false, 분리형-true, 층수-3, 크기-30, 방_수-3, 화장실_수-2, 방향-동, 완공일-20241023' 와 같은 양식으로 나타냅니다. 복층과 분리형은 true나 false로 표현하고 방향은 '%s'으로, 완공일은 날짜로, 크기는 제곱미터 단위로 표현합니다.\n\n" +
                 "2. 매물 옵션 : 매물에 관한 옵션 중 사용자에게 필요한 옵션을 명시합니다. 예시: 화재경보기,신발장,옷장"+
                 "3. **시설 데이터**: 사용자 요구와 관련된 필요한 시설 데이터를 명시하고, 각 시설의 중요도를 가중치로 표시합니다. " +
                 "이 가중치는 해당 시설이 사용자 요구와 얼마나 관련이 있는지를 나타냅니다. 가중치는 1부터 10사이의 값입니다." +
@@ -186,7 +191,7 @@ public class MainController {
                 "모든 섹션의 형식을 정확히 준수하여, 불필요한 텍스트 없이 응답해주세요. 반환 형식 예시는 다음과 같습니다."+
                 "'관리비-20, 층수-3, 복층-true/가스레인지,샤워부스/음식점_버거킹-5, 피시방-2, 미용실-1, 병원-3" +
                 "/교통사고율-3, 화재율-1, 범죄율-4/강남역_(37.497940+127.027620)-3'."
-                ,userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData()
+                ,userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData(), HouseDirection.getAllData()
         );
     }
 

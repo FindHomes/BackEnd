@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.calculate.data;
+package com.findhomes.findhomesbe.condition.calculate.data;
 
 import lombok.Data;
 
