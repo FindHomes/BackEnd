@@ -1,7 +1,7 @@
 package com.findhomes.findhomesbe.condition.calculate.service;
 
 import com.findhomes.findhomesbe.condition.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.condition.calculate.data.SafetyEnum;
+import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.controller.MainController;
 import com.findhomes.findhomesbe.entity.House;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CalculateService {
 
-    public static List<House> calculateScore(List<HouseWithCondition> houseWithConditions, Map<String, Double> facilityMap, Map<SafetyEnum, Double> safetyMap) {
+    public static List<House> calculateScore(List<HouseWithCondition> houseWithConditions, Map<String, Double> facilityMap, Map<PublicData, Double> safetyMap) {
         return houseWithConditions.stream()
                 // TODO: 점수 계산 방식 바꿔야 됨.
                 .peek(houseWithCondition -> {

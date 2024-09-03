@@ -1,8 +1,6 @@
 package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
-import com.findhomes.findhomesbe.argument_resolver.SessionValue;
-import com.findhomes.findhomesbe.condition.calculate.service.SafetyGradeService;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.UserChat;
@@ -42,7 +40,6 @@ public class MainController {
     private final HouseService houseService;
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
-    private final SafetyGradeService safetyGradeService;
     private final ChatService chatService;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
