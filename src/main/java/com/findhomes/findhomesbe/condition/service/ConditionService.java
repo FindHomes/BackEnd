@@ -2,7 +2,7 @@ package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
-import com.findhomes.findhomesbe.condition.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.service.HouseService;
@@ -19,6 +19,8 @@ public class ConditionService {
     private final ParsingService parsingService;
     private final HouseService houseService;
     private final HouseWithConditionService houseWithConditionService;
+    private final PublicDataService publicDataService;
+    private final IndustryService industryService;
 
     public SearchResponse exec(ManConRequest manConRequest, String gptOutput) {
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
@@ -27,17 +29,20 @@ public class ConditionService {
 
         // 1. 필터링 조건으로 매물 필터링해서 매물 가져오기 (필수 조건, 매물 자체 조건, 매물 필수 옵션)
         List<House> houses = houseService.getHouseByAllConditions(allConditions);
-        //
+        // HouseWithCondition 리스트로 바꿔주기
         List<HouseWithCondition> houseWithConditions = houseWithConditionService.convertHouseList(houses);
 
         // 2. 공공 데이터 조건 처리
-        houseWithConditionService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
-
+        publicDataService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
+        // 공공 데이터 처리 결과 출력
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
-            log.info("매물id: {}, 주소: {}, 등급 정보: {}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getAddress(), houseWithCondition.getSafetyGradeMap());
+            log.info("매물id: {}, 주소: {}, 등급 정보: {}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getAddress(), houseWithCondition.getSafetyGradeInfoList());
         }
 
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
+        industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
+
+        // 4. 점수 계산
 
 
         SearchResponse.SearchResult searchResult = new SearchResponse.SearchResult();
