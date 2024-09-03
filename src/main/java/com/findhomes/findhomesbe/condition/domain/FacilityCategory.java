@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum FacilityCategory {
-    음식점("RestaurantIndustry"), 피시방("GameIndustry"), 종합병원("HospitalIndustry"), 공연장("ConcertHallIndustry"), 노래방("KaraokeIndustry"), 동물병원("AnimalHospitalIndustry"), 약국("PharmacyIndustry"), 영화관("CinemaIndustry"), 병원("ClincIndustry"), 베이커리("Bakery"),헬스장("GymIndustry");
+    음식점("RestaurantIndustry"), 피시방("GameIndustry"), 종합병원("HospitalIndustry"), 공연장("ConcertHallIndustry"), 노래방("KaraokeIndustry"), 동물병원("AnimalHospitalIndustry"), 약국("PharmacyIndustry"), 영화관("CinemaIndustry"), 병원("ClincIndustry"), 베이커리("Bakery"),헬스장("GymIndustry"),미용실("BeautyIndustry");
 
     private final String facilityCategory;
 
