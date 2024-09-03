@@ -19,7 +19,7 @@ public class ChatService {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
-                        .content("You are a helpful assistant specialized in understanding user preferences for housing searches. The data we have includes keywords like '" + dataKeywords + ".' If the user's request doesn't match these keywords, please prompt the user to ask questions related to these topics. If the user's request includes ambiguous, confusing, or unclear keywords, politely ask the user to clarify or provide more specific details. Keep your responses concise and to the point.")
+                        .content("You are a helpful assistant specialized in understanding user preferences for housing searches. The data we have includes keywords like '" + dataKeywords + ".' If the user's request doesn't match these keywords, please prompt the user to ask questions related to these topics. If the user's request includes ambiguous, confusing, or unclear keywords, politely ask the user to clarify or provide more specific details. Keep your responses concise and to the point. you must use korean")
                         .build(),
                 CompletionRequestDto.Message.builder()
                         .role("user")
