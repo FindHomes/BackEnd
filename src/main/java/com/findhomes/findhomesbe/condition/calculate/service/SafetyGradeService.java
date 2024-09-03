@@ -1,7 +1,7 @@
-package com.findhomes.findhomesbe.calculate.service;
+package com.findhomes.findhomesbe.condition.calculate.service;
 
-import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
+import com.findhomes.findhomesbe.condition.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.condition.calculate.data.SafetyEnum;
 import com.findhomes.findhomesbe.repository.SafetyGradeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

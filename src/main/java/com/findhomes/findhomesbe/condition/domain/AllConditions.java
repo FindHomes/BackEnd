@@ -3,7 +3,6 @@ package com.findhomes.findhomesbe.condition.domain;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +31,12 @@ public class AllConditions {
     @AllArgsConstructor
     public static class HouseConditionData {
         private HouseCondition houseConditionEnum;
-        private String detail;
+        private Object value;
 
         @Override
         public String toString() {
             return "houseConditionEnum=" + houseConditionEnum +
-                    ", detail='" + detail + '\'';
+                    ", detail='" + value + '\'';
         }
     }
 

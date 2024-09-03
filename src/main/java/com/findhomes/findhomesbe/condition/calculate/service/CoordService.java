@@ -1,14 +1,10 @@
-package com.findhomes.findhomesbe.calculate.service;
+package com.findhomes.findhomesbe.condition.calculate.service;
 
-import com.findhomes.findhomesbe.calculate.data.FacilityCountDistance;
-import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.condition.calculate.data.FacilityCountDistance;
+import com.findhomes.findhomesbe.condition.calculate.data.HouseWithCondition;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.proj4j.BasicCoordinateTransform;
-import org.locationtech.proj4j.CRSFactory;
-import org.locationtech.proj4j.CoordinateReferenceSystem;
-import org.locationtech.proj4j.ProjCoordinate;
 
 import java.util.List;
 import java.util.Map;

@@ -1,11 +1,10 @@
-package com.findhomes.findhomesbe.calculate.service;
+package com.findhomes.findhomesbe.condition.calculate.service;
 
-import com.findhomes.findhomesbe.calculate.data.HouseWithCondition;
-import com.findhomes.findhomesbe.calculate.data.SafetyEnum;
+import com.findhomes.findhomesbe.condition.calculate.data.HouseWithCondition;
+import com.findhomes.findhomesbe.condition.calculate.data.SafetyEnum;
 import com.findhomes.findhomesbe.controller.MainController;
 import com.findhomes.findhomesbe.entity.House;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;

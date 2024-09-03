@@ -9,20 +9,19 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum HouseDirection {
-    북("북"), 북동("북동"),
-    동("동"), 남동("남동"),
-    남("남"), 남서("남서"),
-    서("서"), 북서("북서");
-
-    private final String houseDirection;
-
-    HouseDirection(String houseDirection) {
-        this.houseDirection = houseDirection;
-    }
+    북, 북동,
+    동, 남동,
+    남, 남서,
+    서, 북서;
 
     public static String getAllData() {
         return Arrays.stream(HouseDirection.values())
                 .map(Enum::name)
                 .collect(Collectors.joining(", "));
+    }
+
+    // 예외 발생 조심 알아서 처리해야됨. 여기서 처리 ㄴㄴ
+    public static String getHouseDirection(String direction) {
+        return valueOf(direction).name();
     }
 }

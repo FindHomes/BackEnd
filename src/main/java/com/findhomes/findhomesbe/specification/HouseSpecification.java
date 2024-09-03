@@ -1,6 +1,9 @@
 package com.findhomes.findhomesbe.specification;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
+import com.findhomes.findhomesbe.condition.domain.AllConditions;
+import com.findhomes.findhomesbe.condition.domain.HouseCondition;
+import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,10 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HouseSpecification {
-    public static Specification<House> searchHousesByManCon(ManConRequest manConRequest) {
+    public static Specification<House> searchHousesByAllCon(AllConditions allConditions) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            // 필수 조건 추가
+            ManConRequest manConRequest = allConditions.getManConRequest();
             if (manConRequest != null) {
                 // Housing Type 조건
                 if (manConRequest.getHousingTypes() != null && !manConRequest.getHousingTypes().isEmpty()) {
@@ -41,6 +46,30 @@ public class HouseSpecification {
                                     criteriaBuilder.lessThanOrEqualTo(root.get("priceForWs"), prices.getWs().getRent())
                             )
                     ));
+                }
+            }
+
+            // 매물 추가 조건 추가
+            List<AllConditions.HouseConditionData> houseConditionDataList = allConditions.getHouseConditionDataList();
+            if (houseConditionDataList != null && !houseConditionDataList.isEmpty()) {
+                for (AllConditions.HouseConditionData houseConditionData : houseConditionDataList) {
+                    HouseCondition condition = houseConditionData.getHouseConditionEnum();
+                    Object value = houseConditionData.getValue();
+
+                    if (value != null) {
+                        // 각 조건에 따른 Predicate 생성
+                        Predicate predicate = condition.buildPredicate(criteriaBuilder, root, value);
+                        predicates.add(predicate);
+                    }
+                }
+            }
+
+            // 매물 옵션 조건 추가
+            List<HouseOption> houseOptionList = allConditions.getHouseOptionList();
+            if (houseOptionList != null && !houseOptionList.isEmpty()) {
+                for (HouseOption option : houseOptionList) {
+                    String optionStr = option.getHouseOption();
+                    predicates.add(criteriaBuilder.like(root.get("houseOption"), "%" + optionStr + "%"));
                 }
             }
 

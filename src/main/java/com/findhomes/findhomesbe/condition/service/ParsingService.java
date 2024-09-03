@@ -22,6 +22,12 @@ public class ParsingService {
      * PublicData.getAllData() -> 공공데이터 및 가중치
      */
 
+    /**
+     * 메인 함수
+     * @param manConRequest
+     * @param gptOutput
+     * @return
+     */
     public AllConditions parsingGptOutput(ManConRequest manConRequest, String gptOutput) {
         AllConditions result = new AllConditions(manConRequest);
 
@@ -67,7 +73,10 @@ public class ParsingService {
                 String conditionValue = parts[1].trim();
 
                 HouseCondition conditionObj = HouseCondition.valueOf(conditionKey.toUpperCase());
-                allConditions.getHouseConditionDataList().add(new AllConditions.HouseConditionData(conditionObj, conditionValue));
+
+                Object processedConditionValue = conditionObj.parse(conditionValue);
+
+                allConditions.getHouseConditionDataList().add(new AllConditions.HouseConditionData(conditionObj, processedConditionValue));
             } catch (Exception e) {
                 log.error("GPT가 옳지 않은 <매물 조건> 응답을 반환함. 해당 조건: {}", condition);
             }
