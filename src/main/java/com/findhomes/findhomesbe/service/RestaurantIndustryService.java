@@ -1,7 +1,7 @@
 package com.findhomes.findhomesbe.service;
 
 import com.findhomes.findhomesbe.entity.Industry;
-import com.findhomes.findhomesbe.repository.RestaurantIndustryRepository;
+import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import com.findhomes.findhomesbe.specification.RestaurantIndustrySpecification;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

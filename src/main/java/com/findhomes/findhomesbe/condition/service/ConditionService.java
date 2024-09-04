@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class ConditionService {
         }
 
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
-        industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
+        List<Industry> industries = industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
 
         // 4. 점수 계산
 
