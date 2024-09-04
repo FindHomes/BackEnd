@@ -42,7 +42,7 @@ public class ConditionService {
         }
 
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
-        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
+        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList());
 
         // 4. 점수 계산
         houseWithConditionService.calculate(houseWithConditions, industriesAndWeights);
