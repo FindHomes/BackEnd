@@ -57,7 +57,7 @@ public class MainController {
         String token = extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
 
-        // 새로운 세션 생성 및 세션 ID 가져오기
+        // 새로운 세션 생성
         HttpSession session = httpRequest.getSession(true); // 새로운 세션을 항상 생성
         String chatSessionId = session.getId();
         log.info("새로운 대화 세션 ID 생성: {}", chatSessionId);
@@ -66,13 +66,9 @@ public class MainController {
         log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
 
-        // 응답 헤더에 세션 ID 추가
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Session-Id", chatSessionId); // 클라이언트가 사용할 세션 ID를 헤더에 추가
-
         // 응답 반환
         ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", null);
-        return new ResponseEntity<>(response, headers, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 
@@ -89,7 +85,6 @@ public class MainController {
         HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
         if (session == null) {
             System.out.println("세션 없음");
-
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 세션이 없으면 에러 반환
         }
         String chatSessionId = session.getId();
