@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,14 +42,26 @@ public class ConditionService {
         }
 
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
-        List<Industry> industries = industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
+        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(houseWithConditions, allConditions.getFacilityConditionDataList());
 
         // 4. 점수 계산
+        houseWithConditionService.calculate(houseWithConditions, industriesAndWeights);
 
+        // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
+        houseWithConditionService.sort(houseWithConditions);
 
-        SearchResponse.SearchResult searchResult = new SearchResponse.SearchResult();
-        searchResult.setHouses(houses);
-        return new SearchResponse(true, 200, "성공", searchResult);
+        // 응답 생성 및 결과 매물이 없을 수 있어서 없을 경우에 빈 리스트를 반환
+        if (houseWithConditions.isEmpty()) {
+            return new SearchResponse(null, true, 200, "No Content");
+        } else {
+            List<House> resultHouses = houseWithConditionService.convertToHouseList(houseWithConditions.subList(0, Math.min(houseWithConditions.size(), 20)));
+
+            for (House resultHouse : resultHouses) {
+                log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", resultHouse.getHouseId(), resultHouse.getScore(), resultHouse.getPublicDataScore(), resultHouse.getFacilityDataScore());
+            }
+
+            return new SearchResponse(resultHouses, true, 200, "성공");
+        }
     }
 
 }
