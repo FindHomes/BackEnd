@@ -8,7 +8,13 @@ import java.util.List;
 public class ManConRequest {
     private List<String> housingTypes;
     private Prices prices;
-    private String region;
+    private Region region;
+
+    @Data
+    public static class Region {
+        private String district;
+        private String city;
+    }
 
     @Data
     public static class Prices {

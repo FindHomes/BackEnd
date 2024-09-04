@@ -40,9 +40,9 @@ public enum HouseCondition {
     private final int index;
     private final String fieldName;
     private final Function<String, ?> parser;
-    private final TriFunction<CriteriaBuilder, Root<House>, Object, Predicate> conditionFunction;
+    private final TriParamFunction<CriteriaBuilder, Root<House>, Object, Predicate> conditionFunction;
 
-    HouseCondition(int index, String fieldName, Function<String, ?> parser, TriFunction<CriteriaBuilder, Root<House>, Object, Predicate> conditionFunction) {
+    HouseCondition(int index, String fieldName, Function<String, ?> parser, TriParamFunction<CriteriaBuilder, Root<House>, Object, Predicate> conditionFunction) {
         this.index = index;
         this.fieldName = fieldName;
         this.parser = parser;
@@ -64,7 +64,7 @@ public enum HouseCondition {
     }
 
     @FunctionalInterface
-    public interface TriFunction<T, U, V, R> {
+    public interface TriParamFunction<T, U, V, R> {
         R apply(T t, U u, V v);
     }
 }

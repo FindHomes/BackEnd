@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe.specification;
 
-import com.findhomes.findhomesbe.entity.RestaurantIndustry;
+import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 

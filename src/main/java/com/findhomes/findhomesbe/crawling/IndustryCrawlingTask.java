@@ -1,7 +1,7 @@
 package com.findhomes.findhomesbe.crawling;
 
-import com.findhomes.findhomesbe.entity.RestaurantIndustry;
-import com.findhomes.findhomesbe.repository.RestaurantIndustryRepository;
+import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
+import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.JavascriptExecutor;

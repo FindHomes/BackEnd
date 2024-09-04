@@ -38,6 +38,17 @@ public class House {
 
     private transient Double score = 0d; // 직렬화에서 제외됨
 
+    @JsonIgnore
+    private transient Double publicDataScore = 0d;
+    public void addPublicDataScore(double score) {
+        publicDataScore += score;
+    }
+    @JsonIgnore
+    private transient Double facilityDataScore = 0d;
+    public void addFacilityDataScore(double score) {
+        facilityDataScore += score;
+    }
+
     public void addScore(double score) {
         this.score += score;
     }

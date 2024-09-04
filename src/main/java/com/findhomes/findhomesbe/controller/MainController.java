@@ -1,10 +1,9 @@
 package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
-import com.findhomes.findhomesbe.argument_resolver.SessionValue;
-import com.findhomes.findhomesbe.condition.calculate.service.SafetyGradeService;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
+import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
@@ -43,7 +42,6 @@ public class MainController {
     private final HouseService houseService;
     private final HospitalService hospitalService;
     private final RestaurantIndustryService restaurantIndustryService;
-    private final SafetyGradeService safetyGradeService;
     private final ChatService chatService;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
@@ -149,7 +147,19 @@ public class MainController {
         String weights = getKeywordANDWeightsFromGPT(conversation.toString());
         log.info("GPT 응답: {}", weights);
         // 매물 점수 계산해서 가져오기
-        return new ResponseEntity<>(conditionService.exec(manConRequest, weights), HttpStatus.OK);
+        List<House> resultHouses = conditionService.exec(manConRequest, weights);
+
+        if (resultHouses.isEmpty()) {
+            return new ResponseEntity<>(new SearchResponse(null, true, 200, "No Content"), HttpStatus.OK);
+        } else {
+            List<House> subResultHouses = resultHouses.subList(0, Math.min(20, resultHouses.size()));
+
+            for (House house : subResultHouses) {
+                log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", house.getHouseId(), house.getScore(), house.getPublicDataScore(), house.getFacilityDataScore());
+            }
+
+            return new ResponseEntity<>(new SearchResponse(subResultHouses, true, 200, "성공"), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/test/api/search")
@@ -161,7 +171,8 @@ public class MainController {
         String weights = getKeywordANDWeightsFromGPT(input);
         log.info("GPT 응답: {}", weights);
         // 매물 점수 계산해서 가져오기
-        return new ResponseEntity<>(conditionService.exec(manConRequest, weights), HttpStatus.OK);
+        List<House> resultHouses = conditionService.exec(manConRequest, weights);
+        return new ResponseEntity<>(new SearchResponse(resultHouses, true, 200, "성공"), HttpStatus.OK);
     }
 
 

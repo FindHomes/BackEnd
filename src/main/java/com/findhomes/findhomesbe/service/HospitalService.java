@@ -1,7 +1,7 @@
 package com.findhomes.findhomesbe.service;
 
-import com.findhomes.findhomesbe.entity.HospitalIndustry;
-import com.findhomes.findhomesbe.repository.HospitalRepository;
+import com.findhomes.findhomesbe.entity.industry.HospitalIndustry;
+import com.findhomes.findhomesbe.repository.industry.HospitalIndustryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +11,9 @@ import java.util.List;
 public class HospitalService {
 
     @Autowired
-    private HospitalRepository hospitalRepository;
+    private HospitalIndustryRepository hospitalIndustryRepository;
     public List<HospitalIndustry> findHospitalsByKeyword(String keyword) {
-        return hospitalRepository.findByKeyword(keyword);
+        return hospitalIndustryRepository.findByKeyword(keyword);
     }
 
 }
