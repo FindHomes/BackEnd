@@ -31,7 +31,7 @@ public class ParsingService {
     public AllConditions parsingGptOutput(ManConRequest manConRequest, String gptOutput) {
         AllConditions result = new AllConditions(manConRequest);
 
-        String[] gptOutputs = gptOutput.split("/");
+        String[] gptOutputs = gptOutput.split("\n");
 
         if (gptOutputs.length != 5) {
             log.error("gpt 응답에 \"가 4개가 안됨. gpt 응답: {}", gptOutput);
