@@ -24,7 +24,7 @@ public class ConditionService {
     private final PublicDataService publicDataService;
     private final IndustryService industryService;
 
-    public SearchResponse exec(ManConRequest manConRequest, String gptOutput) {
+    public List<House> exec(ManConRequest manConRequest, String gptOutput) {
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
         AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
@@ -50,18 +50,8 @@ public class ConditionService {
         // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
         houseWithConditionService.sort(houseWithConditions);
 
-        // 응답 생성 및 결과 매물이 없을 수 있어서 없을 경우에 빈 리스트를 반환
-        if (houseWithConditions.isEmpty()) {
-            return new SearchResponse(null, true, 200, "No Content");
-        } else {
-            List<House> resultHouses = houseWithConditionService.convertToHouseList(houseWithConditions.subList(0, Math.min(houseWithConditions.size(), 20)));
-
-            for (House resultHouse : resultHouses) {
-                log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", resultHouse.getHouseId(), resultHouse.getScore(), resultHouse.getPublicDataScore(), resultHouse.getFacilityDataScore());
-            }
-
-            return new SearchResponse(resultHouses, true, 200, "성공");
-        }
+        // 반환
+        return houseWithConditionService.convertToHouseList(houseWithConditions);
     }
 
 }
