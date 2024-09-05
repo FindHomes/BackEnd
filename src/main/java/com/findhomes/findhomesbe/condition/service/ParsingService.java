@@ -33,7 +33,7 @@ public class ParsingService {
 
         String[] gptOutputs = gptOutput.split("\n");
 
-        if (gptOutputs.length != 5) {
+        if (gptOutputs.length < 5) {
             log.error("gpt 응답이 5줄이 아닙니다. gpt 응답: {}", gptOutput);
             throw new IllegalGptOutputException("gpt 응답이 올바르지 않습니다.");
         }
