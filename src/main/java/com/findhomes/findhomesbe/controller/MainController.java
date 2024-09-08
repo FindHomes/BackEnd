@@ -55,8 +55,14 @@ public class MainController {
         String token = extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
 
+        // 기존 세션 무효화
+        HttpSession existingSession = httpRequest.getSession(false); // 기존 세션이 있을 경우 가져옴
+        if (existingSession != null) {
+            existingSession.invalidate(); // 기존 세션 무효화
+        }
+
         // 새로운 세션 생성
-        HttpSession session = httpRequest.getSession(true); // 새로운 세션을 항상 생성
+        HttpSession session = httpRequest.getSession(true); // 새로운 세션 생성
         String chatSessionId = session.getId();
         log.info("새로운 대화 세션 ID 생성: {}", chatSessionId);
 
