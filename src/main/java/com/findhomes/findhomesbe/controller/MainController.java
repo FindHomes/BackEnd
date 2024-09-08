@@ -62,7 +62,7 @@ public class MainController {
         }
 
         // 새로운 세션 생성
-        HttpSession session = httpRequest.getSession(true); // 새로운 세션 생성
+        HttpSession session = httpRequest.getSession(true);
         String chatSessionId = session.getId();
         log.info("새로운 대화 세션 ID 생성: {}", chatSessionId);
 
@@ -234,8 +234,7 @@ public class MainController {
                 "예를 들어 '네이버 본사와 강남역이랑 가까웠으면 좋겠다'와 같은 조건을 받으면 네이버본사_(37.359512+127.105220)-2, 강남역_(37.497940+127.027620)-2 와 같이 나타냅니다." +
                 "\n모든 섹션의 형식을 정확히 준수하여, 불필요한 텍스트 없이 응답해주세요. 반환 형식 예시는 다음과 같습니다." +
                 "'관리비-20, 층수-3, 복층-true\n가스레인지,샤워부스\n음식점_버거킹-5, 피시방_all-2, 미용실_all-1, 병원_이비인후과-3\n교통사고율-3, 화재율-1, 범죄율-4\n강남역_(37.497940+127.027620)-3'." +
-                "응답은 항상 한글이어야 합니다. '\\n'는 섹션들 사이에서 구분하는 기준으로만 쓰여야 하고, 이 문자는 항상 반드시 총 4개여야 합니다." +
-                "유저의 입력을 보고 유저가 대화를 종료, 중단하고 싶어 하거나 이제 매물을 추천해달라고 하면 '대화 종료'라고 반환해주세요.",
+                "응답은 항상 한글이어야 합니다. '\\n'는 섹션들 사이에서 구분하는 기준으로만 쓰여야 하고, 이 문자는 항상 반드시 총 4개여야 합니다.",
                 userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData(), HouseDirection.getAllData()
         );
     }
@@ -245,8 +244,6 @@ public class MainController {
     private String parseGPTResponse(Map<String, Object> result) {
         // GPT 응답에서 content 부분 추출
         String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) result.get("choices")).get(0).get("message")).get("content");
-
-
         return content;
     }
 
