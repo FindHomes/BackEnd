@@ -1,7 +1,5 @@
 package com.findhomes.findhomesbe.DTO;
 
-import com.findhomes.findhomesbe.entity.House;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -17,7 +15,5 @@ public class ManConResponse {
     private Boolean success;
     private Integer code;
     private String message;
-    private String result;
-
-
+    private List<String> result;
 }
