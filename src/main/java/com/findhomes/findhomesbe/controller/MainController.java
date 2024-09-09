@@ -9,23 +9,21 @@ import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.interning.qual.CompareToMethod;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,6 +33,7 @@ public class MainController {
 
     public static final double RADIUS = 5d;
     public static final String MAN_CON_KEY = "man-con";
+    public static final String HOUSE_RESULTS_KEY = "house-result";
 
     private final UserChatRepository userChatRepository;
     private final ChatGPTServiceImpl chatGPTServiceImpl;
@@ -49,7 +48,8 @@ public class MainController {
 
     @PostMapping("/api/search/man-con")
     @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
-            "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
+            "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"\n\n" +
+            "응답: 추천 문장 3개를 반환합니다. (주의: gpt가 형식에 맞지 않게 응답을 반환하면 문장이 더 많거나 적을 수 있습니다.)")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
         String token = extractTokenFromRequest(httpRequest);
@@ -70,9 +70,24 @@ public class MainController {
         log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
 
+        // 추천 질문 생성
+        String gptOutput = getGptOutput(makeUserRecommendInput(request));
+
         // 응답 반환
-        ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", null);
+        ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.trim()).collect(Collectors.toList()));
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private String makeUserRecommendInput(ManConRequest request) {
+        // TODO: 여기에 유저 정보도 넣어 줘야 할 듯.
+        return "[유저가 입력한 필수 조건]\n" + request.toSentence() + "\n" +
+                "[보유 데이터 목록]\n" + conditionService.conditionsToSentence() + "\n" +
+                "위의 데이터를 참고해서 유저에게 매물을 찾을 때 입력할 조건을 추천해줘.\n" +
+                "이 서비스는 보유 데이터 목록을 기반으로 유저가 입력한 조건에 맞는 부동산 매물을 찾아주는 서비스야.\n" +
+                "보유한 데이터를 창의적으로 활용할 수 있는 조건도 상관없어. 보유한 데이터 내에서만 질문할 필요도 없어. 유저는 입력을 자유롭게 할 수 있어.\n" +
+                "예시: 주변에 쇼핑할 곳이 있으면 좋을 것 같아. 그리고 아이 키우기 좋은 곳으로 추천해줘.\n" +
+                "문장의 길이는 100자 안으로 해주고, 3개의 문장을 랜덤하게 추천해줘. 조건 여러개를 하나의 문장에 써도 좋아.\n" +
+                "각 문장은 \\n으로 구분해서 한 줄에 하나의 문장만 나오게 해줘. 그 외에 다른 말은 아무것도 붙이지 말아줘.";
     }
 
 
@@ -124,12 +139,15 @@ public class MainController {
     }
 
     @GetMapping("/api/search/complete")
-    @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.")
-    @ApiResponse(responseCode = "200", description = "매물 응답 완료")
+    @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" +
+            "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
+            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.")
+    })
     public ResponseEntity<SearchResponse> getHouseList(
             HttpServletRequest httpRequest,
-            @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest,
-            @RequestParam(required = false, defaultValue = "1") int page
+            @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
     ) {
         String token = extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
@@ -152,16 +170,18 @@ public class MainController {
 
         // GPT 응답 반환
         log.info("GPT 입력 문장\n{}", conversation.toString());
-        String weights = getKeywordANDWeightsFromGPT(conversation.toString());
+        String weights = getGptOutput(createGPTCommand(conversation.toString()));
         log.info("GPT 응답: {}", weights);
         // 매물 점수 계산해서 가져오기
         List<House> resultHouses = conditionService.exec(manConRequest, weights);
 
+        // 결과 반환
         if (resultHouses.isEmpty()) {
-            return new ResponseEntity<>(new SearchResponse(null, true, 200, "No Content"), HttpStatus.OK);
+            return new ResponseEntity<>(new SearchResponse(new ArrayList<>(), true, 200, "No Content"), HttpStatus.OK);
         } else {
-            List<House> subResultHouses = resultHouses.subList(0, Math.min(20, resultHouses.size()));
+            List<House> subResultHouses = resultHouses.subList(0, Math.min(100, resultHouses.size()));
 
+            // log 출력 for문
             for (House house : subResultHouses) {
                 log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", house.getHouseId(), house.getScore(), house.getPublicDataScore(), house.getFacilityDataScore());
             }
@@ -170,23 +190,7 @@ public class MainController {
         }
     }
 
-    @GetMapping("/test/api/search")
-    public ResponseEntity<SearchResponse> getHouseListTest(
-            @RequestParam String input,
-            @RequestBody ManConRequest manConRequest
-    ) {
-        // GPT 응답 반환
-        String weights = getKeywordANDWeightsFromGPT(input);
-        log.info("GPT 응답: {}", weights);
-        // 매물 점수 계산해서 가져오기
-        List<House> resultHouses = conditionService.exec(manConRequest, weights);
-        return new ResponseEntity<>(new SearchResponse(resultHouses, true, 200, "성공"), HttpStatus.OK);
-    }
-
-
-    private String getKeywordANDWeightsFromGPT(String converstation) {
-        String command = createGPTCommand(converstation);
-
+    private String getGptOutput(String command) {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")

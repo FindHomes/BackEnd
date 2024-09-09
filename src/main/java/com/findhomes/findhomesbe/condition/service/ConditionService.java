@@ -54,4 +54,18 @@ public class ConditionService {
         return houseWithConditionService.convertToHouseList(houseWithConditions);
     }
 
+    // 보유 데이터를 문장으로 반환
+    public String conditionsToSentence() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("보유 매물 관련 데이터: ");
+        sb.append(HouseCondition.getAllData());
+        sb.append("\n보유 매물 옵션 데이터: ");
+        sb.append(HouseOption.getAllData());
+        sb.append("\n보유 시설 데이터: ");
+        sb.append(FacilityCategory.getAllData());
+
+        return sb.toString();
+    }
+
 }

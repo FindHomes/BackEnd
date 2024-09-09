@@ -11,5 +11,5 @@ import java.util.List;
 public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpecificationExecutor<House> {
     List<House> findByPriceType(String priceType);
 
-    List<House> findByPriceTypeAndHousingType(String priceType, String housingType);
+    List<House> findByHousingType(String housingType);
 }
