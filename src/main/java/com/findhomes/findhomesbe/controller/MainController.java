@@ -52,30 +52,15 @@ public class MainController {
             "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"")
     @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
+        // 토큰 검사
         String token = extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
-
-        // 기존 세션 무효화
-        HttpSession existingSession = httpRequest.getSession(false); // 기존 세션이 있을 경우 가져옴
-        if (existingSession != null) {
-            existingSession.invalidate(); // 기존 세션 무효화
-        }
-
-        // 새로운 세션 생성
-        HttpSession session = httpRequest.getSession(true);
-        String chatSessionId = session.getId();
-        log.info("새로운 대화 세션 ID 생성: {}", chatSessionId);
-
-        // 세션에 필터링된 필수 조건 저장
-        log.info("입력된 필수 조건: {}", request);
-        session.setAttribute(MAN_CON_KEY, request);
-
+        // 기존 세션 무효화 및 새로운 세션 생성
+        sessionCheck(request, httpRequest);
         // 응답 반환
         ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", null);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
     @PostMapping("/api/search/user-chat")
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
@@ -234,7 +219,7 @@ public class MainController {
                 "예를 들어 '네이버 본사와 강남역이랑 가까웠으면 좋겠다'와 같은 조건을 받으면 네이버본사_(37.359512+127.105220)-2, 강남역_(37.497940+127.027620)-2 와 같이 나타냅니다." +
                 "\n모든 섹션의 형식을 정확히 준수하여, 불필요한 텍스트 없이 응답해주세요. 반환 형식 예시는 다음과 같습니다." +
                 "'관리비-20, 층수-3, 복층-true\n가스레인지,샤워부스\n음식점_버거킹-5, 피시방_all-2, 미용실_all-1, 병원_이비인후과-3\n교통사고율-3, 화재율-1, 범죄율-4\n강남역_(37.497940+127.027620)-3'." +
-                "응답은 항상 한글이어야 합니다. '\\n'는 섹션들 사이에서 구분하는 기준으로만 쓰여야 하고, 이 문자는 항상 반드시 총 4개여야 합니다.",
+                "응답은 항상 한글이어야 합니다. '\\n'는 섹션들 사이에서 구분하는 기준으로만 쓰여야 하고, 이 문자는 항상 반드시 총 4개여야 합니다. 만약에 없는 섹션이 없다면 개헹으로 비워둬야합니다.",
                 userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData(), HouseDirection.getAllData()
         );
     }
@@ -255,5 +240,20 @@ public class MainController {
             return bearerToken.substring(7); // "Bearer " 이후의 토큰만 추출
         }
         return null;
+    }
+    // 기존 세션 무효화 및 새로운 세션 생성
+    private void sessionCheck(ManConRequest request, HttpServletRequest httpRequest) {
+        // 기존 세션 무효화
+        HttpSession existingSession = httpRequest.getSession(false); // 기존 세션이 있을 경우 가져옴
+        if (existingSession != null) {
+            existingSession.invalidate(); // 기존 세션 무효화
+        }
+        // 새로운 세션 생성
+        HttpSession session = httpRequest.getSession(true);
+        String chatSessionId = session.getId();
+        log.info("새로운 대화 세션 ID 생성: {}", chatSessionId);
+        // 세션에 필터링된 필수 조건 저장
+        log.info("입력된 필수 조건: {}", request);
+        session.setAttribute(MAN_CON_KEY, request);
     }
 }
