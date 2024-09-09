@@ -31,10 +31,10 @@ public class ParsingService {
     public AllConditions parsingGptOutput(ManConRequest manConRequest, String gptOutput) {
         AllConditions result = new AllConditions(manConRequest);
 
-        String[] gptOutputs = gptOutput.split("\n");
+        String[] gptOutputs = gptOutput.split("\n", -1);
 
         if (gptOutputs.length < 5) {
-            log.error("gpt 응답이 5줄이 아닙니다. gpt 응답: {}", gptOutput);
+            log.error("gpt 응답이 5줄이 아닙니다. {}줄 입니다. gpt 응답: {}", gptOutputs.length, gptOutput);
             throw new IllegalGptOutputException("gpt 응답이 올바르지 않습니다.");
         }
 
