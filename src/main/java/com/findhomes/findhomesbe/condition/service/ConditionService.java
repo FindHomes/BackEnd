@@ -33,27 +33,31 @@ public class ConditionService {
         List<House> houses = houseService.getHouseByAllConditions(allConditions);
         // HouseWithCondition 리스트로 바꿔주기
         List<HouseWithCondition> houseWithConditions = houseWithConditionService.convertHouseList(houses);
-        log.info("1완료");
+        log.info("1. 필터링 조건으로 매물 필터링해서 매물 가져오기 완료");
         // 2. 공공 데이터 조건 처리
         publicDataService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
-        log.info("2완료");
+        log.info("2. 공공데이터 조건 처리 완료");
 
         // 공공 데이터 처리 결과 출력
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
             log.info("매물id: {}, 주소: {}, 등급 정보: {}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getAddress(), houseWithCondition.getSafetyGradeInfoList());
         }
-        
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
+        long startTime3 = System.currentTimeMillis();
         List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList());
-        log.info("3완료");
+        long endTime3 = System.currentTimeMillis();
+        log.info("3. 시설조건 및 사용자 요청 위치 조건 처리 완료, 소요시간: " + (endTime3 - startTime3) / 1000.0 + "초");
 
         // 4. 점수 계산
+        long startTime4 = System.currentTimeMillis();
         houseWithConditionService.calculate(houseWithConditions, industriesAndWeights);
-        log.info("4완료");
+        long endTime4 = System.currentTimeMillis();
+        log.info("4. 점수 계산 완료, 소요시간: " + (endTime4 - startTime4) / 1000.0 + "초");
+
 
         // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
         houseWithConditionService.sort(houseWithConditions);
-        log.info("5완료");
+        log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");
 
         // 반환
         return houseWithConditionService.convertToHouseList(houseWithConditions);

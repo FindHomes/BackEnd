@@ -15,7 +15,7 @@ public class ChatService {
         this.chatGPTService = chatGPTService;
     }
 
-    public String getResponse(String conversation, String dataKeywords) {
+    public String getResponse(String conversation) {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
@@ -26,7 +26,6 @@ public class ChatService {
                         .content(conversation)
                         .build()
         );
-        System.out.println(dataKeywords);
         CompletionRequestDto completionRequestDto = CompletionRequestDto.builder()
                 .messages(messages)
                 .build();
