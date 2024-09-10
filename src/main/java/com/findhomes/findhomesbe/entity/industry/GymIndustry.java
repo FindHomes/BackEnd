@@ -1,6 +1,5 @@
 package com.findhomes.findhomesbe.entity.industry;
 
-import com.findhomes.findhomesbe.entity.Industry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name="gym_industry_tbl")
-public class GymIndustry implements Industry {
+public class GymIndustry extends Industry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

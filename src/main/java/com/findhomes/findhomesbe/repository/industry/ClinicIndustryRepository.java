@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ClinicIndustryRepository extends JpaRepository<ClinicIndustry, Integer> {
+public interface ClinicIndustryRepository extends IndustryRepository<ClinicIndustry> {
     @Query("SELECT e FROM ClinicIndustry e WHERE e.placeName LIKE %:detailName% OR e.category LIKE %:detailName% OR e.placeTags LIKE %:detailName% OR e.major LIKE %:detailName%")
     List<ClinicIndustry> findByDetailName(@Param("detailName") String detailName);
 }
