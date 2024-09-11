@@ -14,7 +14,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,24 +49,31 @@ public class MainController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/api/search/man-con")
-    @Operation(summary = "필수 조건 입력", description = "필수 조건을 입력하는 api입니다." +
-            "\n\nhousingTypes 도메인: \"아파트\", \"원룸\", \"투룸\", \"쓰리룸\", \"쓰리룸 이상\", \"오피스텔\"\n\n" +
-            "응답: 추천 문장 3개를 반환합니다. (주의: gpt가 형식에 맞지 않게 응답을 반환하면 문장이 더 많거나 적을 수 있습니다.)")
-    @ApiResponse(responseCode = "200", description = "챗봇 화면으로 이동해도 좋음.")
-    public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         // 토큰 검사
         String token = extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
 
-        sessionCheck(request,httpRequest);
+        sessionCheck(request, httpRequest);
+
+        // 세션 ID 가져오기
+        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
+        String chatSessionId = session.getId();
+
+        // 쿠키에 세션 ID 추가
+        Cookie sessionCookie = new Cookie("JSESSIONID", chatSessionId);
+        sessionCookie.setHttpOnly(true);
+        sessionCookie.setPath("/");
+        response.addCookie(sessionCookie);
 
         // 추천 질문 생성
         String gptOutput = getGptOutput(makeUserRecommendInput(request));
 
         // 응답 반환
-        ManConResponse response = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.trim()).collect(Collectors.toList()));
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.trim()).collect(Collectors.toList()));
+        return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
+
 
 
     private String makeUserRecommendInput(ManConRequest request) {
