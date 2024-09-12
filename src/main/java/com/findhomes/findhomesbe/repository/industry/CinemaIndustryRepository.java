@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface CinemaIndustryRepository extends IndustryRepository<CinemaIndustry> {
-
+public interface CinemaIndustryRepository extends JpaRepository<CinemaIndustry,Integer> {
+    @Query("SELECT e FROM CinemaIndustry e WHERE e.placeName LIKE %:detailName% OR e.category LIKE %:detailName% OR e.placeTags LIKE %:detailName%")
+    List<CinemaIndustry> findByDetailName(@Param("detailName") String detailName);
 }

@@ -1,6 +1,7 @@
 package com.findhomes.findhomesbe.entity.industry;
 
-import org.locationtech.jts.geom.Point;
+
+import com.findhomes.findhomesbe.entity.Industry;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,8 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="backup_table")
-public class RestaurantIndustry extends Industry {
+@Table(name="restaurant_industry_tbl")
+public class RestaurantIndustry implements Industry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer restaurantIndustryId;
@@ -19,5 +20,4 @@ public class RestaurantIndustry extends Industry {
     private String category;
     private String roadAddress;
     private String placeTags;
-    private Point coordinate;
 }
