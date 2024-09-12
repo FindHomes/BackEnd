@@ -94,7 +94,7 @@ public class ParsingService {
             return;
         }
         //
-        String[] conditions = houseOptionStr.trim().toLowerCase().split(",");
+        String[] conditions = houseOptionStr.trim().toUpperCase().split(",");
         for (String condition : conditions) {
             try {
                 HouseOption optionObj = HouseOption.valueOf(condition.trim());

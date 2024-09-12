@@ -2,13 +2,10 @@ package com.findhomes.findhomesbe.DTO;
 
 import com.findhomes.findhomesbe.entity.House;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.N;
 
 import java.util.List;
-import java.util.OptionalDouble;
 
 @Data
 @AllArgsConstructor
@@ -17,20 +14,20 @@ public class SearchResponse {
     private Boolean success;
     private Integer code;
     private String message;
-    private SearchResult result;
+    private ResponseHouse result;
 
     public SearchResponse(List<House> houses, Boolean success, Integer code, String message) {
         this.success = success;
         this.code = code;
         this.message = message;
-        this.result = new SearchResult(houses);
+        this.result = new ResponseHouse(houses);
     }
 
     @Data
-    public static class SearchResult {
+    public static class ResponseHouse {
         private List<House> houses;
 
-        public SearchResult(List<House> houses) {
+        public ResponseHouse(List<House> houses) {
             this.houses = houses;
         }
 
