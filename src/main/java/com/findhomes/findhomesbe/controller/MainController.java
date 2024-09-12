@@ -117,10 +117,13 @@ public class MainController {
             }
         }
 
-        // 사용자 입력 추가
+        // 사용자 입력 추가 및 대화 응답 조정
         conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n");
         conversation.append("사전에 사용자 입력한 조건 :").append(manConRequest.toSentence());
-        conversation.append("추가로 사용자가 사전에 입력한 조건을 고려해서 응답하고, **와 같은 마크다운 방식으로 응답하지말고 순수 string으로 응답해줘 ");
+        conversation.append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해. 제안할 수 있는 조건은 다음과 같아.");
+        conversation.append("제안할 수 있는 조건 종류 :").append(FacilityCategory.getAllData()+PublicData.getAllData());
+        conversation.append("또한 **이나 개행문자가 없는 순수 string으로 응답해줘.");
+
 
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)

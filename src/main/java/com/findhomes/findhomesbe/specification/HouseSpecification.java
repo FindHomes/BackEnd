@@ -15,7 +15,11 @@ public class HouseSpecification {
     public static Specification<House> searchHousesByAllCon(AllConditions allConditions) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            // Polygon 인덱싱을 사용하여 지역 내 House 검색
+//            Predicate withinPolygon = criteriaBuilder.isTrue(
+//                    criteriaBuilder.function("ST_Within", Boolean.class, root.get("location"), criteriaBuilder.literal(polygon))
+//            );
+//            predicates.add(withinPolygon);
             // 필수 조건 추가
             ManConRequest manConRequest = allConditions.getManConRequest();
             if (manConRequest != null) {
