@@ -95,7 +95,7 @@ public class MainController {
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
     @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")}
     )
-    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest) {
+    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
         // 토큰 검사
         String token = securityService.extractTokenFromRequest(httpRequest);
         jwtTokenProvider.validateToken(token);
@@ -111,14 +111,17 @@ public class MainController {
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
-            conversation.append("User: ").append(chat.getUserInput()).append("\n");
+            conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
             if (chat.getGptResponse() != null) {
-                conversation.append("Bot: ").append(chat.getGptResponse()).append("\n");
+                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
             }
         }
 
         // 사용자 입력 추가
         conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n");
+        conversation.append("사전에 사용자 입력한 조건 :").append(manConRequest.toSentence());
+        conversation.append("추가로 사용자가 사전에 입력한 조건을 고려해서 응답하고, **와 같은 마크다운 방식으로 응답하지말고 순수 string으로 응답해줘 ");
+
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
         String gptResponse = chatService.getResponse(conversation.toString());
