@@ -5,14 +5,20 @@ import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.HouseCondition;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.repository.RegionsRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component // 빈으로 등록해서 관리함 (regions 리포지터리 사용하기 위함)
 public class HouseSpecification {
-    public static Specification<House> searchHousesByAllCon(AllConditions allConditions) {
+    @Autowired
+    private RegionsRepository regionsRepository;
+    public Specification<House> searchHousesByAllCon(AllConditions allConditions) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             // Polygon 인덱싱을 사용하여 지역 내 House 검색
@@ -22,6 +28,8 @@ public class HouseSpecification {
 //            predicates.add(withinPolygon);
             // 필수 조건 추가
             ManConRequest manConRequest = allConditions.getManConRequest();
+            String city = manConRequest.getRegion().getCity();
+
             if (manConRequest != null) {
                 // Housing Type 조건
                 if (manConRequest.getHousingTypes() != null && !manConRequest.getHousingTypes().isEmpty()) {

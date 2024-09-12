@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HouseService {
     private final HouseRepository houseRepository;
-
+    private HouseSpecification houseSpecification;
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
-        return houseRepository.findAll(HouseSpecification.searchHousesByAllCon(allConditions));
+        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
     }
 
     public String[] extractDistrictAndCity(String address) {
