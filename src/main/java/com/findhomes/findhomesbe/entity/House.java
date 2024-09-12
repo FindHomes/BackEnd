@@ -32,8 +32,8 @@ public class House {
     private LocalDate completionDate; // Not NULL
     private String houseOption; // Nullable
     private String address; // Not NULL
-    private Double x; // Not NULL
-    private Double y; // Not NULL
+    private Double longitude; // Not NULL
+    private Double latitude; // Not NULL
     private String imgUrl; // Nullable
 
     private transient Double score = 0d; // 직렬화에서 제외됨
@@ -65,7 +65,7 @@ public class House {
 
     }
 
-    public House(Integer houseId, String url, String priceType, Integer price, Integer priceForWs, Integer maintenanceFee, String housingType, Boolean isMultiLayer, Boolean isSeparateType, String floor, Double size, Integer roomNum, Integer washroomNum, String direction, LocalDate completionDate, String houseOption, String address, Double x, Double y, String imgUrl) {
+    public House(Integer houseId, String url, String priceType, Integer price, Integer priceForWs, Integer maintenanceFee, String housingType, Boolean isMultiLayer, Boolean isSeparateType, String floor, Double size, Integer roomNum, Integer washroomNum, String direction, LocalDate completionDate, String houseOption, String address, Double longitude, Double latitude, String imgUrl) {
         this.houseId = houseId;
         this.url = url;
         this.priceType = priceType;
@@ -83,8 +83,8 @@ public class House {
         this.completionDate = completionDate;
         this.houseOption = houseOption;
         this.address = address;
-        this.x = x;
-        this.y = y;
+        this.longitude = longitude;
+        this.latitude = latitude;
         this.imgUrl = imgUrl;
     }
 
@@ -108,8 +108,8 @@ public class House {
                 ", completionDate=" + completionDate +
                 ", option='" + houseOption + '\'' +
                 ", address='" + address + '\'' +
-                ", x=" + x +
-                ", y=" + y +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
                 ", score=" + score +
                 '}';
     }

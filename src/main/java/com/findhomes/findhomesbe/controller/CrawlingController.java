@@ -51,8 +51,8 @@ public class CrawlingController {
                 .completionDate(LocalDate.now())
                 .houseOption("에어컨")
                 .address("경기도 안양시 동안구")
-                .x(127.0)
-                .y(37.4)
+                .longitude(127.0)
+                .latitude(37.4)
                 .build();
         houseRepository.save(newHouse);
         System.out.println(newHouse.getHouseId());

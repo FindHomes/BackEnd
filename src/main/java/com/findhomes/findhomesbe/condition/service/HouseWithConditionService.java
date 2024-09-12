@@ -76,7 +76,7 @@ public class HouseWithConditionService {
                 for (Industry industry : industriesAndWeight.getIndustries()) {
                     House house = houseWithCondition.getHouse();
                     // 집과 해당 시설 간의 거리 계산
-                    double distance = calculateDistance(house.getY(), house.getX(), industry.getLatitude(), industry.getLongitude());
+                    double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
                     if (distance <= 3d) {
                         // 매물 하나하나에 대해 다 더하면 너무 많아서 학습률 0.1을 곱함 ㅋㅋ
                         double score = distance * weight * 0.005;

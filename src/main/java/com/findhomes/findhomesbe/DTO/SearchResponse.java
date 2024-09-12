@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -14,56 +17,61 @@ public class SearchResponse {
     private Boolean success;
     private Integer code;
     private String message;
-    private ResponseHouse result;
+    private List<ResponseHouse> result;
 
     public SearchResponse(List<House> houses, Boolean success, Integer code, String message) {
         this.success = success;
         this.code = code;
         this.message = message;
-        this.result = new ResponseHouse(houses);
+        this.result = houses.stream().map(ResponseHouse::new).collect(Collectors.toList());
     }
 
     @Data
     public static class ResponseHouse {
-        private List<House> houses;
+        private Integer houseId; // Not NULL / 숫자8개
+        private String url; // Not NULL / url
+        private String priceType; // Not NULL / 매매/전세/월세
+        private Integer price; // Not NULL / 만원 단위
+        private Integer priceForWs; // Nullable / 만원 단위 / 없으면 NULL
+        private Integer maintenanceFee; // Nullable / 만원 단위 / 없으면 NULL
+        private String housingType; // Not NULL / 아파트/원룸/투룸/쓰리룸 이상/오피스텔
+        private Boolean isMultiLayer; // Not NULL
+        private Boolean isSeparateType; // Not NULL
+        private String floor; // Not NULL
+        private Double size; // Not NULL / 오류가 있을 경우 0
+        private Integer roomNum; // Not NULL
+        private Integer washroomNum; // Not NULL
+        private String direction; // Nullable
+        private LocalDate completionDate; // Not NULL
+        private String houseOption; // Nullable
+        private String address; // Not NULL
+        private Double x; // Not NULL
+        private Double y; // Not NULL
+        private List<String> imgUrl; // Nullable
+        private Double score = 0d;
 
-        public ResponseHouse(List<House> houses) {
-            this.houses = houses;
+        public ResponseHouse(House house) {
+            this.houseId = house.getHouseId();
+            this.url = house.getUrl();
+            this.priceType = house.getPriceType();
+            this.price = house.getPrice();
+            this.priceForWs = house.getPriceForWs();
+            this.maintenanceFee = house.getMaintenanceFee();
+            this.housingType = house.getHousingType();
+            this.isMultiLayer = house.getIsMultiLayer();
+            this.isSeparateType = house.getIsSeparateType();
+            this.floor = house.getFloor();
+            this.size = house.getSize();
+            this.roomNum = house.getRoomNum();
+            this.washroomNum = house.getWashroomNum();
+            this.direction = house.getDirection();
+            this.completionDate = house.getCompletionDate();
+            this.houseOption = house.getHouseOption();
+            this.address = house.getAddress();
+            this.x = house.getLongitude();
+            this.y = house.getLatitude();
+            this.imgUrl = house.getImgUrl() == null || house.getImgUrl().isEmpty() ? new ArrayList<>() : List.of(house.getImgUrl().split("@@@"));
+            this.score = house.getScore();
         }
-
-        //        private Double xMin;
-//        private Double xMax;
-//        private Double yMin;
-//        private Double yMax;
-//
-//        // 팩토리 메서드 house 리스트에 대해서 최소 최대 위도와 경도를 계산해서 넣어서 SearchResult 객체를 생성해서 반환해줌.
-//        public static SearchResult of(List<House> houses) {
-//            SearchResult result = new SearchResult();
-//            result.setHouses(houses);
-//
-//            // xMin, xMax 계산
-//            OptionalDouble xMin = houses.stream()
-//                    .mapToDouble(House::getX)
-//                    .min();
-//            OptionalDouble xMax = houses.stream()
-//                    .mapToDouble(House::getX)
-//                    .max();
-//
-//            // yMin, yMax 계산
-//            OptionalDouble yMin = houses.stream()
-//                    .mapToDouble(House::getY)
-//                    .min();
-//            OptionalDouble yMax = houses.stream()
-//                    .mapToDouble(House::getY)
-//                    .max();
-//
-//            // OptionalDouble 값이 존재할 경우에만 설정
-//            xMin.ifPresent(result::setXMin);
-//            xMax.ifPresent(result::setXMax);
-//            yMin.ifPresent(result::setYMin);
-//            yMax.ifPresent(result::setYMax);
-//
-//            return result;
-//        }
     }
 }
