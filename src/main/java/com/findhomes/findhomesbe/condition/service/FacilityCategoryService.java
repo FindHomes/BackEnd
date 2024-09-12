@@ -2,6 +2,8 @@ package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
 import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
+import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -27,13 +29,23 @@ public class FacilityCategoryService {
         List<Industry> result;
         // all인 경우 List<Industry> 가져오기
 
+        // detailName이 "all"인 경우 거리 기준 쿼리 실행
         if (detailName.toLowerCase().equals("all")) {
-            long startTime = System.currentTimeMillis();
-            result = (List<Industry>) repository.findAll();
-            long endTime = System.currentTimeMillis();
-            log.info("DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
+            if (repository instanceof RestaurantIndustryRepository restaurantRepository) {
+                long startTime = System.currentTimeMillis();
+                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findWithCoordinate(37.5665, 126.9780, 3000);
+                result = new ArrayList<>(restaurantIndustries);
+                long endTime = System.currentTimeMillis();
+                log.info("음식점 DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
+                return result;
+            }else{
+                long startTime = System.currentTimeMillis();
 
-            return result;
+                result = (List<Industry>) repository.findAll();
+                long endTime = System.currentTimeMillis();
+                log.info("DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
+                return result;
+            }
         }
         // all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
         long startTime = System.currentTimeMillis();
