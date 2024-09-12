@@ -35,13 +35,15 @@ public class ConditionService {
         List<HouseWithCondition> houseWithConditions = houseWithConditionService.convertHouseList(houses);
         log.info("1. 필터링 조건으로 매물 필터링해서 매물 가져오기 완료");
         // 2. 공공 데이터 조건 처리
+        long startTime2 = System.currentTimeMillis();
         publicDataService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
+        long endTime2 = System.currentTimeMillis();
         log.info("2. 공공데이터 조건 처리 완료");
-
-        // 공공 데이터 처리 결과 출력
+        /*// 공공 데이터 처리 결과 출력
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
             log.info("매물id: {}, 주소: {}, 등급 정보: {}", houseWithCondition.getHouse().getHouseId(), houseWithCondition.getHouse().getAddress(), houseWithCondition.getSafetyGradeInfoList());
-        }
+        }*/
+        log.info("2. 공공 데이터 조건 처리 완료, 소요시간: " + (endTime2 - startTime2) / 1000.0 + "초");
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
         long startTime3 = System.currentTimeMillis();
         List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList());
