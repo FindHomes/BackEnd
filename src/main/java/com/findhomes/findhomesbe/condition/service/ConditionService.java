@@ -6,9 +6,11 @@ import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,8 +25,13 @@ public class ConditionService {
     private final HouseWithConditionService houseWithConditionService;
     private final PublicDataService publicDataService;
     private final IndustryService industryService;
-
+    private final RegionsRepository regionsRepository;
     public List<House> exec(ManConRequest manConRequest, String gptOutput) {
+        // 지역에 맞는 다각형 생성
+        String city = manConRequest.getRegion().getCity();
+        Geometry polygon = regionsRepository.findBysigKorNm(city).getBoundary();
+
+        
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
         AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
@@ -46,7 +53,7 @@ public class ConditionService {
         log.info("2. 공공 데이터 조건 처리 완료, 소요시간: " + (endTime2 - startTime2) / 1000.0 + "초");
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
         long startTime3 = System.currentTimeMillis();
-        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList());
+        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList(),polygon);
         long endTime3 = System.currentTimeMillis();
         log.info("3. 시설조건 및 사용자 요청 위치 조건 처리 완료, 소요시간: " + (endTime3 - startTime3) / 1000.0 + "초");
 

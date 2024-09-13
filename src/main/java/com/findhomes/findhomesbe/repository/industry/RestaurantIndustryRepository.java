@@ -1,8 +1,10 @@
 package com.findhomes.findhomesbe.repository.industry;
 
+import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.entity.industry.BakeryIndustry;
 import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +19,6 @@ public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIn
     @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
     List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
 
+    @Query("SELECT e FROM RestaurantIndustry e WHERE ST_Contains(:boundary,e.coordinate) = true")
+    List<RestaurantIndustry> findRestaurantsWithinBoundary(@Param("boundary") Geometry boundary);
 }
