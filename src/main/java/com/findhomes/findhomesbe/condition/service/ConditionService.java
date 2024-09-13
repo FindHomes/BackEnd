@@ -33,7 +33,7 @@ public class ConditionService {
         List<House> houses = houseService.getHouseByAllConditions(allConditions);
         // HouseWithCondition 리스트로 바꿔주기
         List<HouseWithCondition> houseWithConditions = houseWithConditionService.convertHouseList(houses);
-        log.info("1. 필터링 조건으로 매물 필터링해서 매물 가져오기 완료");
+        log.info("1. 필터링 조건으로 매물 필터링해서 매물 가져오기 완료. 매물 개수: {}", houseWithConditions.size());
         // 2. 공공 데이터 조건 처리
         long startTime2 = System.currentTimeMillis();
         publicDataService.injectPublicDataInList(houseWithConditions, allConditions.getPublicConditionDataList());
