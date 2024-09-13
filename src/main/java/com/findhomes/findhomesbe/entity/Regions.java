@@ -1,9 +1,10 @@
 package com.findhomes.findhomesbe.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Geometry;  // JTS Geometry 타입을 사용합니다.
-
+@Data
 @Entity
 @Table(name = "regions_tbl")  // 데이터베이스 테이블 이름과 매핑
 public class Regions {

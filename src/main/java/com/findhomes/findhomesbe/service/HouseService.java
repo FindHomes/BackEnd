@@ -5,9 +5,12 @@ import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
+import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Geometry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,9 +25,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HouseService {
     private final HouseRepository houseRepository;
+    @Autowired
     private HouseSpecification houseSpecification;
+    private final RegionsRepository regionsRepository;
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
-        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
+
+//        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
+        String city = allConditions.getManConRequest().getRegion().getCity();
+        Geometry boundary = regionsRepository.findBysigKorNm(city).getBoundary();
+        List<House> houseList = houseRepository.findHousesWithinBoundary(boundary);
+        log.info("선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
+        return houseList;
+
     }
 
     public String[] extractDistrictAndCity(String address) {

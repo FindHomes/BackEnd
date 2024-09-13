@@ -5,8 +5,10 @@ import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.HouseCondition;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.entity.Regions;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -21,14 +23,27 @@ public class HouseSpecification {
     public Specification<House> searchHousesByAllCon(AllConditions allConditions) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            // Polygon 인덱싱을 사용하여 지역 내 House 검색
-//            Predicate withinPolygon = criteriaBuilder.isTrue(
-//                    criteriaBuilder.function("ST_Within", Boolean.class, root.get("location"), criteriaBuilder.literal(polygon))
-//            );
-//            predicates.add(withinPolygon);
+
             // 필수 조건 추가
             ManConRequest manConRequest = allConditions.getManConRequest();
             String city = manConRequest.getRegion().getCity();
+
+            // Regions 테이블에서 boundary 정보 가져오기
+            Regions regions = regionsRepository.findBysigKorNm(city);
+            Geometry boundary= regions.getBoundary();
+
+            if (regions != null && regions.getBoundary() != null) {
+                // ST_Contains 함수를 사용하여 coordinate가 boundary 내에 있는지 확인
+                Predicate withinPolygon = criteriaBuilder.isTrue(
+                        criteriaBuilder.function(
+                                "ST_Contains",
+                                Boolean.class,
+                                criteriaBuilder.literal(regions.getBoundary()),
+                                root.get("coordinate")
+                        )
+                );
+                predicates.add(withinPolygon);
+            }
 
             if (manConRequest != null) {
                 // Housing Type 조건
