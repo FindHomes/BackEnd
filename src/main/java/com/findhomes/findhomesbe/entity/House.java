@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.geolatte.geom.Point;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,7 +36,7 @@ public class House {
     private Double longitude; // Not NULL
     private Double latitude; // Not NULL
     private String imgUrl; // Nullable
-
+    private Point coordinate;
     private transient Double score = 0d; // 직렬화에서 제외됨
 
     @JsonIgnore

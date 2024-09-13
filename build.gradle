@@ -23,9 +23,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'mysql:mysql-connector-java:8.0.28'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -55,6 +53,12 @@ dependencies {
 
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // Hibernate Spatial 의존성
+    implementation 'org.hibernate:hibernate-spatial:6.4.4.Final' // Hibernate 버전에 맞게 조정
+
+    // JTS (Java Topology Suite) 의존성
+    implementation 'org.locationtech.jts:jts-core:1.18.2'
 }
 
 tasks.named('test') {
