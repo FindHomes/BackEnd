@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
 import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class FacilityCategoryService {
 
     private final ApplicationContext applicationContext;
 
-    public List<Industry> getIndustries(FacilityCategory facilityCategoryEnum, String detailName) {
+    public List<Industry> getIndustries(FacilityCategory facilityCategoryEnum, String detailName, Geometry polygon) {
         // FacilityCategory의 빈 이름 가져오기
         String repositoryBeanName = facilityCategoryEnum.getRepositoryBeanName();
         // 빈 이름에 해당하는 repository 빈 객체 가져오기
@@ -33,7 +34,7 @@ public class FacilityCategoryService {
         if (detailName.toLowerCase().equals("all")) {
             if (repository instanceof RestaurantIndustryRepository restaurantRepository) {
                 long startTime = System.currentTimeMillis();
-                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findWithCoordinate(37.5665, 126.9780, 3000);
+                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findRestaurantsWithinBoundary(polygon);
                 result = new ArrayList<>(restaurantIndustries);
                 long endTime = System.currentTimeMillis();
                 log.info("음식점 DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");

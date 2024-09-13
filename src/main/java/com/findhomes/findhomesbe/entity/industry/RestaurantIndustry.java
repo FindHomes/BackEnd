@@ -4,6 +4,7 @@ package com.findhomes.findhomesbe.entity.industry;
 import com.findhomes.findhomesbe.entity.Industry;
 import jakarta.persistence.*;
 import lombok.*;
+import org.geolatte.geom.Point;
 
 @Data
 @AllArgsConstructor
@@ -20,4 +21,5 @@ public class RestaurantIndustry implements Industry {
     private String category;
     private String roadAddress;
     private String placeTags;
+    private Point coordinate;
 }
