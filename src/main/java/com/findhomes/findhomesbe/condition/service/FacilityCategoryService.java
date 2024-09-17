@@ -34,7 +34,7 @@ public class FacilityCategoryService {
         if (detailName.toLowerCase().equals("all")) {
             if (repository instanceof RestaurantIndustryRepository restaurantRepository) {
                 long startTime = System.currentTimeMillis();
-                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findRestaurantsWithinBoundary(polygon);
+                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findRestaurantsWithinBoundary("강남구");
                 result = new ArrayList<>(restaurantIndustries);
                 long endTime = System.currentTimeMillis();
                 log.info("음식점 DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
