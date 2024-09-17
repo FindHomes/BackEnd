@@ -9,16 +9,20 @@ import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Geometry;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
+import org.geolatte.geom.Position;
+import org.geolatte.geom.builder.DSL;
+import org.geolatte.geom.crs.CoordinateReferenceSystems;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.Comparator;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -36,6 +40,29 @@ public class HouseService {
         log.info("선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
         return houseList;
 
+    }
+
+    @Transactional
+    public void saveHouse(House house) {
+        Optional<House> houseOptional = houseRepository.findById(house.getHouseId());
+        // 기존에 있던 매물인 경우
+        if (houseOptional.isPresent()) {
+            house.setCoordinate(houseOptional.get().getCoordinate());
+
+            LocalDateTime now = LocalDateTime.now();
+            if (houseOptional.get().getCreatedAt() == null) {
+                house.setCreatedAt(now);
+            } else {
+                house.setCreatedAt(houseOptional.get().getCreatedAt());
+                house.setUpdatedAt(now);
+            }
+        } else { // 새로 크롤링하는 매물인 경우
+            Point<G2D> point = DSL.point(CoordinateReferenceSystems.WGS84, new G2D(house.getLongitude(), house.getLatitude()));
+            house.setCoordinate(point);
+            house.setCreatedAt(LocalDateTime.now());
+        }
+
+        houseRepository.save(house);
     }
 
     public String[] extractDistrictAndCity(String address) {

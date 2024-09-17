@@ -21,8 +21,10 @@ public class CrawlingController {
     private final HouseRepository houseRepository;
 
     @GetMapping("/api/crawling")
-    public ResponseEntity<Void> crawlingHouse() throws InterruptedException {
-        houseCrawlingTask.exec();
+    public ResponseEntity<Void> crawlingHouse(
+            @RequestParam(required = false, defaultValue = "0") Integer startIndex
+    ) throws InterruptedException {
+        houseCrawlingTask.exec(startIndex);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

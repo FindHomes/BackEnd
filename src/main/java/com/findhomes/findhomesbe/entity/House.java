@@ -6,6 +6,7 @@ import lombok.*;
 import org.geolatte.geom.Point;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -37,6 +38,9 @@ public class House {
     private Double latitude; // Not NULL
     private String imgUrl; // Nullable
     private Point coordinate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     private transient Double score = 0d; // 직렬화에서 제외됨
 
     @JsonIgnore
