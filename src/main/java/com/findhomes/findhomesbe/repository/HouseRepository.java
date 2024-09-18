@@ -18,7 +18,7 @@ public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpeci
     List<House> findByHousingType(String housingType);
     @Query("SELECT h FROM House h WHERE ST_Contains(:boundary, h.coordinate) = true")
     List<House> findHousesWithinBoundary(@Param("boundary") Geometry boundary);
-    @Query(value = "SELECT h.* FROM house_tbl AS h, regions_tbl as r " +
+    @Query(value = "SELECT h.* FROM houses_tbl AS h, regions_tbl as r " +
             "WHERE r.sig_kor_nm = :cityName " +
             "AND ST_Contains(r.boundary, h.coordinate)", nativeQuery = true)
     List<House> findHouseWithRegion(@Param("cityName") String cityName);

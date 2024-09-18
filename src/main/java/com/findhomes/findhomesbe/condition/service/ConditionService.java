@@ -1,11 +1,9 @@
 package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
-import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,7 +26,7 @@ public class ConditionService {
     public List<House> exec(ManConRequest manConRequest, String gptOutput) {
         // 지역에 맞는 다각형 생성
         String city = manConRequest.getRegion().getCity();
-        Geometry polygon = regionsRepository.findBysigKorNm(city).getBoundary();
+        Geometry polygon = regionsRepository.findBySigKorNm(city).getBoundary();
 
         
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기

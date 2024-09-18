@@ -55,7 +55,6 @@ public class HouseCrawlingTask {
 
     // 페이지 url
     List<String> urls = List.of(
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.7154634&m_lng=126.6532925&m_zoom=14",
             "https://www.dabangapp.com/map/onetwo?m_lat=37.7153616&m_lng=126.7550877&m_zoom=12",
             "https://www.dabangapp.com/map/onetwo?m_lat=37.6865676&m_lng=127.0232228&m_zoom=12",
             "https://www.dabangapp.com/map/onetwo?m_lat=37.6805901&m_lng=127.3442295&m_zoom=12",
@@ -118,7 +117,7 @@ public class HouseCrawlingTask {
         for (int i = startIndex; i < urls.size(); i++) {
             String url = urls.get(i);
             Thread currentThread = Thread.currentThread();
-            log.info("{}쓰레드 - {}번 인덱스 시작!!!!!!", currentThread.threadId(), i);
+            log.info("{} thread - {} index start!!!!!!", currentThread.threadId(), i);
             mainCrawling.openUrl(url);
 
             while (true) {
@@ -156,8 +155,13 @@ public class HouseCrawlingTask {
 
                     try {
                         postProcessing(mainCrawling, img_urls);
-                    } catch (Exception ignored) {
+                    } catch (Exception e) {
+                        log.error("", e);
+                    } finally {
+                        img_urls.clear();
 
+                        Har har2 = mainCrawling.getProxy().getHar();
+                        har2 = null;
                     }
                 }
 
@@ -192,6 +196,7 @@ public class HouseCrawlingTask {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
+            log.info("address is null");
             return;
         }
         //TODO: 여기 서울만 되게 해놨음.
@@ -200,6 +205,7 @@ public class HouseCrawlingTask {
 //        }
         String curCoordinate = getCoordinate(curAddress);
         if (curCoordinate == null) {
+            log.info("curCoordinate is null");
             return;
         }
         // 3번 이상 본 경우를 위해 추가함
@@ -207,6 +213,8 @@ public class HouseCrawlingTask {
             WebElement more3Element = curCrawling.getDriver().findElement(By.cssSelector(more3CloseSelector));
 
             more3Element.click();
+
+            more3Element.clear();
         } catch (NoSuchElementException ignored) {
 
         }
@@ -261,6 +269,7 @@ public class HouseCrawlingTask {
 //        List<WebElement> basicInfoOuter = curCrawling.getElementListByCssSelector(basicInfoSelector);
         WebElement basicInfoOuter = curCrawling.getDriver().findElement(By.cssSelector(basicInfoSelector));
         List<WebElement> basicInfos = basicInfoOuter.findElements(By.cssSelector("li"));
+        basicInfoOuter = null;
         for (WebElement element : basicInfos) {
             String elText = element.findElement(By.cssSelector("h1")).getText();
             switch (elText) {
@@ -326,6 +335,9 @@ public class HouseCrawlingTask {
                     break;
             }
         }
+        for (WebElement el : basicInfos) {
+            el = null;
+        }
 
         // option
         StringBuilder option = new StringBuilder();
@@ -337,6 +349,9 @@ public class HouseCrawlingTask {
                 }
                 option.append(options.get(i).getText());
             }
+        }
+        for (WebElement el : options) {
+            el = null;
         }
 
         // img url
@@ -368,15 +383,17 @@ public class HouseCrawlingTask {
                 Double.parseDouble(curCoordinate.split("/")[1]),
                 String.join("@@@", imgUrls)
         );
+        houseService.saveHouse(house);
 
         count++;
 
         if (count % 100 == 0) {
-            log.info("매물 {}개 크롤링 완료", count);
+            log.info("{} count crawling complete", count);
         }
 
-        houseService.saveHouse(house);
-        log.info("새로운 매물: {}", house);
+        if (count % 500 == 0) {
+            System.gc();
+        }
 //        System.out.println(++count);
 //        System.out.println(house);
 //        results.add(house);

@@ -29,7 +29,7 @@ public class HouseSpecification {
             String city = manConRequest.getRegion().getCity();
 
             // Regions 테이블에서 boundary 정보 가져오기
-            Regions regions = regionsRepository.findBysigKorNm(city);
+            Regions regions = regionsRepository.findBySigKorNm(city);
             Geometry boundary= regions.getBoundary();
 
             if (regions != null && regions.getBoundary() != null) {
