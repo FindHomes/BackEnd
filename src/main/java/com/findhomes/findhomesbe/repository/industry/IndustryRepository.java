@@ -14,6 +14,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface IndustryRepository<T extends Industry> {
-    List<T> findIndustryWithinBoundary(@Param("cityName") String cityName);
+
+    List<T> findIndustryWithinBoundary(String cityName);
+    List<T> findByDetailName(@Param("detailName") String detailName);
+
 }
 

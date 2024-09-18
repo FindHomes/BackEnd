@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.geolatte.geom.Point;
 
 @Data
 @AllArgsConstructor
@@ -21,4 +22,6 @@ public class AnimalHospitalIndustry implements Industry {
     private String category;
     private String roadAddress;
     private String placeTags;
+    private Point coordinate;
+
 }

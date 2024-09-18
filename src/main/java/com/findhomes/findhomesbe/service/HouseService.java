@@ -37,7 +37,7 @@ public class HouseService {
 //        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
         String city = allConditions.getManConRequest().getRegion().getCity();
         List<House> houseList = houseRepository.findHouseWithRegion(city);
-        log.info("선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
+        log.info("0.선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
         return houseList;
 
     }
