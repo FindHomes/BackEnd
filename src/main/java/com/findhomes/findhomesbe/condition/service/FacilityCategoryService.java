@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.condition.service;
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
 import com.findhomes.findhomesbe.entity.Industry;
 import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
+import com.findhomes.findhomesbe.repository.industry.IndustryRepository;
 import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,23 +29,21 @@ public class FacilityCategoryService {
         FacilityCategoryService facilityCategoryService = applicationContext.getBean(FacilityCategoryService.class);
         JpaRepository repository = facilityCategoryService.getBeanByName(repositoryBeanName, JpaRepository.class);
         List<Industry> result;
-        // all인 경우 List<Industry> 가져오기
 
-        // detailName이 "all"인 경우 거리 기준 쿼리 실행
+        // detailName이 "all"인 경우
         if (detailName.toLowerCase().equals("all")) {
-            if (repository instanceof RestaurantIndustryRepository restaurantRepository) {
+            if (repository instanceof IndustryRepository industryRepository) {
                 long startTime = System.currentTimeMillis();
-                List<RestaurantIndustry> restaurantIndustries = restaurantRepository.findRestaurantsWithinBoundary("강남구");
+                List<Industry> restaurantIndustries = industryRepository.findIndustryWithinBoundary("강남구");
                 result = new ArrayList<>(restaurantIndustries);
                 long endTime = System.currentTimeMillis();
-                log.info("음식점 DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
+                log.info("DB 조회 및 JPA 객체 생성 시간 (공간인덱싱 사용): " + (endTime - startTime) / 1000.0 + "초");
                 return result;
             }else{
                 long startTime = System.currentTimeMillis();
-
                 result = (List<Industry>) repository.findAll();
                 long endTime = System.currentTimeMillis();
-                log.info("DB 조회 및 JPA 객체 생성 시간: " + (endTime - startTime) / 1000.0 + "초");
+                log.info("DB 조회 및 JPA 객체 생성 시간 (공간인덱싱 미사용): " + (endTime - startTime) / 1000.0 + "초");
                 return result;
             }
         }

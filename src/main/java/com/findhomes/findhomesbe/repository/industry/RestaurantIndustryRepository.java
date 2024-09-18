@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIndustry, Integer>, JpaSpecificationExecutor<RestaurantIndustry> {
+public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIndustry, Integer>, JpaSpecificationExecutor<RestaurantIndustry>,IndustryRepository{
     @Query("SELECT e FROM RestaurantIndustry e WHERE e.placeName LIKE %:detailName% OR e.category LIKE %:detailName% OR e.placeTags LIKE %:detailName%")
     List<RestaurantIndustry> findByDetailName(@Param("detailName") String detailName);
 
