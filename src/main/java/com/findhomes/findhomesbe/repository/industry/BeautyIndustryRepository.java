@@ -9,14 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface BeautyIndustryRepository extends JpaRepository<BeautyIndustry,Integer>, IndustryRepository {
+public interface BeautyIndustryRepository extends JpaRepository<BeautyIndustry,Integer>, IndustryRepository<BeautyIndustry> {
     @Query("SELECT i FROM BeautyIndustry i WHERE i.placeName LIKE %:detailName% OR i.category LIKE %:detailName% OR i.placeTags LIKE %:detailName%")
     @Override
-    List<PharmacyIndustry> findByDetailName(@Param("detailName") String detailName);
+    List<BeautyIndustry> findByDetailName(@Param("detailName") String detailName);
 
     //
     @Query("SELECT i FROM BeautyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.sigKorNm = :cityName")
     @Override
-    List<PharmacyIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<BeautyIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
 }
