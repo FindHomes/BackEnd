@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.geolatte.geom.Point;
 
 @Getter
 @Setter
@@ -24,4 +25,5 @@ public class BeautyIndustry implements Industry {
     private Double latitude;
     private Double longitude;
     private String placeTags;
+    private Point coordinate;
 }

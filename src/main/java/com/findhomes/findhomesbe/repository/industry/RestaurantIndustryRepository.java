@@ -12,17 +12,20 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIndustry, Integer>, JpaSpecificationExecutor<RestaurantIndustry> {
-    @Query("SELECT e FROM RestaurantIndustry e WHERE e.placeName LIKE %:detailName% OR e.category LIKE %:detailName% OR e.placeTags LIKE %:detailName%")
+public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIndustry, Integer>, JpaSpecificationExecutor<RestaurantIndustry>,IndustryRepository<RestaurantIndustry>{
+
+    @Query("SELECT i FROM RestaurantIndustry i WHERE i.placeName LIKE %:detailName% OR i.category LIKE %:detailName% OR i.placeTags LIKE %:detailName%")
+    @Override
     List<RestaurantIndustry> findByDetailName(@Param("detailName") String detailName);
 
-    @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
-    List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
+//
+    @Query("SELECT i FROM RestaurantIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.sigKorNm = :cityName")
+    @Override
+    List<RestaurantIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
 
-    @Query(value = "SELECT b.* FROM backup_restaurant_tbl AS b, regions_tbl as r " +
-            "WHERE r.sig_kor_nm = :cityName " +
-            "AND ST_Contains(r.boundary, b.coordinate)", nativeQuery = true)
-    List<RestaurantIndustry> findRestaurantsWithinBoundary(@Param("cityName") String cityName);
 
+//    @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
+//    List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
 
 }
