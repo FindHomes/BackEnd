@@ -1,12 +1,9 @@
 package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
-import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.IndustriesAndWeight;
-import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
-import com.findhomes.findhomesbe.entity.SafetyGrade;
+import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

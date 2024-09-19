@@ -1,10 +1,6 @@
 package com.findhomes.findhomesbe.repository.industry;
 
-import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
-import com.findhomes.findhomesbe.entity.industry.BakeryIndustry;
 import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

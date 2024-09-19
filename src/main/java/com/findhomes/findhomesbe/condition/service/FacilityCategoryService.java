@@ -1,13 +1,10 @@
 package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
-import com.findhomes.findhomesbe.entity.Industry;
-import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
+import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.repository.industry.IndustryRepository;
-import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
