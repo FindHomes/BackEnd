@@ -11,6 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
 import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.DevToolsException;
+import org.openqa.selenium.devtools.v124.network.Network;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -38,7 +42,6 @@ public class HouseCrawlingTask {
     // 지오코더 API
     private static final String apiKey = "F6A7710C-3505-3390-8FE5-25CAB7F0001A";
     private static final String searchType = "parcel";
-    private static int count = 0;
     // css selector
     private final String nextBtnSelector = ".izoyfh button";
     private final String saleElSelector = ".kywSSM";
@@ -110,6 +113,7 @@ public class HouseCrawlingTask {
     );
 
     public void exec(Integer startIndex) throws InterruptedException {
+        Integer count = 0;
         Crawling mainCrawling = new Crawling()
                 .setDriverWithShowing()
                 .setWaitTime(MAX_WAIT_TIME);
@@ -154,7 +158,7 @@ public class HouseCrawlingTask {
                     }
 
                     try {
-                        postProcessing(mainCrawling, img_urls);
+                        postProcessing(mainCrawling, img_urls, count);
                     } catch (Exception e) {
                         log.error("", e);
                     } finally {
@@ -164,6 +168,13 @@ public class HouseCrawlingTask {
                         har2 = null;
                     }
                 }
+
+//                // OOM 대비
+//                JavascriptExecutor jsExecutorForMemory = (JavascriptExecutor) mainCrawling.getDriver();
+//                jsExecutorForMemory.executeScript(
+//                        "document.querySelectorAll('body *:not(button)').forEach(el => el.remove());"
+//                );
+//                mainCrawling.getDriver().manage().deleteAllCookies();
 
                 // 다음 버튼
                 List<WebElement> nextButtonList = mainCrawling.getElementListByCssSelector(nextBtnSelector);
@@ -192,7 +203,7 @@ public class HouseCrawlingTask {
         mainCrawling.quitDriver();
     }
 
-    public void postProcessing(Crawling curCrawling, List<String> imgUrls) {
+    public void postProcessing(Crawling curCrawling, List<String> imgUrls, Integer count) {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
@@ -389,10 +400,6 @@ public class HouseCrawlingTask {
 
         if (count % 100 == 0) {
             log.info("{} count crawling complete", count);
-        }
-
-        if (count % 500 == 0) {
-            System.gc();
         }
 //        System.out.println(++count);
 //        System.out.println(house);
