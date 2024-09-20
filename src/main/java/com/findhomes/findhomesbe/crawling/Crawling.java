@@ -63,6 +63,9 @@ public class Crawling {
         options.setProxy(seleniumProxy);
         options.setAcceptInsecureCerts(true);
         options.addArguments("--ignore-certificate-errors");
+        options.addArguments("--disable-dev-shm-usage"); // /dev/shm 메모리 사용 비활성화
+        options.addArguments("--disable-gpu"); // GPU 비활성화
+        options.addArguments("--no-sandbox"); // 샌드박스 모드 비활성화
 
         // Create ChromeDriver instance
         this.driver = new ChromeDriver(options);
@@ -136,9 +139,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElements(By.cssSelector(selector));
         } catch (TimeoutException e) {
-            log.error("[[{} thread - ERROR: TimeoutException(List) - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: TimeoutException(List) - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            log.error("[[{} thread - ERROR: No Element(List) - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: No Element(List) - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }
@@ -149,9 +152,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElement(By.cssSelector(selector));
         } catch (TimeoutException e) {
-            log.error("[[{} thread - ERROR: TimeoutException - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: TimeoutException - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            log.error("[[{} thread - ERROR: No Element - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: No Element - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }
@@ -162,9 +165,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElement(By.cssSelector(selector)).getText();
         } catch (TimeoutException e) {
-            log.error("[[{} thread - ERROR: TimeoutException(Text) - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: TimeoutException(Text) - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            log.error("[[{} thread - ERROR: No Element(Text) - Css: {}]]", Thread.currentThread(), selector);
+            log.error("[[{} thread - ERROR: No Element(Text) - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }

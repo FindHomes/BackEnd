@@ -44,6 +44,7 @@ public class HouseCrawlingTask {
     }
 
     private CompletableFuture<Void> runAsync(Supplier<List<String>> supplier) {
+        List<String> urls = supplier.get();
         return CompletableFuture.runAsync(() -> {
             try {
                 execOne(supplier.get());
@@ -67,7 +68,7 @@ public class HouseCrawlingTask {
             while (true) {
                 List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
                 if (salesElementList == null) {
-                    log.info("[[\"{}\" url에 매물 없음]]", url);
+                    log.info("[[{} thread - no item in url: \"{}\"]]", Thread.currentThread().threadId(), url);
                     break;
                 }
                 for (WebElement element : salesElementList) {
@@ -122,7 +123,9 @@ public class HouseCrawlingTask {
                             JavascriptExecutor jsExecutor = (JavascriptExecutor) mainCrawling.getDriver();
                             jsExecutor.executeScript("arguments[0].click();", nextButton);
                         } finally {
-                            System.out.println("다음 페이지!!!!!");
+                            log.info("[[{} thread - Next Page!!!]]", Thread.currentThread().threadId());
+                            JavascriptExecutor js = (JavascriptExecutor) mainCrawling.getDriver();
+                            js.executeScript("window.gc && window.gc();");
                         }
                     } else {
                         break;
