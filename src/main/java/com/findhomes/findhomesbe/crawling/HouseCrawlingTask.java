@@ -1,7 +1,6 @@
 package com.findhomes.findhomesbe.crawling;
 
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,13 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
 import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.DevToolsException;
-import org.openqa.selenium.devtools.v124.network.Network;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -28,8 +22,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
+import static com.findhomes.findhomesbe.crawling.CrawlingConst.*;
 
 @Component
 @Slf4j
@@ -37,96 +33,41 @@ import java.util.stream.Collectors;
 public class HouseCrawlingTask {
     private final HouseService houseService;
 
-    private static List<House> results = new ArrayList<>();
-    private static final int MAX_WAIT_TIME = 10;
-    // 지오코더 API
-    private static final String apiKey = "F6A7710C-3505-3390-8FE5-25CAB7F0001A";
-    private static final String searchType = "parcel";
-    // css selector
-    private final String nextBtnSelector = ".izoyfh button";
-    private final String saleElSelector = ".kywSSM";
-    private final String more3CloseSelector = ".jKiLYt";
-    private final String houseIdSelector = ".dZqSOl";
-    private final String priceTypeSelector = ".haYYrw";
-    private final String priceSelector = ".bQSaMO";
-    private final String maintenanceFeeSelector = ".cVraOf p";
-    private final String basicInfoSelector = "ul.kQzujR";
-    private final String basicInfoNameSelector = ".jJKkgc";
-    private final String basicInfoValueSelector = ".iMduqg";
-    private final String optionSelector = ".fZeaKW";
-    private final String addressSelector = ".hBlCFR";
+    public void exec() throws InterruptedException {
+        // CompletableFuture로 비동기 병렬처리
+        CompletableFuture.allOf(
+                runAsync(shuffledOneTwoUrls),
+                runAsync(shuffledAptUrls),
+                runAsync(shuffledHouseUrls),
+                runAsync(shuffledOfficeUrls)
+        ).join(); // 모든 비동기 작업이 종료될 때까지 부모 대기
+    }
 
-    // 페이지 url
-    List<String> urls = List.of(
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.7153616&m_lng=126.7550877&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.6865676&m_lng=127.0232228&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.6805901&m_lng=127.3442295&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4316898&m_lng=129.1852978&m_zoom=11",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5861767&m_lng=126.7730263&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5854965&m_lng=126.901944&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.583456&m_lng=127.0258835&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5814154&m_lng=127.1820954&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5740689&m_lng=127.3357323&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.511186&m_lng=126.5716675&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5020622&m_lng=126.728566&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4932097&m_lng=126.8882111&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4853097&m_lng=127.0291451&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.4735943&m_lng=127.2054413&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.3435119&m_lng=127.9699353&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.2671164&m_lng=127.5571755&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.9965168&m_lng=127.0764807&m_zoom=14",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.9972023&m_lng=127.1672896&m_zoom=14",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.8418469&m_lng=127.142227&m_zoom=14",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.7986976&m_lng=127.1445444&m_zoom=14",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.7887656&m_lng=126.9963578&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.6961204&m_lng=126.5980175&m_zoom=11",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.3163317&m_lng=127.3045758&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.3177149&m_lng=127.4719456&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.0781318&m_lng=126.9256333&m_zoom=11",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.8588272&m_lng=127.1293095&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.7871453&m_lng=127.1387509&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.1471048&m_lng=126.7688206&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.1631046&m_lng=126.9161061&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.1998643&m_lng=126.9119862&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=34.5720582&m_lng=126.6990403&m_zoom=10",
-            "https://www.dabangapp.com/map/onetwo?m_lat=33.3051702&m_lng=126.5314988&m_zoom=10",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.2345743&m_lng=128.1564454&m_zoom=11",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.2554633&m_lng=128.6039666&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.2367476&m_lng=128.9180211&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.0732401&m_lng=129.028056&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.173138&m_lng=129.0568093&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.2111555&m_lng=129.1783455&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.3670369&m_lng=129.1296795&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.5455274&m_lng=129.2603997&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.5772269&m_lng=129.4215897&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.0149107&m_lng=129.3688038&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.8739904&m_lng=128.9039448&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.8820577&m_lng=128.5547856&m_zoom=12",
-            "https://www.dabangapp.com/map/onetwo?m_lat=35.9445514&m_lng=128.5407952&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.1356875&m_lng=128.123658&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.1469163&m_lng=128.3838967&m_zoom=13",
-            "https://www.dabangapp.com/map/onetwo?m_lat=36.5620103&m_lng=128.7190655&m_zoom=11",
-            "https://www.dabangapp.com/map/onetwo?m_lat=38.3612735&m_lng=128.6249951&m_zoom=10",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.5872649&m_lng=128.8625744&m_zoom=10",
-            "https://www.dabangapp.com/map/onetwo?m_lat=37.3598869&m_lng=127.967017&m_zoom=12"
+    private CompletableFuture<Void> runAsync(Supplier<List<String>> supplier) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                execOne(supplier.get());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+    }
 
-    );
-
-    public void exec(Integer startIndex) throws InterruptedException {
+    private void execOne(List<String> urls) throws InterruptedException {
         Integer count = 0;
         Crawling mainCrawling = new Crawling()
                 .setDriverWithShowing()
                 .setWaitTime(MAX_WAIT_TIME);
         mainCrawling.getDriver().manage().window().maximize();
-        for (int i = startIndex; i < urls.size(); i++) {
+        for (int i = 0; i < urls.size(); i++) {
             String url = urls.get(i);
-            Thread currentThread = Thread.currentThread();
-            log.info("{} thread - {} index start!!!!!!", currentThread.threadId(), i);
-            mainCrawling.openUrl(url);
+            log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
+            mainCrawling.openUrlNewTab(url);
 
             while (true) {
                 List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
                 if (salesElementList == null) {
+                    log.info("[[\"{}\" url에 매물 없음]]", url);
                     break;
                 }
                 for (WebElement element : salesElementList) {
@@ -160,7 +101,7 @@ public class HouseCrawlingTask {
                     try {
                         postProcessing(mainCrawling, img_urls, count);
                     } catch (Exception e) {
-                        log.error("", e);
+                        log.error("[[[failed url: {}]]]", url, e);
                     } finally {
                         img_urls.clear();
 
@@ -168,13 +109,6 @@ public class HouseCrawlingTask {
                         har2 = null;
                     }
                 }
-
-//                // OOM 대비
-//                JavascriptExecutor jsExecutorForMemory = (JavascriptExecutor) mainCrawling.getDriver();
-//                jsExecutorForMemory.executeScript(
-//                        "document.querySelectorAll('body *:not(button)').forEach(el => el.remove());"
-//                );
-//                mainCrawling.getDriver().manage().deleteAllCookies();
 
                 // 다음 버튼
                 List<WebElement> nextButtonList = mainCrawling.getElementListByCssSelector(nextBtnSelector);
@@ -207,7 +141,6 @@ public class HouseCrawlingTask {
         // 주소
         String curAddress = curCrawling.getTextByCssSelector(addressSelector);
         if (curAddress == null) {
-            log.info("address is null");
             return;
         }
         //TODO: 여기 서울만 되게 해놨음.
@@ -216,7 +149,6 @@ public class HouseCrawlingTask {
 //        }
         String curCoordinate = getCoordinate(curAddress);
         if (curCoordinate == null) {
-            log.info("curCoordinate is null");
             return;
         }
         // 3번 이상 본 경우를 위해 추가함
@@ -398,8 +330,8 @@ public class HouseCrawlingTask {
 
         count++;
 
-        if (count % 100 == 0) {
-            log.info("{} count crawling complete", count);
+        if (count % 500 == 0) {
+            log.info("[[{} thread - {} count crawling complete]]", Thread.currentThread().threadId(), count);
         }
 //        System.out.println(++count);
 //        System.out.println(house);
