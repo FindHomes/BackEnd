@@ -1,14 +1,11 @@
 package com.findhomes.findhomesbe.condition.domain;
 
-import com.findhomes.findhomesbe.condition.domain.PublicData;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Industry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**

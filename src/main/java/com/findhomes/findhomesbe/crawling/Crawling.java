@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.crawling;
 import java.time.Duration;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
+@Slf4j
 public class Crawling {
     private WebDriver driver = null;
     private WebDriverWait wait = null;
@@ -61,6 +63,9 @@ public class Crawling {
         options.setProxy(seleniumProxy);
         options.setAcceptInsecureCerts(true);
         options.addArguments("--ignore-certificate-errors");
+        options.addArguments("--disable-dev-shm-usage"); // /dev/shm 메모리 사용 비활성화
+        options.addArguments("--disable-gpu"); // GPU 비활성화
+        options.addArguments("--no-sandbox"); // 샌드박스 모드 비활성화
 
         // Create ChromeDriver instance
         this.driver = new ChromeDriver(options);
@@ -70,6 +75,22 @@ public class Crawling {
 
     public void openUrl(String url) {
         this.driver.get(url);
+    }
+
+    public void openUrlNewTab(String url) {
+        // 현재 창의 핸들 저장
+        String originalWindow = driver.getWindowHandle();
+        // 새로운 탭 열기
+        WebDriver newTab = driver.switchTo().newWindow(WindowType.TAB);
+        // 새로운 탭에서 URL 열기
+        newTab.get(url);
+        // 기존 창 닫기
+        driver.switchTo().window(originalWindow).close();
+        // 새로운 탭으로 포커스 이동 (탭이 2개 이상 있을 경우 마지막 탭으로 이동)
+        for (String windowHandle : driver.getWindowHandles()) {
+            driver.switchTo().window(windowHandle);
+        }
+        driver.get(url);
     }
 
     public void closeDriver() {
@@ -118,9 +139,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElements(By.cssSelector(selector));
         } catch (TimeoutException e) {
-            System.out.println("ERROR: 시간 초과(List) - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: TimeoutException(List) - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            System.out.println("ERROR: No Element(List) Css: " + selector + " - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: No Element(List) - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }
@@ -131,21 +152,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElement(By.cssSelector(selector));
         } catch (TimeoutException e) {
-            System.out.println("ERROR: 시간 초과(Element) - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: TimeoutException - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            System.out.println("ERROR: No Element Css: " + selector + " - " + e.getLocalizedMessage());
-        }
-        return null;
-    }
-
-    public WebElement getElementByTag(By tag) {
-        try {
-            this.wait.until(ExpectedConditions.visibilityOfElementLocated(tag));
-            return driver.findElement(tag);
-        } catch (TimeoutException e) {
-            System.out.println("ERROR: 시간 초과(Element) - " + e.getLocalizedMessage());
-        } catch (NoSuchElementException e) {
-            System.out.println("ERROR: No Element Css: " + tag + " - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: No Element - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }
@@ -156,9 +165,9 @@ public class Crawling {
             this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
             return driver.findElement(By.cssSelector(selector)).getText();
         } catch (TimeoutException e) {
-            System.out.println("ERROR: 시간 초과(Text) - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: TimeoutException(Text) - Css: {}]]", Thread.currentThread().threadId(), selector);
         } catch (NoSuchElementException e) {
-            System.out.println("ERROR: No Element(Text) Css: " + selector + " - " + e.getLocalizedMessage());
+            log.error("[[{} thread - ERROR: No Element(Text) - Css: {}]]", Thread.currentThread().threadId(), selector);
         }
         return null;
     }

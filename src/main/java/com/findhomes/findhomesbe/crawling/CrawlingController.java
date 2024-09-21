@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.controller;
+package com.findhomes.findhomesbe.crawling;
 
 import com.findhomes.findhomesbe.crawling.IndustryCrawlingTask;
 import com.findhomes.findhomesbe.entity.House;
@@ -22,9 +22,9 @@ public class CrawlingController {
 
     @GetMapping("/api/crawling")
     public ResponseEntity<Void> crawlingHouse(
-            @RequestParam(required = false, defaultValue = "0") Integer startIndex
+//            @RequestParam(required = false, defaultValue = "0") Integer startIndex
     ) throws InterruptedException {
-        houseCrawlingTask.exec(startIndex);
+        houseCrawlingTask.exec();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

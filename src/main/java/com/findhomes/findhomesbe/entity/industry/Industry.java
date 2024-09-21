@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.entity;
+package com.findhomes.findhomesbe.entity.industry;
 
 public interface Industry {
     String getPlaceName();

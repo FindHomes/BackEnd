@@ -1,13 +1,10 @@
 package com.findhomes.findhomesbe.condition.service;
 
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
-import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
-import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.IndustriesAndWeight;
-import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.industry.Industry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

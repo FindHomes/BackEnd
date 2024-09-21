@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe.condition.domain;
 
-import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.industry.Industry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

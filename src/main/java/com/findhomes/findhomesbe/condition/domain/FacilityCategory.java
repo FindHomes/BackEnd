@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe.condition.domain;
 
-import com.findhomes.findhomesbe.entity.Industry;
+import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.repository.industry.*;
 import lombok.Getter;
 import org.springframework.data.jpa.repository.JpaRepository;
