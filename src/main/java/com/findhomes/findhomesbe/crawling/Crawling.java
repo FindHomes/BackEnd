@@ -7,20 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarEntry;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.NetworkInterceptor;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.http.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 @Slf4j
@@ -49,7 +43,7 @@ public class Crawling {
 
         return this;
     }
-    public Crawling setDriverWithShowing() {
+    public Crawling setDriver(boolean isShowing) {
         // Start the BrowserMob Proxy
         proxy = new BrowserMobProxyServer();
         proxy.setTrustAllServers(true);
@@ -66,6 +60,9 @@ public class Crawling {
         options.addArguments("--disable-dev-shm-usage"); // /dev/shm 메모리 사용 비활성화
         options.addArguments("--disable-gpu"); // GPU 비활성화
         options.addArguments("--no-sandbox"); // 샌드박스 모드 비활성화
+        if (!isShowing) {
+            options.addArguments("--headless");
+        }
 
         // Create ChromeDriver instance
         this.driver = new ChromeDriver(options);
@@ -90,7 +87,6 @@ public class Crawling {
         for (String windowHandle : driver.getWindowHandles()) {
             driver.switchTo().window(windowHandle);
         }
-        driver.get(url);
     }
 
     public void closeDriver() {

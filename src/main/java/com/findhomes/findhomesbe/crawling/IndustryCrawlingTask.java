@@ -21,7 +21,7 @@ public class IndustryCrawlingTask {
 
     public void exec(int startId, int endId) throws InterruptedException {
         Crawling crawling = new Crawling()
-                .setDriverWithShowing()
+                .setDriver(true)
                 .setWaitTime(MAX_WAIT_TIME);
         crawling.openUrl("http://map.naver.com/p/");
 
