@@ -30,13 +30,12 @@ public class FacilityCategoryService {
             // detailName이 "all"인 경우
             if (detailName.toLowerCase().equals("all")) {
                 long startTime = System.currentTimeMillis();
-                List<Industry> restaurantIndustries = industryRepository.findIndustryWithinBoundary(region);
-                result = new ArrayList<>(restaurantIndustries);
+                result = industryRepository.findIndustryWithinBoundary(region);
                 long endTime = System.currentTimeMillis();
                 log.info("DB 조회 및 JPA 객체 생성 시간 (공간인덱싱 사용): " + (endTime - startTime) / 1000.0 + "초");
                 return result;
             }
-            // all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
+            // detailName이 all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
             long startTime = System.currentTimeMillis();
             result = industryRepository.findByDetailName(detailName);
 //      enum을 통한 detailname 탐색 :   result = facilityCategoryEnum.getIndustryListWhenNotAll(repository, detailName);

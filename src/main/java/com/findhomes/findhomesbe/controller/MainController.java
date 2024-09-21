@@ -161,12 +161,12 @@ public class MainController {
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
-            conversation.append("User: ").append(chat.getUserInput()).append("\n");
+            conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
             if (chat.getGptResponse() != null) {
-                conversation.append("ChatBot: ").append(chat.getGptResponse()).append("\n");
+                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
             }
         }
-
+        log.info(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
         String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
         log.info("\n<GPT 응답>\n{}", gptResponse);
