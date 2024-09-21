@@ -69,7 +69,7 @@ public class IndustryCrawlingTask {
             Optional<RestaurantIndustry> restaurantOptional = restaurantIndustryRepository.findById(i);
 
             if (restaurantOptional.isEmpty()) {
-                log.error("[[id {} restaurant not found]]", i);
+                log.error("[[menu - thread {} - id {} restaurant not found]]", Thread.currentThread().threadId(), i);
                 continue;
             }
             RestaurantIndustry restaurant = restaurantOptional.get();
@@ -84,7 +84,7 @@ public class IndustryCrawlingTask {
 
             WebElement inputElement = crawling.getElementByCssSelector(".input_search");
             if (inputElement == null) {
-                log.error("[[id {} restaurant input not found]]", i);
+                log.error("[[menu - thread {} - id {} restaurant input not found]]", Thread.currentThread().threadId(), i);
                 continue;
             }
 
@@ -97,7 +97,7 @@ public class IndustryCrawlingTask {
             try {
                 crawling.changeIframe("entryIframe");
             } catch (Exception e) {
-                log.error("[[id {} restaurant entryIframe not found]]", i);
+                log.error("[[menu - thread {} - id {} restaurant entryIframe not found]]", Thread.currentThread().threadId(), i);
                 continue;
             }
 
@@ -117,7 +117,7 @@ public class IndustryCrawlingTask {
             boolean flag2 = false;
             List<WebElement> menuButton = crawling.getElementListByCssSelector(".tpj9w");
             if (menuButton == null || menuButton.isEmpty()) {
-                log.info("[[id {} restaurant tab not found]]", i);
+                log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
                 continue;
@@ -132,7 +132,7 @@ public class IndustryCrawlingTask {
             } catch (Exception e) { // 탭 선택자가 다를 경우
                 List<WebElement> menuButton2 = crawling.getElementListByCssSelector(".tab");
                 if (menuButton2 == null || menuButton2.isEmpty()) {
-                    log.info("[[id {} restaurant tab not found]]", i);
+                    log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
                     // entryIframe에서 원래로 돌아오게 하는 코드
                     crawling.getDriver().switchTo().defaultContent();
                     continue;
@@ -153,7 +153,7 @@ public class IndustryCrawlingTask {
                     textElements = crawling.getElementListByCssSelector("div.info_detail > div.tit");
                 }
                 if (textElements == null || textElements.isEmpty()) {
-                    log.info("[[id {} restaurant menu info not found]]", i);
+                    log.info("[[menu - thread {} - id {} restaurant menu info not found]]", Thread.currentThread().threadId(), i);
                     // entryIframe에서 원래로 돌아오게 하는 코드
                     crawling.getDriver().switchTo().defaultContent();
                     continue;
@@ -170,21 +170,21 @@ public class IndustryCrawlingTask {
                     }
                 }
             } else {
-                log.info("[[id {} restaurant name \"menu\" tab not found]]", i);
+                log.info("[[menu - thread {} - id {} restaurant name \"menu\" tab not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
                 continue;
             }
 
             if (wordCountMap.isEmpty()) {
-                log.info("[[id {} restaurant no menu not found]]", i);
+                log.info("[[menu - thread {} - id {} restaurant no menu not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
                 continue;
             }
 
             List<Map.Entry<String, Integer>> topNWords = getTopNWords(wordCountMap, 7);
-            log.info("[[id {} restaurant result: {}]]", i, topNWords);
+            log.info("[[menu - thread {} - id {} restaurant result: {}]]", Thread.currentThread().threadId(), i, topNWords);
 
             String tag = cuisine + "," +
                     topNWords.stream()

@@ -65,6 +65,8 @@ public class HouseCrawlingTask {
             log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
             mainCrawling.openUrlNewTab(url);
 
+            int nextPageCount = 0;
+
             while (true) {
                 List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
                 if (salesElementList == null) {
@@ -117,6 +119,10 @@ public class HouseCrawlingTask {
                     WebElement nextButton = nextButtonList.get(nextButtonList.size() - 1);
                     if (nextButton.getAttribute("disabled") == null) {
                         try {
+                            nextPageCount++;
+                            if (nextPageCount > 10) {
+                                break;
+                            }
                             nextButton.click();
                         } catch (ElementClickInterceptedException e) {
                             // 클릭할 수 없을 경우 스크롤을 시도하거나 재시도
