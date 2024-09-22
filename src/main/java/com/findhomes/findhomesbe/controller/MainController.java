@@ -102,7 +102,11 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        conversation.append("사용자: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 매물 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해.").append("\n활용할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append("\n\n사용자 입력에 대해 더 구체적인 응답이 필요하다고 판단되면 해당 입력에 대해 더 자세히 물어봐줘.\n그리고 사용자가 추가 조건이 없는 듯한 응답을 했으면, 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 절대 없는 순수 한글만으로 응답해줘. 이스케이프 문자를 절대로 넣지 말아줘. 문장은 50자를 넘지 않게 해줘.");
+        conversation.append(createChatCommand(
+                userChatRequest.getUserInput(),
+                manConRequest.toSentence(),
+                FacilityCategory.getAllData() + PublicData.getAllData()
+        ));
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
         String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, 0.9);

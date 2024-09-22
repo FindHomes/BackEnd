@@ -4,8 +4,6 @@ import com.findhomes.findhomesbe.condition.domain.*;
 
 public class CommandService {
 
-
-
     public static String createUserConditionCommand(String conditionSentence) {
         // TODO: 여기에 유저 정보도 넣어 줘야 할 듯.
         return "[보유 데이터 목록]\n" + conditionSentence + "\n" +
@@ -20,6 +18,14 @@ public class CommandService {
                 "각 문장은 개행문자로 구분해서 한 줄에 하나의 문장만 나오게 해줘. 그 외에 다른 말은 아무것도 붙이지 말아줘. 특히 문장에 Escape Character 절대로 쓰지 말아줘. 개행문자에 Escape Character 두개 연속으로 절대 쓰지마.\n" +
                 "문장에 교통 관련 조건은 절대 있으면 안돼.\n" +
                 "문장에 보유 데이터에 없는 집 내부의 가구나 옵션이 절대 있으면 안돼.";
+    }
+
+    public static String createChatCommand(String userInput, String manConInput, String possibleCondition) {
+        return "사용자: " +
+                userInput + "\n" +
+                "사전에 사용자 입력한 매물 조건 :" + manConInput + "\n" +
+                "활용할 수 있는 조건 종류 :" + possibleCondition +
+                "\n\n사용자 입력에 대해 더 구체적인 응답이 필요하다고 판단되면 해당 입력에 대해 더 자세히 물어봐줘.\n그리고 사용자가 추가 조건이 없는 듯한 응답을 했으면, 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 절대 없는 순수 한글만으로 응답해줘. 이스케이프 문자를 절대로 넣지 말아줘. 문장은 50자를 넘지 않게 해줘.";
     }
 
     public static String createCompleteCommand(String userInput) {
