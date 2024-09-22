@@ -21,7 +21,7 @@ public class CrawlingController {
     private final IndustryCrawlingTask industryCrawlingTask;
     private final HouseRepository houseRepository;
 
-    @PostMapping("/api/crawling")
+    @GetMapping("/api/crawling")
     public ResponseEntity<Void> crawlingHouse(
 //            @RequestParam(required = false, defaultValue = "0") Integer startIndex
     ) throws InterruptedException {
@@ -29,7 +29,7 @@ public class CrawlingController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/api/crawling/restaurant")
+    @GetMapping("/api/crawling/restaurant")
     public ResponseEntity<Void> crawlingRestaurant(@RequestParam String start) throws InterruptedException {
         try {
             industryCrawlingTask.exec(start);

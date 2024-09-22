@@ -28,22 +28,22 @@ public class HouseSpecification {
             ManConRequest manConRequest = allConditions.getManConRequest();
             String city = manConRequest.getRegion().getCity();
 
-            // Regions 테이블에서 boundary 정보 가져오기
-            Regions regions = regionsRepository.findBySigKorNm(city);
-            Geometry boundary= regions.getBoundary();
-
-            if (regions != null && regions.getBoundary() != null) {
-                // ST_Contains 함수를 사용하여 coordinate가 boundary 내에 있는지 확인
-                Predicate withinPolygon = criteriaBuilder.isTrue(
-                        criteriaBuilder.function(
-                                "ST_Contains",
-                                Boolean.class,
-                                criteriaBuilder.literal(regions.getBoundary()),
-                                root.get("coordinate")
-                        )
-                );
-                predicates.add(withinPolygon);
-            }
+//            // Regions 테이블에서 boundary 정보 가져오기
+//            Regions regions = regionsRepository.findBySigKorNm(city);
+//            Geometry boundary= regions.getBoundary();
+//
+//            if (regions != null && regions.getBoundary() != null) {
+//                // ST_Contains 함수를 사용하여 coordinate가 boundary 내에 있는지 확인
+//                Predicate withinPolygon = criteriaBuilder.isTrue(
+//                        criteriaBuilder.function(
+//                                "ST_Contains",
+//                                Boolean.class,
+//                                criteriaBuilder.literal(regions.getBoundary()),
+//                                root.get("coordinate")
+//                        )
+//                );
+//                predicates.add(withinPolygon);
+//            }
 
             if (manConRequest != null) {
                 // Housing Type 조건

@@ -61,84 +61,88 @@ public class HouseCrawlingTask {
                 .setWaitTime(MAX_WAIT_TIME);
         mainCrawling.getDriver().manage().window().maximize();
         for (int i = 0; i < urls.size(); i++) {
-            String url = urls.get(i);
-            log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
-            mainCrawling.openUrlNewTab(url);
+            try {
+                String url = urls.get(i);
+                log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
+                mainCrawling.openUrlNewTab(url);
 
-            int nextPageCount = 0;
+                int nextPageCount = 0;
 
-            while (true) {
-                List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
-                if (salesElementList == null) {
-                    log.info("[[{} thread - no item in url: \"{}\"]]", Thread.currentThread().threadId(), url);
-                    break;
-                }
-                for (WebElement element : salesElementList) {
-                    mainCrawling.getProxy().newHar("new_har");
-
-                    try {
-                        // 클릭 시도
-                        element.click();
-                    } catch (ElementClickInterceptedException e) {
-                        // 예외 발생 시 JavaScript로 강제 클릭
-                        JavascriptExecutor jsExecutor = (JavascriptExecutor) mainCrawling.getDriver();
-                        jsExecutor.executeScript("arguments[0].click();", element);
+                while (true) {
+                    List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
+                    if (salesElementList == null) {
+                        log.info("[[{} thread - no item in url: \"{}\"]]", Thread.currentThread().threadId(), url);
+                        break;
                     }
+                    for (WebElement element : salesElementList) {
+                        mainCrawling.getProxy().newHar("new_har");
+
+                        try {
+                            // 클릭 시도
+                            element.click();
+                        } catch (ElementClickInterceptedException e) {
+                            // 예외 발생 시 JavaScript로 강제 클릭
+                            JavascriptExecutor jsExecutor = (JavascriptExecutor) mainCrawling.getDriver();
+                            jsExecutor.executeScript("arguments[0].click();", element);
+                        }
 //
-                    // Wait for the page to load (you can add explicit waits here if necessary)
-                    Thread.sleep(1500);
+                        // Wait for the page to load (you can add explicit waits here if necessary)
+                        Thread.sleep(1500);
 
-                    List<String> img_urls = new ArrayList<>();
-                    // Get the HAR data and extract network requests
-                    Har har = mainCrawling.getProxy().getHar();
-                    List<HarEntry> entries = har.getLog().getEntries();
+                        List<String> img_urls = new ArrayList<>();
+                        // Get the HAR data and extract network requests
+                        Har har = mainCrawling.getProxy().getHar();
+                        List<HarEntry> entries = har.getLog().getEntries();
 
-                    // Print all requests, filtering by "cloudfront" if needed
-                    for (HarEntry entry : entries) {
-                        String requestUrl = entry.getRequest().getUrl();
-                        if (requestUrl.contains("cloudfront")) {
-                            img_urls.add(requestUrl);
+                        // Print all requests, filtering by "cloudfront" if needed
+                        for (HarEntry entry : entries) {
+                            String requestUrl = entry.getRequest().getUrl();
+                            if (requestUrl.contains("cloudfront")) {
+                                img_urls.add(requestUrl);
+                            }
+                        }
+
+                        try {
+                            postProcessing(mainCrawling, img_urls, count);
+                        } catch (Exception e) {
+                            log.error("[[[failed url: {}]]]", url, e);
+                        } finally {
+                            img_urls.clear();
+
+                            Har har2 = mainCrawling.getProxy().getHar();
+                            har2 = null;
                         }
                     }
 
-                    try {
-                        postProcessing(mainCrawling, img_urls, count);
-                    } catch (Exception e) {
-                        log.error("[[[failed url: {}]]]", url, e);
-                    } finally {
-                        img_urls.clear();
-
-                        Har har2 = mainCrawling.getProxy().getHar();
-                        har2 = null;
-                    }
-                }
-
-                // 다음 버튼
-                List<WebElement> nextButtonList = mainCrawling.getElementListByCssSelector(nextBtnSelector);
-                if (nextButtonList != null) {
-                    WebElement nextButton = nextButtonList.get(nextButtonList.size() - 1);
-                    if (nextButton.getAttribute("disabled") == null) {
-                        try {
-                            nextPageCount++;
-                            if (nextPageCount > 10) {
-                                break;
+                    // 다음 버튼
+                    List<WebElement> nextButtonList = mainCrawling.getElementListByCssSelector(nextBtnSelector);
+                    if (nextButtonList != null) {
+                        WebElement nextButton = nextButtonList.get(nextButtonList.size() - 1);
+                        if (nextButton.getAttribute("disabled") == null) {
+                            try {
+                                nextPageCount++;
+                                if (nextPageCount > 10) {
+                                    break;
+                                }
+                                nextButton.click();
+                            } catch (ElementClickInterceptedException e) {
+                                // 클릭할 수 없을 경우 스크롤을 시도하거나 재시도
+                                JavascriptExecutor jsExecutor = (JavascriptExecutor) mainCrawling.getDriver();
+                                jsExecutor.executeScript("arguments[0].click();", nextButton);
+                            } finally {
+                                log.info("[[{} thread - Next Page!!!]]", Thread.currentThread().threadId());
+                                JavascriptExecutor js = (JavascriptExecutor) mainCrawling.getDriver();
+                                js.executeScript("window.gc && window.gc();");
                             }
-                            nextButton.click();
-                        } catch (ElementClickInterceptedException e) {
-                            // 클릭할 수 없을 경우 스크롤을 시도하거나 재시도
-                            JavascriptExecutor jsExecutor = (JavascriptExecutor) mainCrawling.getDriver();
-                            jsExecutor.executeScript("arguments[0].click();", nextButton);
-                        } finally {
-                            log.info("[[{} thread - Next Page!!!]]", Thread.currentThread().threadId());
-                            JavascriptExecutor js = (JavascriptExecutor) mainCrawling.getDriver();
-                            js.executeScript("window.gc && window.gc();");
+                        } else {
+                            break;
                         }
                     } else {
                         break;
                     }
-                } else {
-                    break;
                 }
+            } catch (Exception ignored) {
+
             }
         }
 

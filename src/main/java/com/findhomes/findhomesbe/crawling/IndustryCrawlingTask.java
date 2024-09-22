@@ -120,6 +120,7 @@ public class IndustryCrawlingTask {
                 log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
+                saveRestaurant(restaurant, cuisine);
                 continue;
             }
             try {
@@ -135,6 +136,7 @@ public class IndustryCrawlingTask {
                     log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
                     // entryIframe에서 원래로 돌아오게 하는 코드
                     crawling.getDriver().switchTo().defaultContent();
+                    saveRestaurant(restaurant, cuisine);
                     continue;
                 }
                 for (WebElement webElement : menuButton2) {
@@ -156,6 +158,7 @@ public class IndustryCrawlingTask {
                     log.info("[[menu - thread {} - id {} restaurant menu info not found]]", Thread.currentThread().threadId(), i);
                     // entryIframe에서 원래로 돌아오게 하는 코드
                     crawling.getDriver().switchTo().defaultContent();
+                    saveRestaurant(restaurant, cuisine);
                     continue;
                 }
                 for (WebElement textElement : textElements) {
@@ -173,6 +176,7 @@ public class IndustryCrawlingTask {
                 log.info("[[menu - thread {} - id {} restaurant name \"menu\" tab not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
+                saveRestaurant(restaurant, cuisine);
                 continue;
             }
 
@@ -180,6 +184,7 @@ public class IndustryCrawlingTask {
                 log.info("[[menu - thread {} - id {} restaurant no menu not found]]", Thread.currentThread().threadId(), i);
                 // entryIframe에서 원래로 돌아오게 하는 코드
                 crawling.getDriver().switchTo().defaultContent();
+                saveRestaurant(restaurant, cuisine);
                 continue;
             }
 
@@ -190,14 +195,19 @@ public class IndustryCrawlingTask {
                     topNWords.stream()
                     .map(Map.Entry::getKey)
                     .collect(Collectors.joining(","));
-            restaurant.setPlaceTags(additionalPostprocessing(tag));
-            restaurantIndustryRepository.save(restaurant);
+
+            saveRestaurant(restaurant, additionalPostprocessing(tag));
 
             // entryIframe에서 원래로 돌아오게 하는 코드
             crawling.getDriver().switchTo().defaultContent();
         }
 
         crawling.quitDriver();
+    }
+
+    private void saveRestaurant(RestaurantIndustry restaurantIndustry, String tag) {
+        restaurantIndustry.setPlaceTags(tag);
+        restaurantIndustryRepository.save(restaurantIndustry);
     }
 
     private List<Map.Entry<String, Integer>> getTopNWords(Map<String, Integer> map, int n) {
