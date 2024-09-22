@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
+import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +49,7 @@ public class MainController {
     private final ConditionService conditionService;
     private final JwtTokenProvider jwtTokenProvider;
     private final SecurityService securityService;
-
+    private final HouseRepository houseRepository;
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         // 토큰 검사
@@ -186,5 +187,31 @@ public class MainController {
 
             return new ResponseEntity<>(new SearchResponse(subResultHouses, true, 200, "성공"), HttpStatus.OK);
         }
+    }
+    @GetMapping("/api/house/{houseId}")
+    @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
+            @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.")
+    })
+    public ResponseEntity<HouseDetailResponse> getHouseDetail(
+            HttpServletRequest httpRequest, @PathVariable int houseId
+    ) {
+        // 토큰 검사
+        String token = securityService.extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
+        // 세션 ID 가져오기
+        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
+        if (session == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 세션이 없으면 에러 반환
+        }
+
+        // 매물 정보 조회
+        House house = houseRepository.findById(houseId).orElse(null);
+        if (house == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 매물이 존재하지 않으면 404 반환
+        }
+
+        return new ResponseEntity<>(new HouseDetailResponse(true, 200, "성공", house), HttpStatus.OK);
     }
 }
