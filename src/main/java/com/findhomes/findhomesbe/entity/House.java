@@ -37,6 +37,7 @@ public class House {
     private Double longitude; // Not NULL
     private Double latitude; // Not NULL
     private String imgUrl; // Nullable
+    @JsonIgnore
     private Point coordinate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

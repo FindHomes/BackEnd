@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
+import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +49,7 @@ public class MainController {
     private final ConditionService conditionService;
     private final JwtTokenProvider jwtTokenProvider;
     private final SecurityService securityService;
-
+    private final HouseRepository houseRepository;
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         // 토큰 검사
@@ -117,7 +118,7 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        conversation.append("User: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해. 제안할 수 있는 조건은 다음과 같아.").append("제안할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append("또한 **이나 개행문자가 없는 순수 string으로 응답해줘.");
+        conversation.append("사용자: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 매물 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해.").append("제안할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append(" 만약 한번 조건 추가 입력 요구 제안을 했으면 다시 제안하지 않고 대화를 끝내고 매물을 찾아주겠다는 느낌으로 응답을 해도 돼. 추가로 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 없는 순수 string으로 응답해줘.");
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
         String gptResponse = chatService.getResponse(conversation.toString());
@@ -126,10 +127,10 @@ public class MainController {
         // 사용자 입력과 GPT 응답 저장
         userChatService.saveUserChat(chatSessionId, userChatRequest.getUserInput(), gptResponse);
         // 대화 종료 조건 확인
-        if (gptResponse.contains("대화 종료")) {
-            // 대화 종료를 클라이언트에 알리기
-            return ResponseEntity.noContent().build();
-        }
+//        if (gptResponse.contains("대화 종료")) {
+//            // 대화 종료를 클라이언트에 알리기
+//            return ResponseEntity.noContent().build();
+//        }
 
         // 응답 반환
         UserChatResponse response = new UserChatResponse(true, 200, "성공", new UserChatResponse.ChatResponse(gptResponse));
@@ -186,5 +187,31 @@ public class MainController {
 
             return new ResponseEntity<>(new SearchResponse(subResultHouses, true, 200, "성공"), HttpStatus.OK);
         }
+    }
+    @GetMapping("/api/house/{houseId}")
+    @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
+            @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
+            @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
+    })
+    public ResponseEntity<HouseDetailResponse> getHouseDetail(
+            HttpServletRequest httpRequest, @PathVariable int houseId
+    ) {
+        // 토큰 검사
+        String token = securityService.extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
+        // 세션 ID 가져오기
+        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
+        if (session == null) {
+            return new ResponseEntity<>(new HouseDetailResponse(false, 401, "세션 없음", null), HttpStatus.UNAUTHORIZED);
+        }
+
+        // 매물 정보 조회
+        House house = houseRepository.findById(houseId).orElse(null);
+        if (house == null) {
+            return new ResponseEntity<>(new HouseDetailResponse(false, 404, "id에 해당하는 매물 없음", null), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new HouseDetailResponse(true, 200, "성공", house), HttpStatus.OK);
     }
 }
