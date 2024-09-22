@@ -15,10 +15,11 @@ import java.util.List;
 public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpecificationExecutor<House> {
     List<House> findByPriceType(String priceType);
 
-    List<House> findByHousingType(String housingType);
+    List<House> findByHousingTypeAndStatus(String housingType, String status);
 
     @Query(value = "SELECT h.* FROM houses_tbl AS h, regions_tbl as rg " +
             "WHERE rg.sig_kor_nm = :cityName " +
-            "AND ST_Contains(rg.boundary, h.coordinate)", nativeQuery = true)
-    List<House> findHouseWithRegion(@Param("cityName") String cityName);
+            "AND ST_Contains(rg.boundary, h.coordinate)" +
+            "AND h.status=:status", nativeQuery = true)
+    List<House> findHouseWithRegion(@Param("cityName") String cityName, @Param("status") String status);
 }

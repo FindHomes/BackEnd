@@ -31,7 +31,7 @@ public class TestController {
 
     @PostConstruct
     public void init() {
-        tempResult = houseRepository.findByHousingType("아파트");
+        tempResult = houseRepository.findByHousingTypeAndStatus("아파트", "ACTIVE");
         log.info("임시 데이터 매물 개수: {}", tempResult.size());
     }
 

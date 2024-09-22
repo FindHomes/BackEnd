@@ -33,8 +33,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
     }
 
     @Override
-    public Map<String, Object> prompt(CompletionRequestDto completionRequestDto) {
-
+    public Map<String, Object> prompt(CompletionRequestDto completionRequestDto, Double temperature) {
         Map<String, Object> result;
 
         HttpHeaders headers = chatGPTConfig.httpHeaders();
@@ -45,7 +44,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
         completionRequestDto = CompletionRequestDto.builder()
                 .model(model)
                 .messages(completionRequestDto.getMessages()) // 여러 메시지 추가
-                .temperature(0.1)
+                .temperature(temperature)
                 .build();
 
         String requestBody;
@@ -70,7 +69,8 @@ public class ChatGPTServiceImpl implements ChatGPTService {
         }
         return result;
     }
-    public String getGptOutput(String command) {
+
+    public String getGptOutput(String command, double temperature) {
         List<CompletionRequestDto.Message> messages = Arrays.asList(
                 CompletionRequestDto.Message.builder()
                         .role("system")
@@ -86,7 +86,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
                 .messages(messages)
                 .build();
 
-        Map<String, Object> result = prompt(completionRequestDto);
+        Map<String, Object> result = prompt(completionRequestDto, temperature);
 
         return parseGPTResponse(result);
     }
@@ -126,6 +126,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
                 userInput, HouseOption.getAllData(), FacilityCategory.getAllData(), PublicData.getAllData(), HouseCondition.getAllData(), HouseDirection.getAllData()
         );
     }
+
 // 신버전인데 응답이 이상해서 일단 제외
 //    private String createGPTCommand(String userInput) {
 //        return String.format(

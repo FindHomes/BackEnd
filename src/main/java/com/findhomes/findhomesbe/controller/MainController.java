@@ -69,24 +69,28 @@ public class MainController {
         response.addCookie(sessionCookie);
 
         // 추천 질문 생성
-        String gptOutput = chatGPTServiceImpl.getGptOutput(makeUserRecommendInput(request));
+        String gptOutput = chatGPTServiceImpl.getGptOutput(makeUserRecommendInput(request), 0.9);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.trim()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
 
     private String makeUserRecommendInput(ManConRequest request) {
         // TODO: 여기에 유저 정보도 넣어 줘야 할 듯.
-        return "[유저가 입력한 필수 조건]\n" + request.toSentence() + "\n" +
-                "[보유 데이터 목록]\n" + conditionService.conditionsToSentence() + "\n" +
+        return "[보유 데이터 목록]\n" + conditionService.conditionsToSentence() + "\n" +
                 "위의 데이터를 참고해서 유저에게 매물을 찾을 때 입력할 조건을 추천해줘.\n" +
                 "이 서비스는 보유 데이터 목록을 기반으로 유저가 입력한 조건에 맞는 부동산 매물을 찾아주는 서비스야.\n" +
-                "보유한 데이터를 창의적으로 활용할 수 있는 조건도 상관없어. 보유한 데이터 내에서만 질문할 필요도 없어. 유저는 입력을 자유롭게 할 수 있어.\n" +
-                "예시: 주변에 쇼핑할 곳이 있으면 좋을 것 같아. 그리고 아이 키우기 좋은 곳으로 추천해줘.\n" +
-                "문장의 길이는 100자 안으로 해주고, 3개의 문장을 랜덤하게 추천해줘. 조건 여러개를 하나의 문장에 써도 좋아.\n" +
-                "각 문장은 \\n으로 구분해서 한 줄에 하나의 문장만 나오게 해줘. 그 외에 다른 말은 아무것도 붙이지 말아줘.";
+                "문장의 길이를 100자 안으로 해서 다음 조건의 3개의 문장을 랜덤하게 추천해줘.\n" +
+                "문장 한 개는 보유 데이터 목록에서 참고해서 추천해주는 문장이어야 돼." +
+                "나머지 문장 두 개는 **보유 데이터를 절대 직접 언급하면 안되고**, " +
+                "보유 데이터와 간접적인 연관이 있고 아주 색다른 조건이 있는 문장이어야 돼.\n" +
+                "그리고 세 문장 모두 두 개 이상의 조건이 들어가야돼.\n" +
+                "예시: CCTV가 있고, 복층 구조로 추천해줘.\\n어르신들이 살기 좋고 벌레가 없는 곳으로 추천해줘.\\n아이 키우기 좋고 안전한 곳으로 추천해줘.\n" +
+                "각 문장은 개행문자로 구분해서 한 줄에 하나의 문장만 나오게 해줘. 그 외에 다른 말은 아무것도 붙이지 말아줘. 특히 문장에 Escape Character 절대로 쓰지 말아줘. 개행문자에 Escape Character 두개 연속으로 절대 쓰지마.\n" +
+                "문장에 교통 관련 조건은 절대 있으면 안돼.\n" +
+                "문장에 보유 데이터에 없는 집 내부의 가구나 옵션이 절대 있으면 안돼.";
     }
 
 
@@ -169,8 +173,8 @@ public class MainController {
         }
         log.info(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        System.out.println(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
-        String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
+
+        String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()), 0.1);
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);

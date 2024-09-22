@@ -41,6 +41,7 @@ public class House {
     private Point coordinate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String status = "ACTIVE";
 
     private transient Double score = 0d; // 직렬화에서 제외됨
 
