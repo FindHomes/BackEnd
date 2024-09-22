@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
+import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.UserChatRepository;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.findhomes.findhomesbe.gpt.ChtGPTConst.*;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -38,13 +41,7 @@ public class MainController {
     public static final String MAN_CON_KEY = "man-con";
     public static final String HOUSE_RESULTS_KEY = "house-result";
 
-    private final UserChatRepository userChatRepository;
     private final ChatGPTServiceImpl chatGPTServiceImpl;
-    private final KaKaoMapService kaKaoMapService;
-    private final HouseService houseService;
-    private final HospitalService hospitalService;
-    private final RestaurantIndustryService restaurantIndustryService;
-    private final ChatService chatService;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -69,7 +66,7 @@ public class MainController {
         response.addCookie(sessionCookie);
 
         // 추천 질문 생성
-        String gptOutput = chatGPTServiceImpl.getGptOutput(makeUserRecommendInput(request), 0.9);
+        String gptOutput = chatGPTServiceImpl.getGptOutput(makeUserRecommendInput(request), ROLE1, ROLE2, COMPLETE_CONTENT, 0.9);
 
         // 응답 반환
         ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).collect(Collectors.toList()));
@@ -122,10 +119,10 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        conversation.append("사용자: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 매물 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해.").append("제안할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append(" 만약 한번 조건 추가 입력 요구 제안을 했으면 다시 제안하지 않고 대화를 끝내고 매물을 찾아주겠다는 느낌으로 응답을 해도 돼. 추가로 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 없는 순수 string으로 응답해줘.");
+        conversation.append("사용자: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 매물 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해.").append("\n활용할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append("\n\n사용자 입력에 대해 더 구체적인 응답이 필요하다고 판단되면 해당 입력에 대해 더 자세히 물어봐줘.\n그리고 사용자가 추가 조건이 없는 듯한 응답을 했으면, 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 절대 없는 순수 한글만으로 응답해줘. 이스케이프 문자를 절대로 넣지 말아줘. 문장은 50자를 넘지 않게 해줘.");
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatService.getResponse(conversation.toString());
+        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, 0.9);
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
@@ -173,7 +170,7 @@ public class MainController {
         }
         log.info(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()), 0.1);
+        String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()), ROLE1, ROLE2, COMPLETE_CONTENT, 0.1);
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);
