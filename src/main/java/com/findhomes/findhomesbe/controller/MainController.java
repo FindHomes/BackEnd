@@ -192,7 +192,8 @@ public class MainController {
     @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.")
+            @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
+            @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
     })
     public ResponseEntity<HouseDetailResponse> getHouseDetail(
             HttpServletRequest httpRequest, @PathVariable int houseId
@@ -203,15 +204,14 @@ public class MainController {
         // 세션 ID 가져오기
         HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
         if (session == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 세션이 없으면 에러 반환
+            return new ResponseEntity<>(new HouseDetailResponse(false, 401, "세션 없음", null), HttpStatus.UNAUTHORIZED);
         }
 
         // 매물 정보 조회
         House house = houseRepository.findById(houseId).orElse(null);
         if (house == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 매물이 존재하지 않으면 404 반환
+            return new ResponseEntity<>(new HouseDetailResponse(false, 404, "id에 해당하는 매물 없음", null), HttpStatus.NOT_FOUND);
         }
-
         return new ResponseEntity<>(new HouseDetailResponse(true, 200, "성공", house), HttpStatus.OK);
     }
 }
