@@ -1,8 +1,5 @@
 package com.findhomes.findhomesbe.crawling;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.google.gson.JsonElement;
@@ -12,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
-import org.checkerframework.checker.units.qual.A;
 import org.openqa.selenium.*;
 import org.springframework.stereotype.Component;
 
@@ -40,100 +36,22 @@ public class HouseCrawlingTask {
     public void exec() throws InterruptedException {
         // CompletableFuture로 비동기 병렬처리
         CompletableFuture.allOf(
-                runAsync(shuffledOneTwoUrls)
-//                runAsync(shuffledAptUrls),
-//                runAsync(shuffledHouseUrls),
-//                runAsync(shuffledOfficeUrls)
+                runAsync(shuffledOneTwoUrls),
+                runAsync(shuffledAptUrls),
+                runAsync(shuffledHouseUrls),
+                runAsync(shuffledOfficeUrls)
         ).join(); // 모든 비동기 작업이 종료될 때까지 부모 대기
     }
 
     private CompletableFuture<Void> runAsync(Supplier<List<String>> supplier) {
+        List<String> urls = supplier.get();
         return CompletableFuture.runAsync(() -> {
-            Crawling crawling = new Crawling()
-                    .setDriver(true)
-                    .setWaitTime(MAX_WAIT_TIME);
-            crawling.getDriver().manage().window().maximize();
-            List<String> urls = supplier.get();
-            urls.forEach(url -> {
-                log.info("{} thread - 완료. url: {}\n{}", Thread.currentThread().threadId(), url, getHouseIds(crawling, url));
-            });
-        });
-    }
-
-    private List<String> getHouseIds(Crawling crawling, String url) {
-        List<String> results = new ArrayList<>();
-        crawling.getProxy().newHar("new_har"+ Thread.currentThread().threadId());
-        crawling.openUrlNewTab(url);
-        while (true) {
             try {
-                Thread.sleep(4000);
+                execOne(supplier.get());
             } catch (InterruptedException e) {
-                return results;
+                Thread.currentThread().interrupt();
             }
-            Har har = crawling.getProxy().getHar();
-            List<HarEntry> entries = har.getLog().getEntries();
-            // house id 추가
-            boolean isContinue = false;
-            for (HarEntry entry : entries) {
-                String requestUrl = entry.getRequest().getUrl();
-                if (requestUrl.contains("https://kn.acrosspf.com/adn")) {
-                    log.info("test: {}", entry.getResponse().getContent().getText());
-                }
-                if (requestUrl.contains("dabangapp.com/api/v5/room-list/category")) {
-                    String responseContent = entry.getResponse().getContent().getText();
-
-                    log.info("content-encoding: {}", entry.getResponse().getHeaders());
-                    log.info("responseContent: {}", responseContent);
-
-                    // JSON 파싱을 통해 seq 값 추출
-                    ObjectMapper mapper = new ObjectMapper();
-                    JsonNode rootNode = null;
-                    try {
-                        rootNode = mapper.readTree(responseContent);
-                    } catch (JsonProcessingException | IllegalArgumentException e) {
-                        return results;
-                    }
-                    JsonNode roomListNode = rootNode.path("result").path("roomList");
-
-                    if (roomListNode.isArray()) {
-                        if (!roomListNode.isEmpty()) {
-                            isContinue = true;
-                        }
-                        for (JsonNode room : roomListNode) {
-                            results.add(room.path("seq").toString());
-                        }
-                    }
-                    break;
-                }
-            }
-            if (!isContinue) {
-                return results;
-            }
-            // 다음 페이지로
-            List<WebElement> nextButtonList = crawling.getElementListByCssSelector(nextBtnSelector);
-            if (nextButtonList != null) {
-                WebElement nextButton = nextButtonList.get(nextButtonList.size() - 1);
-                if (nextButton.getAttribute("disabled") == null) {
-                    try {
-                        crawling.getProxy().newHar("new_har"+ Thread.currentThread().threadId());
-                        nextButton.click();
-                        log.info("[[{} thread - Next Page!!!]]", Thread.currentThread().threadId());
-                    } catch (ElementClickInterceptedException e) {
-                        // 클릭할 수 없을 경우 스크롤을 시도하거나 재시도
-                        JavascriptExecutor jsExecutor = (JavascriptExecutor) crawling.getDriver();
-                        jsExecutor.executeScript("arguments[0].click();", nextButton);
-                    } finally {
-                        JavascriptExecutor js = (JavascriptExecutor) crawling.getDriver();
-                        js.executeScript("window.gc && window.gc();");
-                    }
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        return results;
+        });
     }
 
     private void execOne(List<String> urls) throws InterruptedException {
@@ -144,8 +62,10 @@ public class HouseCrawlingTask {
         mainCrawling.getDriver().manage().window().maximize();
         for (int i = 0; i < urls.size(); i++) {
             String url = urls.get(i);
-            log.info("[[{} thread - {} index start in url: {}]]", Thread.currentThread().threadId(), i, url);
+            log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
             mainCrawling.openUrlNewTab(url);
+
+            int nextPageCount = 0;
 
             while (true) {
                 List<WebElement> salesElementList = mainCrawling.getElementListByCssSelector(saleElSelector);
@@ -184,7 +104,7 @@ public class HouseCrawlingTask {
                     try {
                         postProcessing(mainCrawling, img_urls, count);
                     } catch (Exception e) {
-                        log.error("[[[{} thread - failed url: {}]]]", Thread.currentThread().threadId(), url, e);
+                        log.error("[[[failed url: {}]]]", url, e);
                     } finally {
                         img_urls.clear();
 
@@ -199,6 +119,10 @@ public class HouseCrawlingTask {
                     WebElement nextButton = nextButtonList.get(nextButtonList.size() - 1);
                     if (nextButton.getAttribute("disabled") == null) {
                         try {
+                            nextPageCount++;
+                            if (nextPageCount > 10) {
+                                break;
+                            }
                             nextButton.click();
                         } catch (ElementClickInterceptedException e) {
                             // 클릭할 수 없을 경우 스크롤을 시도하거나 재시도

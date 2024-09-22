@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ public class CrawlingController {
     private final IndustryCrawlingTask industryCrawlingTask;
     private final HouseRepository houseRepository;
 
-    @GetMapping("/api/crawling")
+    @PostMapping("/api/crawling")
     public ResponseEntity<Void> crawlingHouse(
 //            @RequestParam(required = false, defaultValue = "0") Integer startIndex
     ) throws InterruptedException {
@@ -28,9 +29,13 @@ public class CrawlingController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/api/crawling/restaurant")
-    public ResponseEntity<Void> crawlingRestaurant(@RequestParam Integer start, @RequestParam Integer end) throws InterruptedException {
-        industryCrawlingTask.exec(start, end);
+    @PostMapping("/api/crawling/restaurant")
+    public ResponseEntity<Void> crawlingRestaurant(@RequestParam String start) throws InterruptedException {
+        try {
+            industryCrawlingTask.exec(start);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

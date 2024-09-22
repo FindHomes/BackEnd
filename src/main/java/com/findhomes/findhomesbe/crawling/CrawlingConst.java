@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class CrawlingConst {
-    public static final int MAX_WAIT_TIME = 3;
+    public static final int MAX_WAIT_TIME = 4;
     // 지오코더 API
     public static final String apiKey = "F6A7710C-3505-3390-8FE5-25CAB7F0001A";
     public static final String searchType = "parcel";

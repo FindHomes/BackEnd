@@ -4,44 +4,75 @@ import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
 import com.findhomes.findhomesbe.repository.industry.RestaurantIndustryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import static com.findhomes.findhomesbe.crawling.CrawlingConst.MAX_WAIT_TIME;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class IndustryCrawlingTask {
-    private static final int MAX_WAIT_TIME = 5;
+    private static final String url = "http://map.naver.com/p/";
+    private static final int LAST_RESTAURANT_ID = 682391;
+    private static List<String > BAN_WORDS = List.of("식사", "있는", "단품", "디너", "런치", "점심", "주는", "할인", "인기", "대표", "인기대표", "메뉴", "맛있는", "변동", "만든", "입니다", "맛을");
 
     private final RestaurantIndustryRepository restaurantIndustryRepository;
 
-    public void exec(int startId, int endId) throws InterruptedException {
+    public void exec(String start) {
+        List<Integer> startIndexArray = Arrays.stream(start.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+        int threadCount = startIndexArray.size();
+
+        // CompletableFuture 리스트 생성
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            int startId = startIndexArray.get(i);
+            int endId = (i == threadCount - 1) ? LAST_RESTAURANT_ID : startIndexArray.get(i + 1) - 1;
+
+            // 비동기 작업 추가
+            futures.add(runAsync(startId, endId));
+        }
+
+        // 모든 비동기 작업이 끝날 때까지 대기
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    private CompletableFuture<Void> runAsync(int start, int end) {
+        return CompletableFuture.runAsync(() -> {
+            execOneTask(start, end);
+        });
+    }
+
+    public void execOneTask(int startId, int endId) {
         Crawling crawling = new Crawling()
                 .setDriver(true)
                 .setWaitTime(MAX_WAIT_TIME);
-        crawling.openUrl("http://map.naver.com/p/");
-
-        List<String> restaurantName = List.of(
-                "백소정 광화문점" + " 서울특별시 종로구 사직로8길 42",
-                "커피베이 창경궁점 서울특별시 종로구 율곡로 236",
-                "명김밥 서울특별시 종로구 창신길 78",
-                "시월책방 서울특별시 종로구 자하문로 83",
-                "필린 Fillin 서울특별시 종로구 필운대로1길 12",
-                "서촌닭강정공장 서울특별시 종로구 자하문로 6",
-                "쭈소바 서울특별시 종로구 사직로8길 4"
-        );
+        crawling.openUrl(url);
 
         for (int i = startId; i <= endId; i++) {
-            /*Optional<Restaurant> restaurantOptional = restaurantIndustryRepository.findById(i);
+            if (i > 0 && i % 7 == 0) {
+                crawling.openUrlNewTab(url);
+            } else if (i > 0 && i % 200 == 0) {
+                crawling.quitDriver();
+                crawling = new Crawling()
+                        .setDriver(true)
+                        .setWaitTime(MAX_WAIT_TIME);
+                crawling.openUrl(url);
+            }
+
+            Optional<RestaurantIndustry> restaurantOptional = restaurantIndustryRepository.findById(i);
 
             if (restaurantOptional.isEmpty()) {
+                log.error("[[menu - thread {} - id {} restaurant not found]]", Thread.currentThread().threadId(), i);
                 continue;
             }
-            Restaurant restaurant = restaurantOptional.get();
+            RestaurantIndustry restaurant = restaurantOptional.get();
             String roadAddress = restaurant.getRoadAddress();
             if (roadAddress.contains(",")) {
                 roadAddress = roadAddress.split(",")[0];
@@ -49,111 +80,142 @@ public class IndustryCrawlingTask {
                 roadAddress = roadAddress.split("\\(")[0];
             }
 
-            String restaurantName = restaurant.getPlaceName() + " " + roadAddress;*/
-            RestaurantIndustry restaurantIndustry = new RestaurantIndustry();
+            String restaurantName = restaurant.getPlaceName() + " " + roadAddress;
 
             WebElement inputElement = crawling.getElementByCssSelector(".input_search");
             if (inputElement == null) {
-                System.out.println("[input 못찾음]");
-                System.out.println(restaurantIndustry);
+                log.error("[[menu - thread {} - id {} restaurant input not found]]", Thread.currentThread().threadId(), i);
                 continue;
             }
 
 
             inputElement.sendKeys(Keys.CONTROL + "a");
             inputElement.sendKeys(Keys.DELETE);
-            inputElement.sendKeys(restaurantName.get(i));
+            inputElement.sendKeys(restaurantName);
             inputElement.sendKeys(Keys.ENTER);
 
-            crawling.changeIframe("entryIframe");
-
-            boolean flag = false;
-            WebElement ele = null;
-            WebElement scrollableArea = crawling.getElementByCssSelector("body.place_on_pcmap");
-            JavascriptExecutor js = (JavascriptExecutor) crawling.getDriver();
-            js.executeScript("arguments[0].scrollTop = arguments[0].scrollHeight;", scrollableArea);
-
-            // 블로그 정보 가져오기
-            Map<String, Integer> wordCountMap = new HashMap<>();
-            List<WebElement> blogElements = crawling.getElementListByCssSelector(".RBifO");
-            List<String> allBlogTexts = new ArrayList<>();
-            String originalWindow = crawling.getDriver().getWindowHandle();
-
-            if (blogElements != null && !blogElements.isEmpty()) {
-                for (WebElement blogElement : blogElements) {
-                    // 블로그 요소 클릭 (새 창 열림)
-                    blogElement.click();
-
-                    // 새 창으로 전환하기 위해 모든 창 핸들을 가져옴
-                    Set<String> allWindows = crawling.getDriver().getWindowHandles();
-
-                    // 새 창 찾기
-                    for (String windowHandle : allWindows) {
-                        if (!windowHandle.equals(originalWindow)) {
-                            crawling.getDriver().switchTo().window(windowHandle); // 새 창으로 포커스 전환
-                            break;
-                        }
-                    }
-
-                    // 새 창에서 텍스트 수집 (원하는 텍스트 선택자를 사용)
-                    String blogText = crawling.getElementByCssSelector("body").getText();
-                    allBlogTexts.add(blogText); // 텍스트 저장
-
-                    // 창 닫기
-                    crawling.getDriver().close();
-
-                    // 원래 창으로 포커스 전환
-                    crawling.getDriver().switchTo().window(originalWindow);
-                }
-
-                // 블로그에 대해서 텍스트 추출 및 단어 빈도수 계산
-                for (String blogText : allBlogTexts) {
-                    blogText = blogText.replaceAll("[^가-힣]", " ");
-                    String[] words = blogText.split("\\s+"); // 공백으로 단어 분리
-
-                    for (String word : words) {
-                        word = word.toLowerCase(); // 소문자로 변환 및 알파벳만 남기기
-                        if (!word.isEmpty()) {
-                            wordCountMap.put(word, wordCountMap.getOrDefault(word, 0) + 1);
-                        }
-                    }
-                }
+            try {
+                crawling.changeIframe("entryIframe");
+            } catch (Exception e) {
+                log.error("[[menu - thread {} - id {} restaurant entryIframe not found]]", Thread.currentThread().threadId(), i);
+                continue;
             }
 
+//            boolean flag = false;
+//            WebElement ele = null;
+//            WebElement scrollableArea = crawling.getElementByCssSelector("body.place_on_pcmap");
+//            JavascriptExecutor js = (JavascriptExecutor) crawling.getDriver();
+//            js.executeScript("arguments[0].scrollTop = arguments[0].scrollHeight;", scrollableArea);
+
+            // 음식점 종류
+            String cuisine = "";
+            WebElement cuisineEl = crawling.getElementByCssSelector(".lnJFt");
+            if (cuisineEl != null) {
+                cuisine = cuisineEl.getText();
+            }
             // 메뉴 정보
             boolean flag2 = false;
             List<WebElement> menuButton = crawling.getElementListByCssSelector(".tpj9w");
             if (menuButton == null || menuButton.isEmpty()) {
+                log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
+                // entryIframe에서 원래로 돌아오게 하는 코드
+                crawling.getDriver().switchTo().defaultContent();
                 continue;
             }
-            for (WebElement webElement : menuButton) {
-                if (webElement.getText().contains("메뉴")) {
-                    webElement.click();
-                    flag2 = true;
+            try {
+                for (WebElement webElement : menuButton) {
+                    if (webElement.getText().contains("메뉴")) {
+                        webElement.click();
+                        flag2 = true;
+                    }
+                }
+            } catch (Exception e) { // 탭 선택자가 다를 경우
+                List<WebElement> menuButton2 = crawling.getElementListByCssSelector(".tab");
+                if (menuButton2 == null || menuButton2.isEmpty()) {
+                    log.info("[[menu - thread {} - id {} restaurant tab not found]]", Thread.currentThread().threadId(), i);
+                    // entryIframe에서 원래로 돌아오게 하는 코드
+                    crawling.getDriver().switchTo().defaultContent();
+                    continue;
+                }
+                for (WebElement webElement : menuButton2) {
+                    if (webElement.getText().contains("메뉴")) {
+                        webElement.click();
+                        flag2 = true;
+                    }
                 }
             }
+            // 단어 추출
+            Map<String, Integer> wordCountMap = new HashMap<>();
             if (flag2) {
                 // 메뉴에 대해서 텍스트 추출 및 단어 빈도수 계산
                 List<WebElement> textElements = crawling.getElementListByCssSelector(".MXkFw");
+                if (textElements == null || textElements.isEmpty()) {
+                    textElements = crawling.getElementListByCssSelector("div.info_detail > div.tit");
+                }
+                if (textElements == null || textElements.isEmpty()) {
+                    log.info("[[menu - thread {} - id {} restaurant menu info not found]]", Thread.currentThread().threadId(), i);
+                    // entryIframe에서 원래로 돌아오게 하는 코드
+                    crawling.getDriver().switchTo().defaultContent();
+                    continue;
+                }
                 for (WebElement textElement : textElements) {
                     String text = textElement.getText();
                     text = text.replaceAll("[^가-힣]", " ");
                     String[] words = text.split("\\s+"); // 공백으로 단어 분리
 
                     for (String word : words) {
-                        word = word.toLowerCase(); // 소문자로 변환 및 알파벳만 남기기
-                        if (!word.isEmpty()) {
+                        if (word.length() > 1 && !BAN_WORDS.contains(word)) {
                             wordCountMap.put(word, wordCountMap.getOrDefault(word, 0) + 1);
                         }
                     }
                 }
+            } else {
+                log.info("[[menu - thread {} - id {} restaurant name \"menu\" tab not found]]", Thread.currentThread().threadId(), i);
+                // entryIframe에서 원래로 돌아오게 하는 코드
+                crawling.getDriver().switchTo().defaultContent();
+                continue;
             }
 
-            log.info("result: {}", wordCountMap);
+            if (wordCountMap.isEmpty()) {
+                log.info("[[menu - thread {} - id {} restaurant no menu not found]]", Thread.currentThread().threadId(), i);
+                // entryIframe에서 원래로 돌아오게 하는 코드
+                crawling.getDriver().switchTo().defaultContent();
+                continue;
+            }
 
+            List<Map.Entry<String, Integer>> topNWords = getTopNWords(wordCountMap, 7);
+            log.info("[[menu - thread {} - id {} restaurant result: {}]]", Thread.currentThread().threadId(), i, topNWords);
+
+            String tag = cuisine + "," +
+                    topNWords.stream()
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.joining(","));
+            restaurant.setPlaceTags(additionalPostprocessing(tag));
+            restaurantIndustryRepository.save(restaurant);
+
+            // entryIframe에서 원래로 돌아오게 하는 코드
             crawling.getDriver().switchTo().defaultContent();
         }
 
         crawling.quitDriver();
+    }
+
+    private List<Map.Entry<String, Integer>> getTopNWords(Map<String, Integer> map, int n) {
+        List<Map.Entry<String, Integer>> entryList = new ArrayList<>(map.entrySet());
+        entryList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+        return entryList.subList(0, Math.min(n, entryList.size()));
+    }
+
+    private String additionalPostprocessing(String tag) {
+        if (tag.contains("커피") || tag.contains("아메리카노") || tag.contains("라떼")) {
+            return tag + ",카페";
+        }
+        if (tag.contains("버거")) {
+            return tag + ",햄버거,패스트푸드";
+        }
+        if (tag.contains("피자")) {
+            return tag + ",패스트푸드";
+        }
+        return tag;
     }
 }
