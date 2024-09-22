@@ -30,7 +30,7 @@ public class ChatService {
                 .messages(messages)
                 .build();
 
-        Map<String, Object> result = chatGPTService.prompt(completionRequestDto);
+        Map<String, Object> result = chatGPTService.prompt(completionRequestDto, 0.1);
 
         return parseGPTResponse(result);
     }

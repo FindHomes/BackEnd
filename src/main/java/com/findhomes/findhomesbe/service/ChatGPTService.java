@@ -19,7 +19,7 @@ import java.util.Map;
 public interface ChatGPTService {
 
 
-    Map<String, Object> prompt(CompletionRequestDto completionRequestDto);
+    Map<String, Object> prompt(CompletionRequestDto completionRequestDto, Double temperature);
 
 
 
