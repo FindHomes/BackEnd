@@ -1,7 +1,13 @@
 package com.findhomes.findhomesbe.gpt;
 
 import com.findhomes.findhomesbe.condition.domain.*;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.CompletableFuture;
+
+import static com.findhomes.findhomesbe.gpt.ChatGPTConst.*;
+
+@Slf4j
 public class CommandService {
 
     public static String createUserConditionCommand(String conditionSentence) {
@@ -30,7 +36,15 @@ public class CommandService {
                 "문장은 50자를 절대 넘지 않게 해줘.";
     }
 
-    public static String createCompleteCommand(String userInput) {
+    public static String createCompleteSectionCommand(String userInput, String possibleData, String detailRequest) {
+        return "사용자의 조건을 입력받고 그 조건과 관련된 데이터를 찾아 데이터를 활용하여 조건에 맞는 부동산을 추천해주는 앱을 만들고 있어.\n" +
+                (userInput == null ? "" : "[사용자와 챗봇이 지금까지 나눈 대화]: " + userInput + "\n") +
+                (possibleData == null ? "" : "[활용 가능한 데이터]: " + possibleData + "\n") +
+                "사용자의 요구사항을 분석하여 아래 형식에 따라 응답해줘.\n" +
+                (detailRequest == null ? "" : detailRequest + "반환 형식을 벗어나는 답변은 절대 하면 안돼.");
+    }
+
+    public static String preCreateCompleteCommand(String userInput) {
         return String.format(
                 "사용자의 조건을 입력받고 그 조건과 관련된 데이터를 찾아 데이터를 활용하여 조건에 맞는 부동산을 추천해주는 앱을 만들고 있습니다." +
                         "사용자와 챗봇이 지금까지 나눈 대화: '%s'. \n\n" +
@@ -46,7 +60,7 @@ public class CommandService {
                         "섹션2(반드시 응답의 둘째줄에 위치 해야 함). 매물 옵션 : 매물에 관한 옵션 중 사용자에게 필요한 옵션을 명시합니다. 예시: 화재경보기,신발장,옷장.\n\n" +
                         "섹션3(반드시 응답의 셋째줄에 위치 해야 함). 시설 데이터: 사용자 요구와 관련된 필요한 시설 데이터를 명시하고, 각 시설의 중요도를 가중치로 표시합니다. " +
                         "이 가중치는 해당 시설이 사용자 요구와 얼마나 관련이 있는지를 나타냅니다. 가중치는 1부터 10 사이의 값입니다." +
-                        "예를 들어 '음식점_버거킹-0.3'는 사용자가 버거킹과 가까운 집을 원할 경우, 음식점 중에서 버거킹의 중요도가 0.3임을 의미합니다. " +
+                        "예를 들어 '음식점_버거킹-3'는 사용자가 버거킹과 가까운 집을 원할 경우, 음식점 중에서 버거킹의 중요도가 3임을 의미합니다. " +
                         "'음식점_버거킹'과 같은 형식에서 '음식점'은 큰 범주를, '버거킹'은 그 범주 안의 특정 키워드를 의미합니다. " +
                         "이처럼 포함관계에 속하는 데이터는 '_'로 표시합니다. 특정 카테고리 전부일 경우 특정 이름이 아니라 all로 표시합니다." +
                         "예시: '음식점_버거킹-3, 피시방_all-2, 미용실_all-1, 병원_이비인후과-4, 병원_소아과-3'.\n\n" +

@@ -152,13 +152,12 @@ public class MainController {
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-            if (chat.getGptResponse() != null) {
-                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
-            }
+//            if (chat.getGptResponse() != null) {
+//                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
+//            }
         }
-        log.info(createCompleteCommand(conversation.toString()));
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutput(createCompleteCommand(conversation.toString()), ROLE1, ROLE2, COMPLETE_CONTENT, 0.1);
+        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString());
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);
