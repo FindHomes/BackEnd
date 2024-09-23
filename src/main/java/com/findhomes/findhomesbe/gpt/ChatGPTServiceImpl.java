@@ -142,7 +142,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
 
     private CompletableFuture<String> runAsync(String userInput, String possibleData, String detailRequest) {
         return CompletableFuture.supplyAsync(() ->
-            getGptOutput(createCompleteSectionCommand(userInput, possibleData, detailRequest), ROLE1, ROLE2, COMPLETE_CONTENT, 0.2)
+            getGptOutput(createCompleteSectionCommand(userInput, possibleData, detailRequest), ROLE1, ROLE2, COMPLETE_CONTENT, COMPLETE_TEMPERATURE)
         );
     }
 }

@@ -67,7 +67,7 @@ public class MainController {
 
         // 추천 질문 생성
         String command = createUserConditionCommand(conditionService.conditionsToSentence());
-        String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, 0.9);
+        String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, USER_CONDITION_TEMPERATURE);
 
         // 응답 반환
         ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
@@ -110,7 +110,7 @@ public class MainController {
         conversation.append(command.replaceAll("^가-힣", ""));
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, 0.9);
+        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE);
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장

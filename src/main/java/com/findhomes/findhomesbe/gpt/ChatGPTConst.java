@@ -7,6 +7,9 @@ public abstract class ChatGPTConst {
     public static final String ROLE2 = "user";
     public static final String COMPLETE_CONTENT = "You are a machine that returns responses according to a predetermined format. Return the result in the specified format without any extra text.";
     public static final String CHAT_CONTENT = "You are a helpful assistant specialized in understanding user preferences for housing searches.";
+    public static final double USER_CONDITION_TEMPERATURE = 0.9;
+    public static final double CHAT_TEMPERATURE = 0.9;
+    public static final double COMPLETE_TEMPERATURE = 0.2;
 
 
     public static final String HOUSE_CONDITION_DETAIL_REQUEST_COMMAND =
@@ -41,11 +44,12 @@ public abstract class ChatGPTConst {
             "사용자가 챗봇과 나눈 대화를 기반으로 활용 가능 공공 데이터에서 관련있는 공공 데이터를 골라줘. " +
                     "그리고 사용자의 요청과 어느 정도 관련있는지와 중요도를 가중치로 1에서 10의 숫자로 표현해줘.\n" +
                     "데이터는 아래 예시의 형식처럼 데이터와 가중치는 '-'로 연결하고 ','로 구분해서 나열해줘.\n" +
-                    "예시: '범죄율-7, 화재율-2'\n" +
+                    "예시: 범죄율-7, 화재율-2\n" +
                     "사용자의 요청과 관련있는 공공 데이터만 골라주고, 관련이 없는 것은 절대로 쓰지마. " +
                     "관련있는게 없으면 빈칸으로 해줘. 요청한 조건만 신경쓰면돼. 직접 요청한게 아닌데 너가 필요하지 않을까 마음대로 판단하지 마. 그리고 요청 형식 외의 다른 말은 절대 아무것도 하지마.";
     public static final String USER_LOCATION_DETAIL_REQUEST_COMMAND =
             "사용자가 가까웠으면 하는 특정 지점의 좌표입니다. 위도와 경도는 '+'로 구분되고 (37.1239+127.9128)과 같이 표현됩니다. 다음과 같은 양식을 지켜야합니다. 예를 들어 '네이버 본사와 강남역이랑 가까웠으면 좋겠다'와 같은 조건을 받으면 네이버본사_(37.359512+127.105220)-2, 강남역_(37.497940+127.027620)-2 와 같이 나타냅니다.\n" +
                     "응답 형식을 반드시 지켜주고, 그 외에는 절대 아무 것도 언급하지마. 그리고 사용자가 요청한 것만 써줘.\n" +
-                    "따로 특정 지점이나 시설을 언급한게 없으면 그냥 아무것도 쓰지마";
+                    "따로 특정 지점이나 시설을 언급한게 없으면 그냥 아무것도 쓰지마\n" +
+                    "특히 너가 좌표를 모르는 시설이면 추가하지마. 좌표를 진짜로 원래 아는 시설이나 지역만 추가해줘.";
 }
