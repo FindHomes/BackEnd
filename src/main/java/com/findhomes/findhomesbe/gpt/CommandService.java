@@ -20,12 +20,14 @@ public class CommandService {
                 "문장에 보유 데이터에 없는 집 내부의 가구나 옵션이 절대 있으면 안돼.";
     }
 
-    public static String createChatCommand(String userInput, String manConInput, String possibleCondition) {
-        return "사용자: " +
-                userInput + "\n" +
-                "사전에 사용자 입력한 매물 조건 :" + manConInput + "\n" +
-                "활용할 수 있는 조건 종류 :" + possibleCondition +
-                "\n\n사용자 입력에 대해 더 구체적인 응답이 필요하다고 판단되면 해당 입력에 대해 더 자세히 물어봐줘.\n그리고 사용자가 추가 조건이 없는 듯한 응답을 했으면, 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 절대 없는 순수 한글만으로 응답해줘. 이스케이프 문자를 절대로 넣지 말아줘. 문장은 50자를 넘지 않게 해줘.";
+    public static String createChatCommand(String userInput, String possibleCondition) {
+        return "[사용자의 마지막 입력]: " + userInput + "\n" +
+                "[활용할 수 있는 조건 종류] :" + possibleCondition + "\n\n" +
+                "그리고 사용자 입력에 대해 더 구체적인 응답이 필요하다고 판단되면 해당 입력에 대해 더 자세히 물어봐줘." +
+                "(예시1: 넓었으면 좋겠어 -> 넓은게 몇 평인가요?, 예시2: 혼자 살기 좋은 곳 -> 혼자 살기 좋은 곳이 안전한 곳인가요?) 이런 느낌으로 입력 조건에 대해 구체화가 필요하면 추가적으로 물어봐줘. 이전에 했던 질문을 또 하는 건 절대 하지마.\n" +
+                "구체화할게 없는 것 같으면 활용 가능한 조건들로 다른 조건을 추천해주거나 다른 바라는 건 없냐고 물어봐.\n" +
+                "더 이상 입력할게 없거나 추가 조건이 없다고 했으면 절대 다른 말 하지마. 그냥 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘.\n" +
+                "문장은 50자를 절대 넘지 않게 해줘.";
     }
 
     public static String createCompleteCommand(String userInput) {

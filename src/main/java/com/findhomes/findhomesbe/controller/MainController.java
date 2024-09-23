@@ -70,7 +70,7 @@ public class MainController {
         String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, 0.9);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
@@ -94,6 +94,7 @@ public class MainController {
         // 이전 대화 내용을 가져오기
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
         StringBuilder conversation = new StringBuilder();
+        conversation.append("[이전 대화 기록]");
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
             if (chat.getGptResponse() != null) {
@@ -102,11 +103,11 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        conversation.append(createChatCommand(
+        String command = createChatCommand(
                 userChatRequest.getUserInput(),
-                manConRequest.toSentence(),
                 FacilityCategory.getAllData() + PublicData.getAllData()
-        ));
+        );
+        conversation.append(command.replaceAll("^가-힣", ""));
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
         String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, 0.9);
