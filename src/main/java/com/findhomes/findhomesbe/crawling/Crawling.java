@@ -43,18 +43,19 @@ public class Crawling {
 
         return this;
     }
-    public Crawling setDriver(boolean isShowing) {
-        // Start the BrowserMob Proxy
-        proxy = new BrowserMobProxyServer();
-        proxy.setTrustAllServers(true);
-        proxy.start(0); // Start on an available port
-
-        // Configure Selenium to use this proxy
-        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
-
+    public Crawling setDriver(boolean isShowing, boolean isProxy) {
         // Setup ChromeOptions
         ChromeOptions options = new ChromeOptions();
-        options.setProxy(seleniumProxy);
+        if (isProxy) {
+            // Start the BrowserMob Proxy
+            proxy = new BrowserMobProxyServer();
+            proxy.setTrustAllServers(true);
+            proxy.start(0); // Start on an available port
+
+            // Configure Selenium to use this proxy
+            Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+            options.setProxy(seleniumProxy);
+        }
         options.setAcceptInsecureCerts(true);
         options.addArguments("--ignore-certificate-errors");
         options.addArguments("--disable-dev-shm-usage"); // /dev/shm 메모리 사용 비활성화

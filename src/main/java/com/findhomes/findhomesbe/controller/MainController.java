@@ -5,9 +5,9 @@ import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
+import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.repository.HouseRepository;
-import com.findhomes.findhomesbe.repository.UserChatRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.findhomes.findhomesbe.gpt.ChatGPTConst.*;
+import static com.findhomes.findhomesbe.gpt.CommandService.*;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -38,13 +41,7 @@ public class MainController {
     public static final String MAN_CON_KEY = "man-con";
     public static final String HOUSE_RESULTS_KEY = "house-result";
 
-    private final UserChatRepository userChatRepository;
     private final ChatGPTServiceImpl chatGPTServiceImpl;
-    private final KaKaoMapService kaKaoMapService;
-    private final HouseService houseService;
-    private final HospitalService hospitalService;
-    private final RestaurantIndustryService restaurantIndustryService;
-    private final ChatService chatService;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -69,30 +66,13 @@ public class MainController {
         response.addCookie(sessionCookie);
 
         // 추천 질문 생성
-        String gptOutput = chatGPTServiceImpl.getGptOutput(makeUserRecommendInput(request), 0.9);
+        String command = createUserConditionCommand(conditionService.conditionsToSentence());
+        String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, USER_CONDITION_TEMPERATURE);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
-
-
-    private String makeUserRecommendInput(ManConRequest request) {
-        // TODO: 여기에 유저 정보도 넣어 줘야 할 듯.
-        return "[보유 데이터 목록]\n" + conditionService.conditionsToSentence() + "\n" +
-                "위의 데이터를 참고해서 유저에게 매물을 찾을 때 입력할 조건을 추천해줘.\n" +
-                "이 서비스는 보유 데이터 목록을 기반으로 유저가 입력한 조건에 맞는 부동산 매물을 찾아주는 서비스야.\n" +
-                "문장의 길이를 100자 안으로 해서 다음 조건의 3개의 문장을 랜덤하게 추천해줘.\n" +
-                "문장 한 개는 보유 데이터 목록에서 참고해서 추천해주는 문장이어야 돼." +
-                "나머지 문장 두 개는 **보유 데이터를 절대 직접 언급하면 안되고**, " +
-                "보유 데이터와 간접적인 연관이 있고 아주 색다른 조건이 있는 문장이어야 돼.\n" +
-                "그리고 세 문장 모두 두 개 이상의 조건이 들어가야돼.\n" +
-                "예시: CCTV가 있고, 복층 구조로 추천해줘.\\n어르신들이 살기 좋고 벌레가 없는 곳으로 추천해줘.\\n아이 키우기 좋고 안전한 곳으로 추천해줘.\n" +
-                "각 문장은 개행문자로 구분해서 한 줄에 하나의 문장만 나오게 해줘. 그 외에 다른 말은 아무것도 붙이지 말아줘. 특히 문장에 Escape Character 절대로 쓰지 말아줘. 개행문자에 Escape Character 두개 연속으로 절대 쓰지마.\n" +
-                "문장에 교통 관련 조건은 절대 있으면 안돼.\n" +
-                "문장에 보유 데이터에 없는 집 내부의 가구나 옵션이 절대 있으면 안돼.";
-    }
-
 
     @PostMapping("/api/search/user-chat")
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
@@ -114,6 +94,7 @@ public class MainController {
         // 이전 대화 내용을 가져오기
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
         StringBuilder conversation = new StringBuilder();
+        conversation.append("[이전 대화 기록]");
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
             if (chat.getGptResponse() != null) {
@@ -122,10 +103,14 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        conversation.append("사용자: ").append(userChatRequest.getUserInput()).append("\n").append("사전에 사용자 입력한 매물 조건 :").append(manConRequest.toSentence()).append("너는 사용자가 사전에 입력한 조건을 고려해서 원하는 다른 조건이 있는지 물어보는 응답을 해야해.").append("제안할 수 있는 조건 종류 :").append(FacilityCategory.getAllData() + PublicData.getAllData()).append(" 만약 한번 조건 추가 입력 요구 제안을 했으면 다시 제안하지 않고 대화를 끝내고 매물을 찾아주겠다는 느낌으로 응답을 해도 돼. 추가로 대화를 끝내려면 대화 종료 버튼을 눌러서 대화를 끝내고 매물을 찾을 수 있다고 사용자에게 알려줘. 또한 **이나 개행문자가 없는 순수 string으로 응답해줘.");
+        String command = createChatCommand(
+                userChatRequest.getUserInput(),
+                FacilityCategory.getAllData() + PublicData.getAllData()
+        );
+        conversation.append(command.replaceAll("^가-힣", ""));
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatService.getResponse(conversation.toString());
+        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE);
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
@@ -171,10 +156,8 @@ public class MainController {
                 conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
             }
         }
-        log.info(chatGPTServiceImpl.createGPTCommand(conversation.toString()));
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-
-        String gptResponse = chatGPTServiceImpl.getGptOutput(chatGPTServiceImpl.createGPTCommand(conversation.toString()), 0.1);
+        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString());
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);

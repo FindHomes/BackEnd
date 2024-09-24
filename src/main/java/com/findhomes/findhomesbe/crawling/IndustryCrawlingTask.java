@@ -51,7 +51,7 @@ public class IndustryCrawlingTask {
 
     public void execOneTask(int startId, int endId) {
         Crawling crawling = new Crawling()
-                .setDriver(true)
+                .setDriver(true, false)
                 .setWaitTime(MAX_WAIT_TIME);
         crawling.openUrl(url);
 
@@ -61,7 +61,7 @@ public class IndustryCrawlingTask {
             } else if (i > 0 && i % 200 == 0) {
                 crawling.quitDriver();
                 crawling = new Crawling()
-                        .setDriver(true)
+                        .setDriver(true, false)
                         .setWaitTime(MAX_WAIT_TIME);
                 crawling.openUrl(url);
             }

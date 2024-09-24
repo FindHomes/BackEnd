@@ -1,6 +1,7 @@
 package com.findhomes.findhomesbe.crawling;
 
 import com.findhomes.findhomesbe.crawling.IndustryCrawlingTask;
+import com.findhomes.findhomesbe.crawling.statusupdate.HouseStatusUpdate;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.crawling.HouseCrawlingTask;
 import com.findhomes.findhomesbe.repository.HouseRepository;

@@ -57,7 +57,7 @@ public class HouseCrawlingTask {
     private void execOne(List<String> urls) throws InterruptedException {
         Integer count = 0;
         Crawling mainCrawling = new Crawling()
-                .setDriver(true)
+                .setDriver(true, true)
                 .setWaitTime(MAX_WAIT_TIME);
         mainCrawling.getDriver().manage().window().maximize();
         for (int i = 0; i < urls.size(); i++) {
