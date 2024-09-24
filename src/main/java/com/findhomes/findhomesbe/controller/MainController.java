@@ -217,6 +217,6 @@ public class MainController {
         if (house == null) {
             return new ResponseEntity<>(new HouseDetailResponse(false, 404, "id에 해당하는 매물 없음", null), HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(new HouseDetailResponse(true, 200, "성공", house), HttpStatus.OK);
+        return new ResponseEntity<>(new HouseDetailResponse(house, true, 200, "성공"), HttpStatus.OK);
     }
 }
