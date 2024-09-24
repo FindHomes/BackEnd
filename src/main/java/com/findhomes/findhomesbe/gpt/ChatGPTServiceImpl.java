@@ -12,6 +12,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -140,7 +141,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
         }
     }
 
-    private CompletableFuture<String> runAsync(String userInput, String possibleData, String detailRequest) {
+    public CompletableFuture<String> runAsync(String userInput, String possibleData, String detailRequest) {
         return CompletableFuture.supplyAsync(() ->
             getGptOutput(createCompleteSectionCommand(userInput, possibleData, detailRequest), ROLE1, ROLE2, COMPLETE_CONTENT, COMPLETE_TEMPERATURE)
         );

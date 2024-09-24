@@ -1,7 +1,5 @@
 package com.findhomes.findhomesbe.service;
 
-import com.findhomes.findhomesbe.DTO.ManConRequest;
-import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
@@ -11,16 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
-import org.geolatte.geom.Position;
 import org.geolatte.geom.builder.DSL;
 import org.geolatte.geom.crs.CoordinateReferenceSystems;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
