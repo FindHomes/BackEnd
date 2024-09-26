@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.condition.service;
 
+import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
 import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.repository.industry.IndustryRepository;
@@ -19,7 +20,7 @@ public class FacilityCategoryService {
 
     private final ApplicationContext applicationContext;
 
-    public List<Industry> getIndustries(FacilityCategory facilityCategoryEnum, String detailName, String region) {
+    public List<Industry> getIndustries(FacilityCategory facilityCategoryEnum, String detailName, ManConRequest.Region region) {
         // FacilityCategory의 빈 이름 가져오기
         String repositoryBeanName = facilityCategoryEnum.getRepositoryBeanName();
         // 빈 이름에 해당하는 repository 빈 객체 가져오기
@@ -30,7 +31,7 @@ public class FacilityCategoryService {
             // detailName이 "all"인 경우
             if (detailName.toLowerCase().equals("all")) {
                 long startTime = System.currentTimeMillis();
-                result = industryRepository.findIndustryWithinBoundary(region);
+                result = industryRepository.findIndustryWithinBoundary(region.getDistrict(), region.getCity());
                 long endTime = System.currentTimeMillis();
                 log.info("DB 조회 및 JPA 객체 생성 시간 (공간인덱싱 사용): " + (endTime - startTime) / 1000.0 + "초");
                 return result;

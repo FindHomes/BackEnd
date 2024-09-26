@@ -24,8 +24,7 @@ public class ConditionService {
     private final IndustryService industryService;
     private final RegionsRepository regionsRepository;
     public List<House> exec(ManConRequest manConRequest, String gptOutput) {
-        // 지역에 맞는 다각형 생성
-        String city = manConRequest.getRegion().getCity();
+        ManConRequest.Region region = manConRequest.getRegion();
 
         
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
@@ -49,7 +48,7 @@ public class ConditionService {
         log.info("2. 공공 데이터 조건 처리 완료, 소요시간: " + (endTime2 - startTime2) / 1000.0 + "초");
         // 3. 시설 조건 및 사용자 요청 위치 조건 처리
         long startTime3 = System.currentTimeMillis();
-        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList(),city);
+        List<IndustriesAndWeight> industriesAndWeights = industryService.injectFacilityDataInList(allConditions.getFacilityConditionDataList(),region);
         long endTime3 = System.currentTimeMillis();
         log.info("3. 시설조건 및 사용자 요청 위치 조건 처리 완료, 소요시간: " + (endTime3 - startTime3) / 1000.0 + "초");
 

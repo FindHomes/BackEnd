@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.service;
 
+import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.HouseRepository;
@@ -31,8 +32,8 @@ public class HouseService {
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
 
 //        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
-        String city = allConditions.getManConRequest().getRegion().getCity();
-        List<House> houseList = houseRepository.findHouseWithRegion(city, "ACTIVE");
+        ManConRequest.Region region = allConditions.getManConRequest().getRegion();
+        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
         log.info("0.선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
         return houseList;
 

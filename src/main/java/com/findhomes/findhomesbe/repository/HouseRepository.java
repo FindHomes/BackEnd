@@ -18,8 +18,8 @@ public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpeci
     List<House> findByHousingTypeAndStatus(String housingType, String status);
 
     @Query(value = "SELECT h.* FROM houses_tbl AS h, regions_tbl as rg " +
-            "WHERE rg.sig_kor_nm = :cityName " +
+            "WHERE rg.city = :cityName AND rg.district = :districtName " +
             "AND ST_Contains(rg.boundary, h.coordinate)" +
             "AND h.status=:status", nativeQuery = true)
-    List<House> findHouseWithRegion(@Param("cityName") String cityName, @Param("status") String status);
+    List<House> findHouseWithRegion(@Param("districtName") String districtName, @Param("cityName") String cityName, @Param("status") String status);
 }
