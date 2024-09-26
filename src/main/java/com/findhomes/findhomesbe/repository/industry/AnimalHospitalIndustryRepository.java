@@ -15,7 +15,7 @@ public interface AnimalHospitalIndustryRepository extends JpaRepository<AnimalHo
 
     //
     @Query("SELECT i FROM AnimalHospitalIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<AnimalHospitalIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<AnimalHospitalIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

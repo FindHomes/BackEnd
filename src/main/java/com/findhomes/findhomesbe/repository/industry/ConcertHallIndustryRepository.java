@@ -16,7 +16,7 @@ public interface ConcertHallIndustryRepository extends JpaRepository<ConcertHall
 
     //
     @Query("SELECT i FROM ConcertHallIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<ConcertHallIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<ConcertHallIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }
