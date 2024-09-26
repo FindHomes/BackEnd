@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Data
 @AllArgsConstructor
@@ -23,11 +24,14 @@ public class SearchResponse {
         this.success = success;
         this.code = code;
         this.message = message;
-        this.result = houses.stream().map(ResponseHouse::new).collect(Collectors.toList());
+        this.result = IntStream.range(0, houses.size())
+                .mapToObj(i -> new ResponseHouse(houses.get(i), i + 1))
+                .collect(Collectors.toList());
     }
 
     @Data
     public static class ResponseHouse {
+        private Integer ranking;
         private Integer houseId; // Not NULL / 숫자8개
         private String url; // Not NULL / url
         private String priceType; // Not NULL / 매매/전세/월세
@@ -50,7 +54,8 @@ public class SearchResponse {
         private List<String> imgUrl; // Nullable
         private Double score = 0d;
 
-        public ResponseHouse(House house) {
+        public ResponseHouse(House house, int ranking) {
+            this.ranking = ranking;
             this.houseId = house.getHouseId();
             this.url = house.getUrl();
             this.priceType = house.getPriceType();
