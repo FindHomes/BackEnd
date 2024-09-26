@@ -16,7 +16,7 @@ public interface KaraokeIndustryRepository extends JpaRepository<KaraokeIndustry
 
     //
     @Query("SELECT i FROM KaraokeIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<KaraokeIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<KaraokeIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

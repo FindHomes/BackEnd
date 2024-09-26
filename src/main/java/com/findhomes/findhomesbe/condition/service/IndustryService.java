@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.condition.service;
 
+import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.IndustriesAndWeight;
 import com.findhomes.findhomesbe.entity.industry.Industry;
@@ -16,7 +17,7 @@ import java.util.List;
 public class IndustryService {
     public final FacilityCategoryService facilityCategoryService;
 
-    public List<IndustriesAndWeight> injectFacilityDataInList(List<AllConditions.FacilityConditionData> facilityConditionDataList, String region) {
+    public List<IndustriesAndWeight> injectFacilityDataInList(List<AllConditions.FacilityConditionData> facilityConditionDataList, ManConRequest.Region region) {
         List<IndustriesAndWeight> industriesAndWeights = new ArrayList<>();
 
         for (AllConditions.FacilityConditionData facilityConditionData : facilityConditionDataList) {

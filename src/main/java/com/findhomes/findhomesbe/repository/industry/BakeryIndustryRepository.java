@@ -16,7 +16,7 @@ public interface BakeryIndustryRepository extends JpaRepository<BakeryIndustry,I
 
     //
     @Query("SELECT i FROM BakeryIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BakeryIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<BakeryIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

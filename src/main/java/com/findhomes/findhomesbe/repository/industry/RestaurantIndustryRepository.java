@@ -16,9 +16,9 @@ public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIn
 
 //
     @Query("SELECT i FROM RestaurantIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<RestaurantIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<RestaurantIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 
 
 //    @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)

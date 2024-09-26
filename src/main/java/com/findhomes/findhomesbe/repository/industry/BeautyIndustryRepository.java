@@ -16,7 +16,7 @@ public interface BeautyIndustryRepository extends JpaRepository<BeautyIndustry,I
 
     //
     @Query("SELECT i FROM BeautyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BeautyIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<BeautyIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

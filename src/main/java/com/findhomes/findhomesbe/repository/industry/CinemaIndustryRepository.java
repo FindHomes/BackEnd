@@ -16,7 +16,7 @@ public interface CinemaIndustryRepository extends JpaRepository<CinemaIndustry,I
 
     //
     @Query("SELECT i FROM CinemaIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<CinemaIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<CinemaIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

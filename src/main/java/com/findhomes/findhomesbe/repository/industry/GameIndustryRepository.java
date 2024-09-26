@@ -16,7 +16,7 @@ public interface GameIndustryRepository extends JpaRepository<GameIndustry,Integ
 
     //
     @Query("SELECT i FROM GameIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
-            "WHERE rg.sigKorNm = :cityName")
+            "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<GameIndustry> findIndustryWithinBoundary(@Param("cityName") String cityName);
+    List<GameIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 }

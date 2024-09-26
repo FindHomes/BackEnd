@@ -20,8 +20,12 @@ public class Regions {
     @Column(name = "sig_eng_nm", nullable = false)
     private String sigEngNm;
 
-    @Column(name = "sig_kor_nm", nullable = false)
-    private String sigKorNm;
+    @Column(name = "city", nullable = false)
+    private String city;
+
+    @Column(name = "district", nullable = false)
+    private String district;
+
 
     @Column(name = "boundary", columnDefinition = "geometry")  // 공간 데이터 타입 지정
     private Geometry boundary;
