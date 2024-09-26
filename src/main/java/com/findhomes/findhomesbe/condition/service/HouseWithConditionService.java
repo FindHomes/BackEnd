@@ -64,25 +64,23 @@ public class HouseWithConditionService {
     }
 
     private void calculateFacilityDataScore(List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
-        // 집 하나씩에 대해
-        for (HouseWithCondition houseWithCondition : houseWithConditions) {
-            // 매물 키워드 하나씩에 대해
-            for (IndustriesAndWeight industriesAndWeight : industriesAndWeights) {
-                Integer weight = industriesAndWeight.getWeight();
-                // 매물 키워드 하나에 해당하는 여러 매물들 중 하나씩에 대해
-                for (Industry industry : industriesAndWeight.getIndustries()) {
-                    House house = houseWithCondition.getHouse();
-                    // 집과 해당 시설 간의 거리 계산
-                    double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
-                    if (distance <= 3d) {
-                        // 매물 하나하나에 대해 다 더하면 너무 많아서 학습률 0.1을 곱함 ㅋㅋ
-                        double score = distance * weight * 0.005;
-                        houseWithCondition.getHouse().addScore(score);
-                        houseWithCondition.getHouse().addFacilityDataScore(score);
-                    }
-                }
-            }
-        }
+        houseWithConditions.parallelStream()
+                .forEach(houseWithCondition -> industriesAndWeights.parallelStream()
+                        .forEach(industriesAndWeight -> {
+                            Integer weight = industriesAndWeight.getWeight();
+                            industriesAndWeight.getIndustries().parallelStream()
+                                    .forEach(industry -> {
+                                        House house = houseWithCondition.getHouse();
+                                        // 집과 해당 시설 간의 거리 계산
+                                        double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
+                                        if (distance <= 3d) {
+                                            // 매물 하나하나에 대해 다 더하면 너무 많아서 학습률 0.1을 곱함 ㅋㅋ
+                                            double score = distance * weight * 0.005;
+                                            house.addScore(score);
+                                            house.addFacilityDataScore(score);
+                                        }
+                                    });
+                        }));
     }
 
     public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
