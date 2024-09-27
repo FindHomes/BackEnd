@@ -46,12 +46,14 @@ public class AllConditions {
         private FacilityCategory facilityCategoryEnum;
         private String detailName;
         private Integer weight;
+        private Double maxRadius;
 
         @Override
         public String toString() {
             return "facilityCategoryEnum=" + facilityCategoryEnum +
                     ", detailName='" + detailName + '\'' +
-                    ", weight=" + weight;
+                    ", weight=" + weight + '\'' +
+                    ", maxRadius=" + maxRadius;
         }
     }
 

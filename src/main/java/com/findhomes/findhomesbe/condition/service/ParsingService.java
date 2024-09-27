@@ -131,7 +131,7 @@ public class ParsingService {
                     continue;
                 }
                 allConditions.getFacilityConditionDataList().add(new AllConditions.FacilityConditionData(
-                        facilityCategory, nameAndWeight[0].trim(), Integer.parseInt(nameAndWeight[1].trim())
+                        facilityCategory, nameAndWeight[0].trim(), Integer.parseInt(nameAndWeight[1].trim()), facilityCategory.getMaxRadius()
                 ));
             } catch (Exception e) {
                 log.error("GPT가 옳지 않은 <시설 조건> 응답을 반환함. 해당 조건: {}", condition);

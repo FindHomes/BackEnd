@@ -11,4 +11,5 @@ import java.util.List;
 public class IndustriesAndWeight {
     private List<Industry> industries;
     private Integer weight;
+    private Double maxRadius;
 }

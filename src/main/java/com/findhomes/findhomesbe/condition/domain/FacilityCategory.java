@@ -21,64 +21,80 @@ public enum FacilityCategory {
 
     동물병원("animalHospitalIndustryRepository",
             (repository, detailName) ->
-                    ((AnimalHospitalIndustryRepository) repository).findByDetailName(detailName)
+                    ((AnimalHospitalIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     베이커리("bakeryIndustryRepository",
             (repository, detailName) ->
-                    ((BakeryIndustryRepository) repository).findByDetailName(detailName)
+                    ((BakeryIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     목욕탕("bathhouseIndustryRepository",
             (repository, detailName) ->
-                    ((BathhouseIndustryRepository) repository).findByDetailName(detailName)
+                    ((BathhouseIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     미용실("beautyIndustryRepository",
             (repository, detailName) ->
-                    ((BeautyIndustryRepository) repository).findByDetailName(detailName)
+                    ((BeautyIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     영화관("cinemaIndustryRepository",
             (repository, detailName) ->
-                    ((CinemaIndustryRepository) repository).findByDetailName(detailName)
+                    ((CinemaIndustryRepository) repository).findByDetailName(detailName),
+            3d
     ),
     병원("clinicIndustryRepository",
             (repository, detailName) ->
-                    ((ClinicIndustryRepository) repository).findByDetailName(detailName)
+                    ((ClinicIndustryRepository) repository).findByDetailName(detailName),
+            2d
     ),
     공연장("concertHallIndustryRepository",
             (repository, detailName) ->
-                    ((ConcertHallIndustryRepository) repository).findByDetailName(detailName)
+                    ((ConcertHallIndustryRepository) repository).findByDetailName(detailName),
+            3d
     ),
     피시방("gameIndustryRepository",
             (repository, detailName) ->
-                    ((GameIndustryRepository) repository).findByDetailName(detailName)
+                    ((GameIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     헬스장("gymIndustryRepository",
             (repository, detailName) ->
-                    ((GymIndustryRepository) repository).findByDetailName(detailName)
+                    ((GymIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     종합병원("hospitalIndustryRepository",
             (repository, detailName) ->
-                    ((HospitalIndustryRepository) repository).findByDetailName(detailName)
+                    ((HospitalIndustryRepository) repository).findByDetailName(detailName),
+            3d
     ),
     노래방("karaokeIndustryRepository",
             (repository, detailName) ->
-                    ((KaraokeIndustryRepository) repository).findByDetailName(detailName)
+                    ((KaraokeIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     약국("pharmacyIndustryRepository",
             (repository, detailName) ->
-                    ((PharmacyIndustryRepository) repository).findByDetailName(detailName)
+                    ((PharmacyIndustryRepository) repository).findByDetailName(detailName),
+            1d
     ),
     음식점("restaurantIndustryRepository",
             (repository, detailName) ->
-                    ((RestaurantIndustryRepository) repository).findByDetailName(detailName)
+                    ((RestaurantIndustryRepository) repository).findByDetailName(detailName),
+            1.5d
     );
 
     private final String repositoryBeanName;
     private final BiFunction<JpaRepository<? extends Industry, Integer>, String, List<? extends Industry>> getIndustryListWhenNotAllFunction;
+    private final Double maxRadius;
 
     FacilityCategory(String repositoryBeanName,
-                     BiFunction<JpaRepository<? extends Industry, Integer>, String, List<? extends Industry>> getIndustryListWhenNotAllFunction) {
+                     BiFunction<JpaRepository<? extends Industry, Integer>, String, List<? extends Industry>> getIndustryListWhenNotAllFunction,
+                     Double maxRadius) {
         this.repositoryBeanName = repositoryBeanName;
         this.getIndustryListWhenNotAllFunction = getIndustryListWhenNotAllFunction;
+        this.maxRadius = maxRadius;
     }
 
     // detailName이 "all"이 아닐 경우 호출해서 Industry 리스트를 반환받는 함수.
