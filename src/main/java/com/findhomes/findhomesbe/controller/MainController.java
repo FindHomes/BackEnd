@@ -169,7 +169,8 @@ public class MainController {
             List<House> subResultHouses = resultHouses.subList(0, Math.min(100, resultHouses.size()));
 
             // log 출력 for문
-            for (House house : subResultHouses) {
+            for (int i = 0; i < Math.min(subResultHouses.size(), 10); i++) {
+                House house = subResultHouses.get(i);
                 log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", house.getHouseId(), house.getScore(), house.getPublicDataScore(), house.getFacilityDataScore());
             }
 
