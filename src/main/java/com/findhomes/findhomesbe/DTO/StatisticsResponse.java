@@ -54,7 +54,8 @@ public class StatisticsResponse {
                     for (HouseWithCondition.FacilityInfo facilityInfo : houseWithCondition.getFacilityInfoList()) {
                         if (facilityInfo.getFacilityConditionData().equals(facilityConditionData)) {
                             House house = houseWithCondition.getHouse();
-                            KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(house.getHouseId(), house.getRanking(), facilityInfo.getCount().toString());
+                            KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(
+                                    house.getHouseId(), house.getRanking(), "개수: " + facilityInfo.getCount().toString() + "개 / 평균 거리: " + Math.round(facilityInfo.getDistanceSum() * 100 / facilityInfo.getCount()) / 100d + "km");
                             dataAndInfo.getHouseAndValues().add(houseAndValue);
                         }
                     }

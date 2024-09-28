@@ -54,9 +54,14 @@ public class HouseWithCondition {
     public static class FacilityInfo {
         private AllConditions.FacilityConditionData facilityConditionData;
         private Integer count;
+        private Double distanceSum;
 
         public void addCount() {
             count++;
+        }
+
+        public void addDistance(double distance) {
+            distanceSum += distance;
         }
     }
 

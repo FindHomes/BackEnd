@@ -15,7 +15,6 @@ public class HospitalIndustry implements Industry {
     private Integer hospitalIndustryId;
     private String placeName;
     private String roadAddress;
-    private Integer zipcode;
     private String category;
     private Double latitude;
     private Double longitude;
