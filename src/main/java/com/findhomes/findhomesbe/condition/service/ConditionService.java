@@ -7,11 +7,14 @@ import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.PerformanceUtil;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.findhomes.findhomesbe.controller.MainController.ALL_CONDITIONS;
 
 @Service
 @Slf4j
@@ -24,11 +27,12 @@ public class ConditionService {
     private final IndustryService industryService;
     private final RegionsRepository regionsRepository;
 
-    public List<House> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords) {
+    public List<HouseWithCondition> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords, HttpSession session) {
         ManConRequest.Region region = manConRequest.getRegion();
 
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
         AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput, keywords);
+        session.setAttribute(ALL_CONDITIONS, allConditions);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
 
         // 1. 필터링 조건으로 매물 필터링해서 매물 가져오기 (필수 조건, 매물 자체 조건, 매물 필수 옵션)
@@ -64,7 +68,7 @@ public class ConditionService {
         log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");
 
         // 반환
-        return houseWithConditionService.convertToHouseList(houseWithConditions);
+        return houseWithConditions.subList(0, Math.min(100, houseWithConditions.size()));
     }
 
     // 보유 데이터를 문장으로 반환

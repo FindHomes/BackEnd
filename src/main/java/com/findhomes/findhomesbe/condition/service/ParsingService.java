@@ -211,7 +211,6 @@ public class ParsingService {
         }
         //
         String[] conditions = publicDataConditionStr.trim().toLowerCase().split(",");
-        List<String> addedCons = new ArrayList<>();
         for (String condition : conditions) {
             try {
                 String[] keywordAndCondition = splitKeywordAndCondition(allConditions.getKeywords(), condition);
@@ -233,8 +232,6 @@ public class ParsingService {
                 } catch (Exception e) {
                     throw new Exception("GPT가 옳지 않은 <공공데이터> 조건 응답을 반환함.");
                 }
-
-                conditionAlreadyContains(addedCons, conditionKey);
 
                 allConditions.getPublicConditionDataList().add(new AllConditions.PublicConditionData(keywordAndCondition[0], conditionObj, Integer.parseInt(conditionValue)));
             } catch (Exception e) {
