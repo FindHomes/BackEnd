@@ -135,7 +135,7 @@ public class ChatGPTServiceImpl implements ChatGPTService {
 
     private String getRefinedString(CompletableFuture<String> houseConditionFuture) {
         try {
-            return houseConditionFuture.get().trim().replaceAll("^가-힣", "");
+            return houseConditionFuture.get().trim().replaceAll("[^가-힣0-9\\s\\-()_+,.]", "");
         } catch (Exception ignored) {
             return "";
         }

@@ -70,7 +70,7 @@ public class MainController {
         String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, USER_CONDITION_TEMPERATURE);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("[^가-힣0-9\\s.,]", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
@@ -152,10 +152,17 @@ public class MainController {
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-            if (chat.getGptResponse() != null) {
-                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
-            }
+//            if (chat.getGptResponse() != null) {
+//                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
+//            }
         }
+//        // 대화에서 키워드 추출하기
+//        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
+//        log.info("\n[입력]\n{}", input);
+//        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
+//        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9\\s]", "").trim()).toList();
+//        log.info("\n[키워드]\n{}", keywords);
+
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
         String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString());
         log.info("\n<GPT 응답>\n{}", gptResponse);

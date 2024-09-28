@@ -12,6 +12,12 @@ public abstract class ChatGPTConst {
     public static final double COMPLETE_TEMPERATURE = 0.2;
 
 
+    public static final String EXTRACT_KEYWORD_COMMAND =
+            "위의 대화에서 사용자가 원하는 조건을 키워드로 뽑아줘. ','를 기준으로 나열해줘.\n" +
+                    "연관된 정보는 반드시 하나의 키워드로 묶어 표현해줘. \n" +
+                    "예를 들어, '장소'와 '거리'처럼 같은 대상을 설명하는 조건은 \"헬스장(걸어서 5분 거리)\"와 같이 묶어줘. 또, 같은 카테고리나 관련된 조건들도 하나로 묶어 \"학군이 좋은 곳(학원이 많은 곳)\"으로 표현해줘. \n" +
+                    "결과는 \"키워드1,키워드2,키워드3...\" 이런 식으로. 다른 말은 하지마.";
+
     public static final String HOUSE_CONDITION_DETAIL_REQUEST_COMMAND =
             "사용자가 챗봇과 나눈 대화를 기반으로 활용 가능 데이터에서 관련있는 데이터를 골라주고, 관련있는 데이터의 상세 조건을 같이 써줘.\n" +
                     "[각 데이터의 상세 조건 결과 형식]\n" +
