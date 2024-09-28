@@ -21,11 +21,11 @@ public class PublicDataService {
             <AllConditions.PublicConditionData> publicConditionDataList) {
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
             for (AllConditions.PublicConditionData publicConditionData : publicConditionDataList) {
-                injectPublicData(houseWithCondition, publicConditionData.getPublicDataEnum(), publicConditionData.getWeight());
+                injectPublicData(houseWithCondition, publicConditionData.getPublicDataEnum(), publicConditionData.getWeight(), publicConditionData.getKeyword());
             }
         }
     }
-    private void injectPublicData(HouseWithCondition houseWithCondition, PublicData publicData, Integer weight) {
+    private void injectPublicData(HouseWithCondition houseWithCondition, PublicData publicData, Integer weight, String keyword) {
 
         SafetyGrade safetyGrade = safetyGradeService.getSafetyGradeByAddress(houseWithCondition.getAddressDistrict(), houseWithCondition.getAddressCity());
         if (safetyGrade == null) {
@@ -35,32 +35,32 @@ public class PublicDataService {
         switch (publicData.name()) {
             case "교통사고율":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getTrafficAccidents()
+                        keyword, publicData, weight, safetyGrade.getTrafficAccidents()
                 ));
                 break;
             case "화재율":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getFire()
+                        keyword, publicData, weight, safetyGrade.getFire()
                 ));
                 break;
             case "범죄율":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getCrime()
+                        keyword, publicData, weight, safetyGrade.getCrime()
                 ));
                 break;
             case "생활안전":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getPublicSafety()
+                        keyword, publicData, weight, safetyGrade.getPublicSafety()
                 ));
                 break;
             case "자살율":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getSuicide()
+                        keyword, publicData, weight, safetyGrade.getSuicide()
                 ));
                 break;
             case "감염병율":
                 houseWithCondition.getSafetyGradeInfoList().add(new HouseWithCondition.SafetyGradeInfo(
-                        publicData, weight, safetyGrade.getInfectiousDiseases()
+                        keyword, publicData, weight, safetyGrade.getInfectiousDiseases()
                 ));
                 break;
         }

@@ -3,7 +3,9 @@ package com.findhomes.findhomesbe.gpt;
 import com.findhomes.findhomesbe.condition.domain.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.findhomes.findhomesbe.gpt.ChatGPTConst.*;
 
@@ -36,12 +38,25 @@ public class CommandService {
                 "문장은 50자를 절대 넘지 않게 해줘.";
     }
 
-    public static String createCompleteSectionCommand(String userInput, String possibleData, String detailRequest) {
+    public static String createCompleteSectionCommand(String userInput, String possibleData, String detailRequest, List<String> keywords) {
         return "사용자의 조건을 입력받고 그 조건과 관련된 데이터를 찾아 데이터를 활용하여 조건에 맞는 부동산을 추천해주는 앱을 만들고 있어.\n" +
                 (userInput == null ? "" : "[사용자와 챗봇이 지금까지 나눈 대화]: " + userInput + "\n") +
                 (possibleData == null ? "" : "[활용 가능한 데이터]: " + possibleData + "\n") +
                 "사용자의 요구사항을 분석하여 아래 형식에 따라 응답해줘.\n" +
-                (detailRequest == null ? "" : detailRequest + "반환 형식을 벗어나는 답변은 절대 하면 안돼.");
+                (detailRequest == null ? "" : detailRequest + "반환 형식을 벗어나는 답변은 절대 하면 안돼.\n\n") +
+                ((keywords == null || keywords.isEmpty()) ? "" :
+                "조건들은 ','로 구분되고, 각 조건은 '@'로 구분돼. '@'의 뒤에는 조건이 나오고, '@'의 앞에는 해당 조건이 해당하는 키워드가 나와. " +
+                "'활용 가능 데이터'는 키워드에 포함되는 관계야. 키워드가 더 큰 범위야. 하나의 '활용 가능 데이터'는 하나의 키워드에만 속할 수 있어. " +
+                "하나의 키워드에 여러 '활용 가능 데이터'가 매칭될 수 있어. 예를 들어서 '키워드1@조건1,키워드1@조건2,키워드1@조건3,키워드2@조건4'. 이런 느낌이야.\n" +
+                "'활용 가능 데이터'는 반드시 아래의 키워드 리스트와 관련이 있는 '활용 가능 데이터'만 골라야 돼. 각 키워드에 맞는 '활용 가능 데이터'들을 선정하면 돼. " +
+                "어떤 키워드에 맞는 추가할 '활용 가능 데이터'가 없으면 해당 키워드는 스킵해. 키워드에 맞는 '활용 가능 데이터'가 있는 경우만 해당 키워드와 조건을 써.\n" +
+                "'활용 가능 데이터' 하나가 여러 키워드에 매칭되면 안돼. 하나의 '활용 가능 데이터'는 하나의 키워드에만 속해야 돼. " +
+                "예를 들어서 '키워드1@조건1,키워드2@조건2,키워드3@조건2'. 이런식으로 하나의 조건이 여러 키워드에 속하면 안돼." +
+                "\n[키워드 리스트]: " + String.join(", ", keywords) + "\n" +
+                "키워드는 반드시 위의 키워드 리스트 중 하나여야 돼. " +
+                "위의 키워드 외의 키워드는 있으면 안돼. 그렇기 때문에 반드시 위의 키워드 리스트와 관련이 있는 조건만 골라야 돼.\n" +
+                        "마지막으로 말하는데 어떤 키워드에 관련있는 조건이 없는데, 키워드에 조건 추가하지마 절대로. 조건 없는 키워드면 그냥 해당 키워드를 빼. 관련 있는 조건만 키워드랑 매칭으로 해.\n" +
+                        "내가 같은 '활용 가능 데이터' 또는 조건은 또 적지 말라했는데 같은거 또 적기만해봐 진짜 말했다. 그리고 억지가 아니면 하나의 활용 가능 데이터가 여러번 나와서 여러 조건을 매칭해도 좋다고 말했다.");
     }
 
     public static String preCreateCompleteCommand(String userInput) {
