@@ -24,11 +24,11 @@ public class ConditionService {
     private final IndustryService industryService;
     private final RegionsRepository regionsRepository;
 
-    public List<House> exec(ManConRequest manConRequest, String gptOutput) {
+    public List<House> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords) {
         ManConRequest.Region region = manConRequest.getRegion();
 
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
-        AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput);
+        AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput, keywords);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
 
         // 1. 필터링 조건으로 매물 필터링해서 매물 가져오기 (필수 조건, 매물 자체 조건, 매물 필수 옵션)

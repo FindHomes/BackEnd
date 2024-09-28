@@ -70,7 +70,7 @@ public class MainController {
         String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, USER_CONDITION_TEMPERATURE);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("[^가-힣0-9\\s.,]", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("[^가-힣0-9a-zA-Z .,]", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
@@ -107,10 +107,10 @@ public class MainController {
                 userChatRequest.getUserInput(),
                 FacilityCategory.getAllData() + PublicData.getAllData()
         );
-        conversation.append(command.replaceAll("^가-힣", ""));
+        conversation.append(command);
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE);
+        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE).replaceAll("[^가-힣,.!? ]", "").trim();
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
@@ -156,18 +156,17 @@ public class MainController {
 //                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
 //            }
         }
-//        // 대화에서 키워드 추출하기
-//        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
-//        log.info("\n[입력]\n{}", input);
-//        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
-//        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9\\s]", "").trim()).toList();
-//        log.info("\n[키워드]\n{}", keywords);
+        // 대화에서 키워드 추출하기
+        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
+        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
+        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();
+        log.info("\n[키워드]\n{}", keywords);
 
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString());
+        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
-        List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);
+        List<House> resultHouses = conditionService.exec(manConRequest, gptResponse, keywords);
 
         // 결과 반환
         if (resultHouses.isEmpty()) {

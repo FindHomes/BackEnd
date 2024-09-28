@@ -5,10 +5,8 @@ import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.HouseCondition;
 import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.Regions;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import jakarta.persistence.criteria.Predicate;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -92,7 +90,7 @@ public class HouseSpecification {
             }
 
             // 매물 옵션 조건 추가
-            List<HouseOption> houseOptionList = allConditions.getHouseOptionList();
+            List<HouseOption> houseOptionList = allConditions.getHouseOptionDataList().stream().map(AllConditions.HouseOptionData::getOption).toList();
             if (houseOptionList != null && !houseOptionList.isEmpty()) {
                 for (HouseOption option : houseOptionList) {
                     String optionStr = option.getHouseOption();

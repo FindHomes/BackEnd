@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 @Getter
 public enum PublicData {
     // gpt한테 제공할 이름 & 테이블에서의 필드명
-    교통사고율((grade, weight) -> (3d - grade) * weight),
-    화재율((grade, weight) -> (3d - grade) * weight),
-    범죄율((grade, weight) -> (3d - grade) * weight),
-    생활안전((grade, weight) -> (3d - grade) * weight),
-    자살율((grade, weight) -> (3d - grade) * weight),
-    감염병율((grade, weight) -> (3d - grade) * weight);
+    교통사고율((grade, weight) -> (2.5d - grade) * weight),
+    화재율((grade, weight) -> (2.5d - grade) * weight),
+    범죄율((grade, weight) -> (2.5d - grade) * weight),
+    생활안전((grade, weight) -> (2.5d - grade) * weight),
+    자살율((grade, weight) -> (2.5d - grade) * weight),
+    감염병율((grade, weight) -> (2.5d - grade) * weight);
 
     private final BiFunction<Integer, Integer, Double> scoreFunction;
 

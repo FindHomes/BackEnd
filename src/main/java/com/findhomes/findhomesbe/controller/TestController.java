@@ -26,28 +26,28 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @RequestMapping("/test/api/search")
 public class TestController {
-    private static List<House> tempResult;
-    private final HouseRepository houseRepository;
-
-    @PostConstruct
-    public void init() {
-        tempResult = houseRepository.findByHousingTypeAndStatus("아파트", "ACTIVE");
-        log.info("임시 데이터 매물 개수: {}", tempResult.size());
-    }
-
-    @GetMapping("/complete")
-    @Operation(summary = "임시 데이터 반환 - 조건 입력 완료", description = "그냥 호출하면 테스트 데이터가 넘어옵니다. 사전에 다른거 호출할 필요 x")
-    @ApiResponse(responseCode = "200", description = "매물 응답 완료")
-    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest) {
-        Collections.shuffle(tempResult);
-        Random rand = new Random();
-        int subListSize = rand.nextInt(tempResult.size()) + 1;
-
-        List<House> subList = tempResult.subList(0, subListSize);
-
-        SearchResponse response = new SearchResponse(subList.subList(0, Math.min(100, subList.size())), true, 200, "성공");
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
+//    private static List<House> tempResult;
+//    private final HouseRepository houseRepository;
+//
+//    @PostConstruct
+//    public void init() {
+//        tempResult = houseRepository.findByHousingTypeAndStatus("아파트", "ACTIVE");
+//        log.info("임시 데이터 매물 개수: {}", tempResult.size());
+//    }
+//
+//    @GetMapping("/complete")
+//    @Operation(summary = "임시 데이터 반환 - 조건 입력 완료", description = "그냥 호출하면 테스트 데이터가 넘어옵니다. 사전에 다른거 호출할 필요 x")
+//    @ApiResponse(responseCode = "200", description = "매물 응답 완료")
+//    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest) {
+//        Collections.shuffle(tempResult);
+//        Random rand = new Random();
+//        int subListSize = rand.nextInt(tempResult.size()) + 1;
+//
+//        List<House> subList = tempResult.subList(0, subListSize);
+//
+//        SearchResponse response = new SearchResponse(subList.subList(0, Math.min(100, subList.size())), true, 200, "성공");
+//
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
 
 }

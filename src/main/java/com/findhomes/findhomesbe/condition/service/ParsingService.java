@@ -6,6 +6,9 @@ import com.findhomes.findhomesbe.exception.exception.IllegalGptOutputException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @Slf4j
 public class ParsingService {
@@ -28,8 +31,8 @@ public class ParsingService {
      * @param gptOutput
      * @return
      */
-    public AllConditions parsingGptOutput(ManConRequest manConRequest, String gptOutput) {
-        AllConditions result = new AllConditions(manConRequest);
+    public AllConditions parsingGptOutput(ManConRequest manConRequest, String gptOutput, List<String> keywords) {
+        AllConditions result = new AllConditions(manConRequest, keywords);
 
         String[] gptOutputs = gptOutput.split("\n", -1);
 
@@ -47,7 +50,26 @@ public class ParsingService {
         return result;
     }
 
+    private String[] splitKeywordAndCondition(List<String> keywords, String str) {
+        String[] split = str.split("@");
+        if (split.length != 2) {
+            throw new IllegalGptOutputException("gpt가 잘못된 응답을 반환함.");
+        }
+        split[0] = split[0].trim();
+        split[1] = split[1].trim();
+        if (!keywords.contains(split[0])) {
+            throw new IllegalGptOutputException("gpt가 잘못된 키워드를 선택함.");
+        }
+        return split;
+    }
 
+    private void conditionAlreadyContains(List<String> conditions, String condition) {
+        if (conditions.contains(condition)) {
+            throw new IllegalGptOutputException("gpt가 이미 선택한 조건을 또 선택함.");
+        } else {
+            conditions.add(condition);
+        }
+    }
 
     /**
      * 매물 자체 조건 파싱
@@ -61,24 +83,36 @@ public class ParsingService {
         }
         //
         String[] conditions = houseConditionStr.trim().toLowerCase().split(",");
+        List<String> addedCons = new ArrayList<>();
         for (String condition : conditions) {
             try {
-                String[] parts = condition.split("-");
+                String[] keywordAndCondition = splitKeywordAndCondition(allConditions.getKeywords(), condition);
+
+                String[] parts = keywordAndCondition[1].split("-");
                 if (parts.length != 2) {
-                    log.error("GPT가 옳지 않은 매물 조건 응답을 반환함. 해당 조건: {}", condition);
+                    log.error("GPT가 옳지 않은 매물 조건 응답을 반환함.");
                     continue;
                 }
 
                 String conditionKey = parts[0].trim();
                 String conditionValue = parts[1].trim();
 
-                HouseCondition conditionObj = HouseCondition.valueOf(conditionKey.toUpperCase());
+                conditionAlreadyContains(addedCons, conditionKey);
+
+                HouseCondition conditionObj;
+                try {
+                    conditionObj = HouseCondition.valueOf(conditionKey.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalGptOutputException("GPT가 옳지 않은 <매물 조건> 응답을 반환함.");
+                } catch (Exception e) {
+                    throw new Exception("GPT가 옳지 않은 <매물 조건> 조건 응답을 반환함.");
+                }
 
                 Object processedConditionValue = conditionObj.parse(conditionValue);
 
-                allConditions.getHouseConditionDataList().add(new AllConditions.HouseConditionData(conditionObj, processedConditionValue));
+                allConditions.getHouseConditionDataList().add(new AllConditions.HouseConditionData(keywordAndCondition[0], conditionObj, processedConditionValue));
             } catch (Exception e) {
-                log.error("GPT가 옳지 않은 <매물 조건> 응답을 반환함. 해당 조건: {}", condition);
+                log.error(e.getMessage() + " 해당 조건: {}", condition);
             }
         }
     }
@@ -95,12 +129,25 @@ public class ParsingService {
         }
         //
         String[] conditions = houseOptionStr.trim().toUpperCase().split(",");
+        List<String> addedCons = new ArrayList<>();
         for (String condition : conditions) {
             try {
-                HouseOption optionObj = HouseOption.valueOf(condition.trim());
-                allConditions.getHouseOptionList().add(optionObj);
+                String[] keywordAndCondition = splitKeywordAndCondition(allConditions.getKeywords(), condition);
+
+                conditionAlreadyContains(addedCons, keywordAndCondition[1].trim());
+
+                HouseOption optionObj;
+                try {
+                    optionObj = HouseOption.valueOf(keywordAndCondition[1].trim());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalGptOutputException("GPT가 옳지 않은 <매물 옵션> 응답을 반환함.");
+                } catch (Exception e) {
+                    throw new Exception("GPT가 옳지 않은 <매물 옵션> 조건 응답을 반환함.");
+                }
+
+                allConditions.getHouseOptionDataList().add(new AllConditions.HouseOptionData(keywordAndCondition[0], optionObj));
             } catch (Exception e) {
-                log.error("GPT가 옳지 않은 <매물 옵션> 응답을 반환함. 해당 조건: {}", condition);
+                log.error(e.getMessage() + " 해당 조건: {}", condition);
             }
         }
     }
@@ -117,24 +164,37 @@ public class ParsingService {
         }
         //
         String[] conditions = facilityConditionStr.trim().toLowerCase().split(",");
+        List<String> addedCons = new ArrayList<>();
         for (String condition : conditions) {
             try {
-                String[] parts = condition.split("_");
+                String[] keywordAndCondition = splitKeywordAndCondition(allConditions.getKeywords(), condition);
+
+                String[] parts = keywordAndCondition[1].split("_");
                 if (parts.length != 2) {
-                    log.error("GPT가 옳지 않은 <시설 조건> 응답을 반환함. 해당 조건: {}", condition);
+                    log.error("GPT가 옳지 않은 <시설 조건> 응답을 반환함.");
                     continue;
                 }
-                FacilityCategory facilityCategory = FacilityCategory.valueOf(parts[0].trim());
+                FacilityCategory facilityCategory;
+                try {
+                    facilityCategory = FacilityCategory.valueOf(parts[0].trim());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalGptOutputException("GPT가 옳지 않은 <시설 조건> 응답을 반환함.");
+                } catch (Exception e) {
+                    throw new Exception("GPT가 옳지 않은 <시설 조건> 조건 응답을 반환함.");
+                }
                 String[] nameAndWeight = parts[1].split("-");
                 if (nameAndWeight.length != 2) {
                     log.error("GPT가 옳지 않은 <시설 조건> 응답을 반환함. 해당 조건: {}", condition);
                     continue;
                 }
+
+                conditionAlreadyContains(addedCons, keywordAndCondition[1].split("-")[0]);
+
                 allConditions.getFacilityConditionDataList().add(new AllConditions.FacilityConditionData(
-                        facilityCategory, nameAndWeight[0].trim(), Integer.parseInt(nameAndWeight[1].trim()), facilityCategory.getMaxRadius()
+                        keywordAndCondition[0], facilityCategory, nameAndWeight[0].trim(), Integer.parseInt(nameAndWeight[1].trim()), facilityCategory.getMaxRadius()
                 ));
             } catch (Exception e) {
-                log.error("GPT가 옳지 않은 <시설 조건> 응답을 반환함. 해당 조건: {}", condition);
+                log.error(e.getMessage() + " 해당 조건: {}", condition);
             }
         }
     }
@@ -151,21 +211,34 @@ public class ParsingService {
         }
         //
         String[] conditions = publicDataConditionStr.trim().toLowerCase().split(",");
+        List<String> addedCons = new ArrayList<>();
         for (String condition : conditions) {
             try {
-                String[] parts = condition.split("-");
+                String[] keywordAndCondition = splitKeywordAndCondition(allConditions.getKeywords(), condition);
+
+                String[] parts = keywordAndCondition[1].split("-");
                 if (parts.length != 2) {
-                    log.error("GPT가 옳지 않은 <공공데이터> 조건 응답을 반환함. 해당 조건: {}", condition);
+                    log.error("GPT가 옳지 않은 <공공데이터> 조건 응답을 반환함.");
                     continue;
                 }
 
                 String conditionKey = parts[0].trim();
                 String conditionValue = parts[1].trim();
 
-                PublicData conditionObj = PublicData.valueOf(conditionKey.toUpperCase());
-                allConditions.getPublicConditionDataList().add(new AllConditions.PublicConditionData(conditionObj, Integer.parseInt(conditionValue)));
+                PublicData conditionObj;
+                try {
+                    conditionObj = PublicData.valueOf(conditionKey.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalGptOutputException("GPT가 옳지 않은 <공공데이터> 응답을 반환함.");
+                } catch (Exception e) {
+                    throw new Exception("GPT가 옳지 않은 <공공데이터> 조건 응답을 반환함.");
+                }
+
+                conditionAlreadyContains(addedCons, conditionKey);
+
+                allConditions.getPublicConditionDataList().add(new AllConditions.PublicConditionData(keywordAndCondition[0], conditionObj, Integer.parseInt(conditionValue)));
             } catch (Exception e) {
-                log.error("GPT가 옳지 않은 <공공데이터> 조건 응답을 반환함. 해당 조건: {}", condition);
+                log.error(e.getMessage() + " 해당 조건: {}", condition);
             }
         }
     }
