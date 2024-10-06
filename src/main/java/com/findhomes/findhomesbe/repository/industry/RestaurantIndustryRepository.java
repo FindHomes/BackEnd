@@ -21,7 +21,7 @@ public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIn
     List<RestaurantIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
 
 
-//    @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
-//    List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
+    @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
+    List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
 
 }
