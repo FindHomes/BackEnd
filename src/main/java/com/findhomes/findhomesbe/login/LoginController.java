@@ -45,7 +45,7 @@ public class LoginController {
         // 2. 사용자 조회 및 회원가입 처리
         User user = userRepository.findByKakaoId(kakaoId)
                 .orElseGet(() -> {
-                    User newUser = new User(kakaoId, "임시 닉네임", "kakao", "ACTIVE", LocalDateTime.now());
+                    User newUser = new User(kakaoId, "심심한 무지", "kakao", "ACTIVE", LocalDateTime.now());
                     return userRepository.save(newUser);
                 });
 
@@ -56,7 +56,7 @@ public class LoginController {
         // 4. 클라이언트에 JWT 반환
         return ResponseEntity.ok(loginResponse);
     }
-
+    // 엑세스 토큰으로 카카오 서버에서 고유 id를 받아오는 함수
     private String getKakaoId(String accessToken) {
         try {
             RestTemplate restTemplate = new RestTemplate();
