@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.controller;
 import com.findhomes.findhomesbe.DTO.*;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
+import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
@@ -25,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.xml.transform.Result;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class MainController {
     public static final double RADIUS = 5d;
     public static final String MAN_CON_KEY = "man-con";
     public static final String HOUSE_RESULTS_KEY = "house-result";
+    public static final String ALL_CONDITIONS = "all-conditions";
 
     private final ChatGPTServiceImpl chatGPTServiceImpl;
     private final UserChatService userChatService;
@@ -47,6 +50,8 @@ public class MainController {
     private final JwtTokenProvider jwtTokenProvider;
     private final SecurityService securityService;
     private final HouseRepository houseRepository;
+    private final HouseWithConditionService houseWithConditionService;
+
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         // 토큰 검사
@@ -70,7 +75,7 @@ public class MainController {
         String gptOutput = chatGPTServiceImpl.getGptOutput(command, ROLE1, ROLE2, COMPLETE_CONTENT, USER_CONDITION_TEMPERATURE);
 
         // 응답 반환
-        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("^가-힣", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
+        ManConResponse responseBody = new ManConResponse(true, 200, "필수 조건이 잘 저장되었습니다.", Arrays.stream(gptOutput.split("\n")).map(str -> str.replaceAll("[^가-힣0-9a-zA-Z .,]", "").trim()).filter(str -> !str.isEmpty()).collect(Collectors.toList()));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
@@ -107,10 +112,10 @@ public class MainController {
                 userChatRequest.getUserInput(),
                 FacilityCategory.getAllData() + PublicData.getAllData()
         );
-        conversation.append(command.replaceAll("^가-힣", ""));
+        conversation.append(command);
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
-        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE);
+        String gptResponse = chatGPTServiceImpl.getGptOutput(conversation.toString(), ROLE1, ROLE2, CHAT_CONTENT, CHAT_TEMPERATURE).replaceAll("[^가-힣,.!? ]", "").trim();
         System.out.println(gptResponse);
 
         // 사용자 입력과 GPT 응답 저장
@@ -131,7 +136,8 @@ public class MainController {
             "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.")
+            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
+            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")
     })
     public ResponseEntity<SearchResponse> getHouseList(
             HttpServletRequest httpRequest,
@@ -152,30 +158,67 @@ public class MainController {
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-            if (chat.getGptResponse() != null) {
-                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
-            }
+//            if (chat.getGptResponse() != null) {
+//                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
+//            }
         }
+        // 대화에서 키워드 추출하기
+        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
+        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
+        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();
+        log.info("\n[키워드]\n{}", keywords);
+
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString());
+        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
-        List<House> resultHouses = conditionService.exec(manConRequest, gptResponse);
+        List<HouseWithCondition> resultHouses = conditionService.exec(manConRequest, gptResponse, keywords, session);
+        // 랭킹 넣기
+        for (int i = 0; i < resultHouses.size(); i++) {
+            resultHouses.get(i).setRanking(i + 1);
+        }
+        // 세션에 저장
+        session.setAttribute(HOUSE_RESULTS_KEY, resultHouses);
 
         // 결과 반환
         if (resultHouses.isEmpty()) {
             return new ResponseEntity<>(new SearchResponse(new ArrayList<>(), true, 200, "No Content"), HttpStatus.OK);
         } else {
-            List<House> subResultHouses = resultHouses.subList(0, Math.min(100, resultHouses.size()));
-
             // log 출력 for문
-            for (House house : subResultHouses) {
+            for (int i = 0; i < Math.min(resultHouses.size(), 5); i++) {
+                House house = resultHouses.get(i).getHouse();
                 log.info("최종 결과 - 매물id: {} / 총 점수: {} / 공공 데이터 점수: {} / 시설 데이터 점수: {}", house.getHouseId(), house.getScore(), house.getPublicDataScore(), house.getFacilityDataScore());
             }
 
-            return new ResponseEntity<>(new SearchResponse(subResultHouses, true, 200, "성공"), HttpStatus.OK);
+            return new ResponseEntity<>(new SearchResponse(houseWithConditionService.convertToHouseList(resultHouses), true, 200, "성공"), HttpStatus.OK);
         }
     }
+
+    @GetMapping("/api/search/statistics")
+    @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
+            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
+            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")
+    })
+    public ResponseEntity<StatisticsResponse> getStatistics(
+            HttpServletRequest httpRequest,
+            @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
+            @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
+    ) {
+        // 토큰 검사
+        String token = securityService.extractTokenFromRequest(httpRequest);
+        jwtTokenProvider.validateToken(token);
+        // 세션 ID 가져오기
+        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
+        if (session == null) {
+            return new ResponseEntity<>(new StatisticsResponse(false, 401, "세션 없음", null), HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
+    }
+
+
     @GetMapping("/api/house/{houseId}")
     @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
     @ApiResponses(value = {

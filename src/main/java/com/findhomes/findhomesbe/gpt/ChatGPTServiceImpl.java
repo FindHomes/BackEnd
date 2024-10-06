@@ -108,13 +108,13 @@ public class ChatGPTServiceImpl implements ChatGPTService {
 
 
     // 비동기로 GPT한테 질문을 섹션 별로 총 5번함 ㅋㅋㅋㅋㅋㅋㅋ
-    public String getGptOutputComplete(String conversation) {
+    public String getGptOutputComplete(String conversation, List<String> kewords) {
         // CompletableFuture로 비동기 병렬처리
-        CompletableFuture<String> houseConditionFuture = runAsync(conversation, HouseCondition.getAllData(), HOUSE_CONDITION_DETAIL_REQUEST_COMMAND);
-        CompletableFuture<String> houseOptionFuture = runAsync(conversation, HouseOption.getAllData(), HOUSE_OPTION_DETAIL_REQUEST_COMMAND);
-        CompletableFuture<String> facilityCategoryFuture = runAsync(conversation, FacilityCategory.getAllData(), FACILITY_CATEGORY_DETAIL_REQUEST_COMMAND);
-        CompletableFuture<String> publicDataFuture = runAsync(conversation, PublicData.getAllData(), PUBLIC_DATA_DETAIL_REQUEST_COMMAND);
-        CompletableFuture<String> userLocationFuture = runAsync(conversation, null, USER_LOCATION_DETAIL_REQUEST_COMMAND);
+        CompletableFuture<String> houseConditionFuture = runAsync(conversation, HouseCondition.getAllData(), HOUSE_CONDITION_DETAIL_REQUEST_COMMAND, kewords);
+        CompletableFuture<String> houseOptionFuture = runAsync(conversation, HouseOption.getAllData(), HOUSE_OPTION_DETAIL_REQUEST_COMMAND, kewords);
+        CompletableFuture<String> facilityCategoryFuture = runAsync(conversation, FacilityCategory.getAllData(), FACILITY_CATEGORY_DETAIL_REQUEST_COMMAND, kewords);
+        CompletableFuture<String> publicDataFuture = runAsync(conversation, PublicData.getAllData(), PUBLIC_DATA_DETAIL_REQUEST_COMMAND, kewords);
+        CompletableFuture<String> userLocationFuture = runAsync(conversation, null, USER_LOCATION_DETAIL_REQUEST_COMMAND, null);
 
         // 모든 CompletableFuture가 완료되면 결과를 반환
         try {
@@ -135,15 +135,15 @@ public class ChatGPTServiceImpl implements ChatGPTService {
 
     private String getRefinedString(CompletableFuture<String> houseConditionFuture) {
         try {
-            return houseConditionFuture.get().trim().replaceAll("^가-힣", "");
+            return houseConditionFuture.get().trim().replaceAll("[^가-힣0-9 \\-()_+,.@a-zA-Z]", "");
         } catch (Exception ignored) {
             return "";
         }
     }
 
-    public CompletableFuture<String> runAsync(String userInput, String possibleData, String detailRequest) {
+    public CompletableFuture<String> runAsync(String userInput, String possibleData, String detailRequest, List<String> keywords) {
         return CompletableFuture.supplyAsync(() ->
-            getGptOutput(createCompleteSectionCommand(userInput, possibleData, detailRequest), ROLE1, ROLE2, COMPLETE_CONTENT, COMPLETE_TEMPERATURE)
+            getGptOutput(createCompleteSectionCommand(userInput, possibleData, detailRequest, keywords), ROLE1, ROLE2, COMPLETE_CONTENT, COMPLETE_TEMPERATURE)
         );
     }
 }

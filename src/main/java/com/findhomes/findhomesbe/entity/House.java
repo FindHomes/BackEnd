@@ -43,6 +43,9 @@ public class House {
     private LocalDateTime updatedAt;
     private String status = "ACTIVE";
 
+    @Transient
+    private Integer ranking = 0;
+    @Transient
     private transient Double score = 0d; // 직렬화에서 제외됨
 
     @JsonIgnore

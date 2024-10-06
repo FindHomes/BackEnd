@@ -25,6 +25,7 @@ public class HouseWithCondition {
     private String addressCity;
 
     private List<SafetyGradeInfo> safetyGradeInfoList = new ArrayList<>();
+    private List<FacilityInfo> facilityInfoList = new ArrayList<>();
 
     public HouseWithCondition(House house, String addressDistrict, String addressCity) {
         this.house = house;
@@ -35,13 +36,34 @@ public class HouseWithCondition {
     public Double getScore() {
         return this.house.getScore();
     }
+    public void setRanking(int ranking) {
+        this.house.setRanking(ranking);
+    }
 
     @Data
     @AllArgsConstructor
     public static class SafetyGradeInfo {
+        private String keyword;
         private PublicData publicData;
         private Integer weight;
         private Integer grade;
     }
+
+    @Data
+    @AllArgsConstructor
+    public static class FacilityInfo {
+        private AllConditions.FacilityConditionData facilityConditionData;
+        private Integer count;
+        private Double distanceSum;
+
+        public void addCount() {
+            count++;
+        }
+
+        public void addDistance(double distance) {
+            distanceSum += distance;
+        }
+    }
+
 
 }

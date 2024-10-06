@@ -27,7 +27,10 @@ public class IndustryService {
             log.info("데이터 개수: {}", newIndustries.size());
 
             // 응답에 추가하기
-            industriesAndWeights.add(new IndustriesAndWeight(newIndustries, facilityConditionData.getWeight()));
+            industriesAndWeights.add(
+                    new IndustriesAndWeight(
+                            newIndustries, facilityConditionData.getWeight(), facilityConditionData.getMaxRadius(), facilityConditionData)
+            );
         }
 
         return industriesAndWeights;

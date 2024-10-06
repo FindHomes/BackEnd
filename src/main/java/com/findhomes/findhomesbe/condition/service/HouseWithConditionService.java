@@ -67,19 +67,24 @@ public class HouseWithConditionService {
         houseWithConditions.parallelStream()
                 .forEach(houseWithCondition -> industriesAndWeights.parallelStream()
                         .forEach(industriesAndWeight -> {
+                            HouseWithCondition.FacilityInfo newFacilityInfo
+                                    = new HouseWithCondition.FacilityInfo(industriesAndWeight.getFacilityConditionData(), 0, 0d);
                             Integer weight = industriesAndWeight.getWeight();
                             industriesAndWeight.getIndustries().parallelStream()
                                     .forEach(industry -> {
                                         House house = houseWithCondition.getHouse();
                                         // 집과 해당 시설 간의 거리 계산
                                         double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
-                                        if (distance <= 3d) {
+                                        if (distance <= industriesAndWeight.getMaxRadius()) {
+                                            newFacilityInfo.addCount();
+                                            newFacilityInfo.addDistance(distance);
                                             // 매물 하나하나에 대해 다 더하면 너무 많아서 학습률 0.1을 곱함 ㅋㅋ
-                                            double score = distance * weight * 0.005;
+                                            double score = (industriesAndWeight.getMaxRadius() - distance) * weight * 0.005;
                                             house.addScore(score);
                                             house.addFacilityDataScore(score);
                                         }
                                     });
+                            houseWithCondition.getFacilityInfoList().add(newFacilityInfo);
                         }));
     }
 
