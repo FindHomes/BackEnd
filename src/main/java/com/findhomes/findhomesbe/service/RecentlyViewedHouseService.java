@@ -3,10 +3,14 @@ package com.findhomes.findhomesbe.service;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.RecentlyViewedHouse;
 import com.findhomes.findhomesbe.entity.User;
+import com.findhomes.findhomesbe.entity.ViewedRoom;
+import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RecentlyViewedHouseRepository;
+import com.findhomes.findhomesbe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -16,7 +20,7 @@ public class RecentlyViewedHouseService {
     private final RecentlyViewedHouseRepository recentlyViewedHouseRepository;
     private final HouseService houseService;
     private final UserService userService;
-
+    private final HouseRepository houseRepository;
     public void saveOrUpdateRecentlyViewedHouse(String userId, Integer houseId) {
         User user = userService.getUser(userId);
         House house = houseService.getHouse(houseId);
@@ -34,5 +38,10 @@ public class RecentlyViewedHouseService {
             RecentlyViewedHouse recentlyViewedHouse = new RecentlyViewedHouse(user, house);
             recentlyViewedHouseRepository.save(recentlyViewedHouse);
         }
+    }
+
+    public List<RecentlyViewedHouse> getRecentlyViewedHouses(String userId) {
+        User user = userService.getUser(userId);
+        return user.getViewedRoomList();
     }
 }

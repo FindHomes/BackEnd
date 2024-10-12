@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,5 +46,5 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<SavedRoom> savedRoomList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<ViewedRoom> viewedRoomList;
+    private List<RecentlyViewedHouse> viewedRoomList = new ArrayList<>();
 }

@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.entity.RecentlyViewedHouse;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
@@ -186,6 +187,27 @@ public class MainController {
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
     }
 
+
+    // 최근 본 매물 조회 API
+    @GetMapping("/recently-viewed")
+    @Operation(summary = "최근 본 매물", description = "사용자가 최근에 본 매물을 최신순으로 반환합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공적으로 최근 본 매물을 반환함"),
+            @ApiResponse(responseCode = "401", description = "인증 오류"),
+            @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")
+    })
+    public ResponseEntity<List<House>> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
+        // 토큰에서 사용자 ID 추출
+        String userId = securityService.getUserId(httpRequest);
+        List<RecentlyViewedHouse> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId);
+        // 최신순으로 정렬하여 House 리스트로 변환
+        List<House> houseList = recentlyViewedHouses.stream()
+                .sorted(Comparator.comparing(RecentlyViewedHouse::getViewedAt).reversed())  // 최신순으로 정렬
+                .map(RecentlyViewedHouse::getHouse)  // House로 변환
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(houseList, HttpStatus.OK);
+    }
 
     @GetMapping("/api/house/{houseId}")
     @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
