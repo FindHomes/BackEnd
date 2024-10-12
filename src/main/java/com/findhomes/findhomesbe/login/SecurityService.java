@@ -40,9 +40,14 @@ public class SecurityService {
         log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
     }
-    public void validateTokenAndSession(HttpServletRequest request) {
+    public void validateToken(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
         jwtTokenProvider.validateToken(token);
+
+    }
+    public String getUserId(HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        return jwtTokenProvider.getUserId(token);
     }
 
     public HttpSession getSession(HttpServletRequest httpRequest) {

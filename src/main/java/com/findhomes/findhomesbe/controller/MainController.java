@@ -52,10 +52,11 @@ public class MainController {
     private final HouseRepository houseRepository;
     private final HouseWithConditionService houseWithConditionService;
     private final HouseService houseService;
+    private final RecentlyViewedHouseService recentlyViewedHouseService;
 
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
-        securityService.validateTokenAndSession(httpRequest);
+        securityService.validateToken(httpRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String sessionId = session.getId();
         securityService.addSessionIdOnCookie(sessionId, response);
@@ -75,7 +76,7 @@ public class MainController {
     @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")}
     )
     public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
-        securityService.validateTokenAndSession(httpRequest);
+        securityService.validateToken(httpRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -126,7 +127,7 @@ public class MainController {
             HttpServletRequest httpRequest,
             @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
     ) {
-        securityService.validateTokenAndSession(httpRequest);
+        securityService.validateToken(httpRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -179,7 +180,7 @@ public class MainController {
             @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
             @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
     ) {
-        securityService.validateTokenAndSession(httpRequest);
+        securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
 
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
@@ -196,9 +197,12 @@ public class MainController {
     public ResponseEntity<HouseDetailResponse> getHouseDetail(
             HttpServletRequest httpRequest, @PathVariable int houseId
     ) {
-        securityService.validateTokenAndSession(httpRequest);
+        securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
         House house = houseService.getHouse(houseId);
+
+        String userId = securityService.getUserId(httpRequest);
+        recentlyViewedHouseService.saveOrUpdateRecentlyViewedHouse(userId, houseId);
 
         return new ResponseEntity<>(new HouseDetailResponse(house, true, 200, "성공"), HttpStatus.OK);
     }
