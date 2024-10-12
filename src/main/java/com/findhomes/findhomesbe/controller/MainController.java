@@ -8,6 +8,7 @@ import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
+import com.findhomes.findhomesbe.login.SecurityService;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.transform.Result;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,24 +51,14 @@ public class MainController {
     private final SecurityService securityService;
     private final HouseRepository houseRepository;
     private final HouseWithConditionService houseWithConditionService;
+    private final HouseService houseService;
 
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
-        // 토큰 검사
-        String token = securityService.extractTokenFromRequest(httpRequest);
-        jwtTokenProvider.validateToken(token);
-        // 세션 검사
-        securityService.sessionCheck(request, httpRequest);
-
-        // 세션 ID 가져오기
-        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
-        String chatSessionId = session.getId();
-
-        // 쿠키에 세션 ID 추가
-        Cookie sessionCookie = new Cookie("JSESSIONID", chatSessionId);
-        sessionCookie.setHttpOnly(true);
-        sessionCookie.setPath("/");
-        response.addCookie(sessionCookie);
+        securityService.validateTokenAndSession(httpRequest);
+        HttpSession session = securityService.getSession(httpRequest);
+        String sessionId = session.getId();
+        securityService.addSessionIdOnCookie(sessionId, response);
 
         // 추천 질문 생성
         String command = createUserConditionCommand(conditionService.conditionsToSentence());
@@ -85,15 +75,8 @@ public class MainController {
     @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")}
     )
     public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
-        // 토큰 검사
-        String token = securityService.extractTokenFromRequest(httpRequest);
-        jwtTokenProvider.validateToken(token);
-        // 세션 ID 가져오기
-        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
-        if (session == null) {
-            System.out.println("세션 없음");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 세션이 없으면 에러 반환
-        }
+        securityService.validateTokenAndSession(httpRequest);
+        HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
         // 이전 대화 내용을 가져오기
@@ -143,14 +126,8 @@ public class MainController {
             HttpServletRequest httpRequest,
             @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
     ) {
-        // 토큰 검사
-        String token = securityService.extractTokenFromRequest(httpRequest);
-        jwtTokenProvider.validateToken(token);
-        // 세션 ID 가져오기
-        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
-        if (session == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 세션이 없으면 에러 반환
-        }
+        securityService.validateTokenAndSession(httpRequest);
+        HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
         // 이전 대화 내용을 가져오기
@@ -158,9 +135,6 @@ public class MainController {
         StringBuilder conversation = new StringBuilder();
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-//            if (chat.getGptResponse() != null) {
-//                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
-//            }
         }
         // 대화에서 키워드 추출하기
         String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
@@ -198,22 +172,15 @@ public class MainController {
     @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
-            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")
+            @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다"),
     })
     public ResponseEntity<StatisticsResponse> getStatistics(
             HttpServletRequest httpRequest,
             @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
             @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
     ) {
-        // 토큰 검사
-        String token = securityService.extractTokenFromRequest(httpRequest);
-        jwtTokenProvider.validateToken(token);
-        // 세션 ID 가져오기
-        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
-        if (session == null) {
-            return new ResponseEntity<>(new StatisticsResponse(false, 401, "세션 없음", null), HttpStatus.UNAUTHORIZED);
-        }
+        securityService.validateTokenAndSession(httpRequest);
+        securityService.getSession(httpRequest);
 
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
     }
@@ -229,20 +196,10 @@ public class MainController {
     public ResponseEntity<HouseDetailResponse> getHouseDetail(
             HttpServletRequest httpRequest, @PathVariable int houseId
     ) {
-        // 토큰 검사
-        String token = securityService.extractTokenFromRequest(httpRequest);
-        jwtTokenProvider.validateToken(token);
-        // 세션 ID 가져오기
-        HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
-        if (session == null) {
-            return new ResponseEntity<>(new HouseDetailResponse(false, 401, "세션 없음", null), HttpStatus.UNAUTHORIZED);
-        }
+        securityService.validateTokenAndSession(httpRequest);
+        securityService.getSession(httpRequest);
+        House house = houseService.getHouse(houseId);
 
-        // 매물 정보 조회
-        House house = houseRepository.findById(houseId).orElse(null);
-        if (house == null) {
-            return new ResponseEntity<>(new HouseDetailResponse(false, 404, "id에 해당하는 매물 없음", null), HttpStatus.NOT_FOUND);
-        }
         return new ResponseEntity<>(new HouseDetailResponse(house, true, 200, "성공"), HttpStatus.OK);
     }
 }

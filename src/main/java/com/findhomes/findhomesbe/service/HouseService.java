@@ -1,8 +1,10 @@
 package com.findhomes.findhomesbe.service;
 
+import com.findhomes.findhomesbe.DTO.HouseDetailResponse;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
@@ -13,6 +15,8 @@ import org.geolatte.geom.Point;
 import org.geolatte.geom.builder.DSL;
 import org.geolatte.geom.crs.CoordinateReferenceSystems;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,5 +112,15 @@ public class HouseService {
             log.error("FacilityCategory클래스 extractDistrictAndCity함수", e);
             return null;
         }
+    }
+
+
+    public House getHouse(int houseId) {
+        // 매물 정보 조회
+        House house = houseRepository.findById(houseId).orElse(null);
+        if (house == null) {
+            throw new DataNotFoundException("입력된 id에 해당하는 매물이 없습니다");
+        }
+        return house;
     }
 }

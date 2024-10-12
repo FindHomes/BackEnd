@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.login;
 
+import com.findhomes.findhomesbe.exception.exception.UnauthorizedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -44,7 +45,7 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            return false;
+            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
         }
     }
 
