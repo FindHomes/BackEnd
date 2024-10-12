@@ -42,6 +42,7 @@ public class House {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String status = "ACTIVE";
+    private LocalDateTime checkedAt;
 
     @Transient
     private Integer ranking = 0;
