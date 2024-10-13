@@ -47,6 +47,9 @@ public class SecurityService {
     }
     public String getUserId(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
+        if(token==null){
+            throw new UnauthorizedException("JWT 토큰이 첨부되지 않았습니다");
+        }
         return jwtTokenProvider.getUserId(token);
     }
 
