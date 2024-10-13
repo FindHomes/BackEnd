@@ -17,6 +17,7 @@ import static com.findhomes.findhomesbe.controller.MainController.MAN_CON_KEY;
 @RequiredArgsConstructor
 public class SecurityService {
     private final JwtTokenProvider jwtTokenProvider;
+
     // 클라이언트 요청 헤더에서 JWT 토큰 추출
     public String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -25,6 +26,7 @@ public class SecurityService {
         }
         return null;
     }
+
     // 기존 세션 무효화 및 새로운 세션 생성
     public void sessionCheck(ManConRequest request, HttpServletRequest httpRequest) {
         // 기존 세션 무효화
@@ -40,14 +42,16 @@ public class SecurityService {
         log.info("입력된 필수 조건: {}", request);
         session.setAttribute(MAN_CON_KEY, request);
     }
+
     public void validateToken(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
         jwtTokenProvider.validateToken(token);
 
     }
+
     public String getUserId(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
-        if(token==null){
+        if (token == null) {
             throw new UnauthorizedException("JWT 토큰이 첨부되지 않았습니다");
         }
         return jwtTokenProvider.getUserId(token);
@@ -56,13 +60,17 @@ public class SecurityService {
     public HttpSession getSession(HttpServletRequest httpRequest) {
         HttpSession session = httpRequest.getSession(false); // 기존 세션을 가져옴
         if (session == null) {
-           throw new UnauthorizedException("세션이 유효하지 않습니다.");
+            throw new UnauthorizedException("세션이 유효하지 않습니다.");
         }
         return session;
     }
+
     public HttpSession getNewSession(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(true); // 세션이 없으면 새로 생성
-        return session;
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return httpRequest.getSession(true);
     }
 
     public void addSessionIdOnCookie(String sessionId, HttpServletResponse response) {

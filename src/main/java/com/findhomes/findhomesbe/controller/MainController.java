@@ -188,7 +188,6 @@ public class MainController {
     @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "찜하기 처리 완료"), @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")})
     public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action) {
-        securityService.getSession(httpRequest);
         String userId = securityService.getUserId(httpRequest);
         if (action.equalsIgnoreCase("add")) {
             favoriteHouseService.addFavoriteHouse(userId, houseId);
