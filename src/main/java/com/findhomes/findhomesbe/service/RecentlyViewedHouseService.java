@@ -43,8 +43,8 @@ public class RecentlyViewedHouseService {
     public List<House> getRecentlyViewedHouses(String userId) {
         User user = userService.getUser(userId);
         // 최신순으로 정렬하여 House 리스트로 변환
-        List<House> houseList = user.getViewedRoomList().stream()
-                .sorted(Comparator.comparing(RecentlyViewedHouse::getViewedAt).reversed())  // 최신순으로 정렬
+        List<House> houseList = user.getRecentlyViewedHouseList().stream()
+                .sorted(Comparator.comparing(RecentlyViewedHouse::getViewAt).reversed())  // 최신순으로 정렬
                 .map(RecentlyViewedHouse::getHouse)  // House로 변환
                 .collect(Collectors.toList());
         return houseList;

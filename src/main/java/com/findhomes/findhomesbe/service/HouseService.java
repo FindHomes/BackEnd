@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -128,9 +129,9 @@ public class HouseService {
         return house;
     }
 
-    public List<House> getfavoriteHouses(String userId) {
+    public List<House> getFavoriteHouses(String userId) {
         User user = userService.getUser(userId);
-        List<House> favoritesList = user.getFavoritesList();
-        return favoritesList;
+        List<House> favoriteHouses = user.getFavoriteHouseList().stream().map(house -> house.getHouse()).collect(Collectors.toList());
+        return favoriteHouses;
     }
 }

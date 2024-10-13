@@ -38,13 +38,12 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    //
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<House> favoritesList;
+
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Condition> conditionList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<SavedRoom> savedRoomList;
+    private List<FavoriteHouse> favoriteHouseList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<RecentlyViewedHouse> viewedRoomList = new ArrayList<>();
+    private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
 }

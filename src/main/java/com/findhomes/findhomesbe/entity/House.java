@@ -67,10 +67,10 @@ public class House {
     //
     @JsonIgnore
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
-    private List<SavedRoom> savedRoomList;
+    private List<FavoriteHouse> favoriteHouseList;
     @JsonIgnore
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
-    private List<ViewedRoom> viewedRoomList;
+    private List<RecentlyViewedHouse> recentlyViewedHouseList;
 
     public House() {
 

@@ -1,6 +1,5 @@
 package com.findhomes.findhomesbe.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,11 +11,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="viewed_rooms_tbl")
-public class ViewedRoom {
+@Table(name="favorite_houses_tbl")
+public class FavoriteHouse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer viewedRoomId;
+    private Integer favoriteHouseId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

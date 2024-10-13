@@ -5,7 +5,6 @@ import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.RecentlyViewedHouse;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
@@ -18,7 +17,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -210,7 +208,7 @@ public class MainController {
     })
     public ResponseEntity<List<House>> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<House> favoriteHouses = houseService.getfavoriteHouses(userId);
+        List<House> favoriteHouses = houseService.getFavoriteHouses(userId);
         return new ResponseEntity<>(favoriteHouses, HttpStatus.OK);
     }
 
