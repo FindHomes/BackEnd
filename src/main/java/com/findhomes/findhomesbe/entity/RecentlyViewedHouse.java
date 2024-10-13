@@ -6,22 +6,17 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Entity
 @Getter
 @Setter
-@Entity
-@Table(name = "recently_viewed_houses_tbl", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "house_id"}) // 유저-매물 중복 방지
-})
+@Table(name = "recently_viewed_houses_tbl")
+@IdClass(RecentlyViewedHouseId.class)
 public class RecentlyViewedHouse {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "house_id", nullable = false)
     private House house;

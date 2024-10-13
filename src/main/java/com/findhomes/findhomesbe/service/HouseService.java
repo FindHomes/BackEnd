@@ -4,9 +4,11 @@ import com.findhomes.findhomesbe.DTO.HouseDetailResponse;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.entity.User;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
+import com.findhomes.findhomesbe.repository.UserRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,8 @@ public class HouseService {
     @Autowired
     private HouseSpecification houseSpecification;
     private final RegionsRepository regionsRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
 
         // Todo: 매물에 관한 옵션들은 Specification이 findHouseWithRegion에 쿼리문으로 추가해야할 듯 합니다.
@@ -122,5 +126,11 @@ public class HouseService {
             throw new DataNotFoundException("입력된 id에 해당하는 매물이 없습니다");
         }
         return house;
+    }
+
+    public List<House> getfavoriteHouses(String userId) {
+        User user = userService.getUser(userId);
+        List<House> favoritesList = user.getFavoritesList();
+        return favoritesList;
     }
 }

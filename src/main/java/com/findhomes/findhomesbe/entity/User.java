@@ -40,7 +40,7 @@ public class User {
 
     //
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Bookmark> bookmarkList;
+    private List<House> favoritesList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Condition> conditionList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
