@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        //TODO: 개발 끝나면 필터정상화
 //        // /api/login 또는 /api/oauth/kakao 경로에 대해서는 필터를 건너뛰도록 설정
 //        if (requestURI.equals("/api/login") || requestURI.equals("/api/oauth/kakao")) {
 //            filterChain.doFilter(request, response);

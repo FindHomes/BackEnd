@@ -1,22 +1,29 @@
 package com.findhomes.findhomesbe.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="viewed_rooms_tbl")
-public class ViewedRoom {
+@Table(name="favorite_houses_tbl")
+public class FavoriteHouse {
+    public FavoriteHouse(User user, House house) {
+        this.user = user;
+        this.house = house;
+        this.creteadAt = LocalDateTime.now();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer viewedRoomId;
+    private Integer favoriteHouseId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -25,4 +32,6 @@ public class ViewedRoom {
     @ManyToOne
     @JoinColumn(name = "house_id")
     private House house;
+
+    private LocalDateTime creteadAt;
 }

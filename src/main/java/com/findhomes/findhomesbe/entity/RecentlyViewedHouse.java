@@ -1,44 +1,41 @@
 package com.findhomes.findhomesbe.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "recently_viewed_houses_tbl", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "house_id"}) // 유저-매물 중복 방지
-})
+@Table(name="recently_viewed_houses_tbl")
 public class RecentlyViewedHouse {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer recentlyViewHouseId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "house_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "house_id")
     private House house;
 
-    @Column(name = "viewed_at", nullable = false)
-    private LocalDateTime viewedAt;
 
-    // 생성자
-    public RecentlyViewedHouse() {}
+    LocalDateTime viewAt;
 
     public RecentlyViewedHouse(User user, House house) {
         this.user = user;
         this.house = house;
-        this.viewedAt = LocalDateTime.now();
     }
 
     public void updateViewedAt() {
-        this.viewedAt = LocalDateTime.now();
+        this.viewAt = LocalDateTime.now();  // 현재 시각으로 설정
     }
 }
