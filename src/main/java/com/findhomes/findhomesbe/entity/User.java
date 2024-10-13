@@ -43,7 +43,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Condition> conditionList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<FavoriteHouse> favoriteHouseList;
+    private List<FavoriteHouse> favoriteHouseList = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
 }

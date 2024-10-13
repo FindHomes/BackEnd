@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -13,6 +15,12 @@ import lombok.Setter;
 @Entity
 @Table(name="favorite_houses_tbl")
 public class FavoriteHouse {
+    public FavoriteHouse(User user, House house) {
+        this.user = user;
+        this.house = house;
+        this.creteadAt = LocalDateTime.now();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer favoriteHouseId;
@@ -24,4 +32,6 @@ public class FavoriteHouse {
     @ManyToOne
     @JoinColumn(name = "house_id")
     private House house;
+
+    private LocalDateTime creteadAt;
 }

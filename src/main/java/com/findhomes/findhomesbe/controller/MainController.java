@@ -51,6 +51,7 @@ public class MainController {
     private final HouseRepository houseRepository;
     private final HouseWithConditionService houseWithConditionService;
     private final HouseService houseService;
+    private final FavoriteHouseService favoriteHouseService;
     private final RecentlyViewedHouseService recentlyViewedHouseService;
 
     @PostMapping("/api/search/man-con")
@@ -199,19 +200,46 @@ public class MainController {
         return new ResponseEntity<>(recentlyViewedHouses, HttpStatus.OK);
     }
 
+    // 찜한 방 매물 조회 API
     @GetMapping("/api/house/favorite")
     @Operation(summary = "찜한 방 ", description = "사용자가 찜한 매물을 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"),
             @ApiResponse(responseCode = "401", description = "인증 오류"),
-            @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")
+            @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")
     })
     public ResponseEntity<List<House>> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<House> favoriteHouses = houseService.getFavoriteHouses(userId);
+        List<House> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId);
         return new ResponseEntity<>(favoriteHouses, HttpStatus.OK);
     }
 
+    // 찜하기 API
+    @PostMapping("/api/house/favorite/{houseId}")
+    @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "처리 완료"),
+            @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
+    })
+    public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(
+            HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action
+    ) {
+        securityService.validateToken(httpRequest);
+        securityService.getSession(httpRequest);
+        String userId = securityService.getUserId(httpRequest);
+        // 파라미터로 받은 액션에 따라 추가 또는 삭제 실행
+        if (action.equalsIgnoreCase("add")) {
+            favoriteHouseService.addFavoriteHouse(userId, houseId);
+            return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "즐겨찾기 추가 성공"), HttpStatus.OK);
+        } else if (action.equalsIgnoreCase("remove")) {
+            favoriteHouseService.removeFavoriteHouse(userId, houseId);
+            return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "즐겨찾기 삭제 성공"), HttpStatus.OK);
+        } else {
+            throw new IllegalArgumentException("잘못된 action 값입니다. add 또는 remove를 사용하세요.");
+        }
+    }
+
+    // 매물 상세페이지 API
     @GetMapping("/api/house/{houseId}")
     @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
     @ApiResponses(value = {

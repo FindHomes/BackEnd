@@ -129,9 +129,5 @@ public class HouseService {
         return house;
     }
 
-    public List<House> getFavoriteHouses(String userId) {
-        User user = userService.getUser(userId);
-        List<House> favoriteHouses = user.getFavoriteHouseList().stream().map(house -> house.getHouse()).collect(Collectors.toList());
-        return favoriteHouses;
-    }
+
 }
