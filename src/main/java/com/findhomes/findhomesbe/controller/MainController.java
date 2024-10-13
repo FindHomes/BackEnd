@@ -10,6 +10,7 @@ import com.findhomes.findhomesbe.exception.exception.ClientIllegalArgumentExcept
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.login.SecurityService;
+import com.findhomes.findhomesbe.repository.FavoriteHouseRepository;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,7 +55,7 @@ public class MainController {
     private final HouseService houseService;
     private final FavoriteHouseService favoriteHouseService;
     private final RecentlyViewedHouseService recentlyViewedHouseService;
-
+    private final FavoriteHouseRepository favoriteHouseRepository;
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         securityService.validateToken(httpRequest);
@@ -252,11 +253,11 @@ public class MainController {
     ) {
         securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
-        // 최근 본 방에 해당 매물 추가
-        House house = houseService.getHouse(houseId);
         String userId = securityService.getUserId(httpRequest);
+        // 최근 본 방에 추가
         recentlyViewedHouseService.saveOrUpdateRecentlyViewedHouse(userId, houseId);
+        HouseDetailResponse houseDetailResponse = favoriteHouseService.getHouseDetailwithFavoriteFlag(userId, houseId);
 
-        return new ResponseEntity<>(new HouseDetailResponse(house, true, 200, "성공"), HttpStatus.OK);
+        return new ResponseEntity<>(houseDetailResponse, HttpStatus.OK);
     }
 }

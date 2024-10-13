@@ -19,11 +19,11 @@ public class HouseDetailResponse {
     private String message;
     private ResponseHouse result;
 
-    public HouseDetailResponse(House house, Boolean success, Integer code, String message) {
+    public HouseDetailResponse(House house, boolean isFavorite, Boolean success, Integer code, String message) {
         this.success = success;
         this.code = code;
         this.message = message;
-        this.result = new ResponseHouse(house);
+        this.result = new ResponseHouse(house,isFavorite);
     }
 
     @Data
@@ -49,8 +49,8 @@ public class HouseDetailResponse {
         private Double y; // Not NULL
         private List<String> imgUrl; // Nullable
         private Double score = 0d;
-
-        public ResponseHouse(House house) {
+        private boolean isFavorite;
+        public ResponseHouse(House house, Boolean isFavorite) {
             this.houseId = house.getHouseId();
             this.url = house.getUrl();
             this.priceType = house.getPriceType();
@@ -72,6 +72,7 @@ public class HouseDetailResponse {
             this.y = house.getLatitude();
             this.imgUrl = house.getImgUrl() == null || house.getImgUrl().isEmpty() ? new ArrayList<>() : List.of(house.getImgUrl().split("@@@"));
             this.score = house.getScore();
+            this.isFavorite = isFavorite;
         }
     }
 }

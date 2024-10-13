@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.service;
 
+import com.findhomes.findhomesbe.DTO.HouseDetailResponse;
 import com.findhomes.findhomesbe.entity.FavoriteHouse;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.RecentlyViewedHouse;
@@ -56,6 +57,21 @@ public class FavoriteHouseService {
         favoriteHouseRepository.findByUserAndHouse(user, house).ifPresentOrElse(favoriteHouseRepository::delete, () -> {
             throw new DataNotFoundException("유저와 매물 간 찜하기 데이터가 없습니다.");
         });
+    }
+    // 찜한 매물인지 확인
+    public boolean isFavoriteHouse(String userId, int houseId) {
+        User user = userService.getUser(userId);  // User 객체 가져오기
+        House house = houseService.getHouse(houseId);  // House 객체 가져오기
+        return favoriteHouseRepository.findByUserAndHouse(user, house).isPresent();  // 찜 여부 확인
+    }
+
+    public HouseDetailResponse getHouseDetailwithFavoriteFlag(String userId, int houseId) {
+        House house = houseRepository.findById(houseId)
+                .orElseThrow(() -> new DataNotFoundException("해당 매물을 찾을 수 없습니다."));
+
+        boolean isFavorite = isFavoriteHouse(userId, houseId);
+
+        return new HouseDetailResponse(house, isFavorite, true, 200, "매물 조회 성공");
     }
 }
 
