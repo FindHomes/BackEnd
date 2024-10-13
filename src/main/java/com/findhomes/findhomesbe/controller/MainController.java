@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
+import com.findhomes.findhomesbe.exception.exception.ClientIllegalArgumentException;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
 import com.findhomes.findhomesbe.login.JwtTokenProvider;
 import com.findhomes.findhomesbe.login.SecurityService;
@@ -218,7 +219,7 @@ public class MainController {
     @PostMapping("/api/house/favorite/{houseId}")
     @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "처리 완료"),
+            @ApiResponse(responseCode = "200", description = "찜하기 처리 완료"),
             @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
     })
     public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(
@@ -227,16 +228,15 @@ public class MainController {
         securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
         String userId = securityService.getUserId(httpRequest);
-        // 파라미터로 받은 액션에 따라 추가 또는 삭제 실행
         if (action.equalsIgnoreCase("add")) {
             favoriteHouseService.addFavoriteHouse(userId, houseId);
-            return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "즐겨찾기 추가 성공"), HttpStatus.OK);
         } else if (action.equalsIgnoreCase("remove")) {
             favoriteHouseService.removeFavoriteHouse(userId, houseId);
-            return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "즐겨찾기 삭제 성공"), HttpStatus.OK);
         } else {
-            throw new IllegalArgumentException("잘못된 action 값입니다. add 또는 remove를 사용하세요.");
+            throw new ClientIllegalArgumentException("잘못된 action 값입니다. add 또는 remove를 사용하세요.");
         }
+        return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "찜하기 처리 완료"), HttpStatus.OK);
+
     }
 
     // 매물 상세페이지 API

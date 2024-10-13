@@ -52,9 +52,8 @@ public class FavoriteHouseService {
     public void removeFavoriteHouse(String userId, int houseId) {
         User user = userService.getUser(userId);
         House house = houseService.getHouse(houseId);
-        favoriteHouseRepository.findByUserAndHouse(user, house).ifPresentOrElse(favoriteHouse -> {
-            favoriteHouseRepository.delete(favoriteHouse);  // delete() 호출로 찜한 매물 삭제
-        }, () -> {
+        // delete() 호출로 찜한 매물 삭제
+        favoriteHouseRepository.findByUserAndHouse(user, house).ifPresentOrElse(favoriteHouseRepository::delete, () -> {
             throw new DataNotFoundException("유저와 매물 간 찜하기 데이터가 없습니다.");
         });
     }
