@@ -20,6 +20,7 @@ import java.util.List;
 public class HouseWithCondition {
 
     private House house;
+    private boolean isFavorite = false;
 
     private String addressDistrict;
     private String addressCity;

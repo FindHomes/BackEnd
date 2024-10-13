@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
+import com.findhomes.findhomesbe.service.FavoriteHouseService;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.PerformanceUtil;
 import jakarta.servlet.http.HttpSession;
@@ -25,9 +26,9 @@ public class ConditionService {
     private final HouseWithConditionService houseWithConditionService;
     private final PublicDataService publicDataService;
     private final IndustryService industryService;
-    private final RegionsRepository regionsRepository;
+    private final FavoriteHouseService favoriteHouseService;
 
-    public List<HouseWithCondition> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords, HttpSession session) {
+    public List<HouseWithCondition> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords, HttpSession session, String userId) {
         ManConRequest.Region region = manConRequest.getRegion();
 
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
@@ -66,6 +67,27 @@ public class ConditionService {
         // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
         houseWithConditionService.sort(houseWithConditions);
         log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");
+
+        // 6. 100개로 sublist 및 ranking 입력
+        double preScore = -1;
+        int preRanking = 0;
+        for (int i = 0; i < Math.min(100, houseWithConditions.size()); i++) {
+            HouseWithCondition houseWithCondition = houseWithConditions.get(i);
+            double curScore = houseWithCondition.getHouse().getScore();
+            if (curScore == preScore) {
+                houseWithCondition.getHouse().setRanking(preRanking);
+            } else {
+                preRanking++;
+                houseWithCondition.getHouse().setRanking(preRanking);
+            }
+            preScore = curScore;
+        }
+
+        // 7. 즐겨찾기 처리
+        for (HouseWithCondition houseWithCondition : houseWithConditions) {
+            boolean isFavorite = favoriteHouseService.isFavoriteHouse(userId, houseWithCondition.getHouse().getHouseId());
+            houseWithCondition.setFavorite(isFavorite);
+        }
 
         // 반환
         return houseWithConditions.subList(0, Math.min(100, houseWithConditions.size()));
