@@ -37,13 +37,6 @@ public class HouseWithConditionService {
         return new HouseWithCondition(house, districtAndCity[0], districtAndCity[1]);
     }
 
-    // 반환 전에 House 리스트로 다시 변환
-    public List<House> convertToHouseList(List<HouseWithCondition> houseWithConditions) {
-        return houseWithConditions.stream()
-                .map(HouseWithCondition::getHouse)
-                .toList();
-    }
-
     // 점수 계산
     public void calculate(List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
         // 공공 데이터 점수 계산
