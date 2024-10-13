@@ -67,6 +67,21 @@ public class ConditionService {
         houseWithConditionService.sort(houseWithConditions);
         log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");
 
+        // 6. 100개로 sublist 및 ranking 입력
+        double preScore = -1;
+        int preRanking = 0;
+        for (int i = 0; i < Math.min(100, houseWithConditions.size()); i++) {
+            HouseWithCondition houseWithCondition = houseWithConditions.get(i);
+            double curScore = houseWithCondition.getHouse().getScore();
+            if (curScore == preScore) {
+                houseWithCondition.getHouse().setRanking(preRanking);
+            } else {
+                preRanking++;
+                houseWithCondition.getHouse().setRanking(preRanking);
+            }
+            preScore = curScore;
+        }
+
         // 반환
         return houseWithConditions.subList(0, Math.min(100, houseWithConditions.size()));
     }

@@ -149,10 +149,6 @@ public class MainController {
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         List<HouseWithCondition> resultHouses = conditionService.exec(manConRequest, gptResponse, keywords, session);
-        // 랭킹 넣기
-        for (int i = 0; i < resultHouses.size(); i++) {
-            resultHouses.get(i).setRanking(i + 1);
-        }
         // 세션에 저장
         session.setAttribute(HOUSE_RESULTS_KEY, resultHouses);
 

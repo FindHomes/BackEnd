@@ -18,15 +18,17 @@ import org.springframework.web.client.HttpClientErrorException;
 @Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(PreconditionRequiredException.class)
-    public ResponseEntity<SearchResponse> handleOptionalNotExistException(PreconditionRequiredException e) {
+    public ResponseEntity<ErrorReponse> handleOptionalNotExistException(PreconditionRequiredException e) {
         log.error("[PreconditionRequiredException]", e);
-        return new ResponseEntity<>(new SearchResponse(false, 428, e.getMessage(), null), HttpStatus.PRECONDITION_REQUIRED);
+        return new ResponseEntity<>(new ErrorReponse(
+                false, 428, e.getMessage()
+        ), HttpStatus.PRECONDITION_REQUIRED);
     }
 
     @ExceptionHandler(IllegalGptOutputException.class)
-    public ResponseEntity<SearchResponse> handleIllegalGptOutputException(IllegalGptOutputException e) {
-        return new ResponseEntity<>(new SearchResponse(
-                false, 500, e.getMessage(), null
+    public ResponseEntity<ErrorReponse> handleIllegalGptOutputException(IllegalGptOutputException e) {
+        return new ResponseEntity<>(new ErrorReponse(
+                false, 500, e.getMessage()
         ), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

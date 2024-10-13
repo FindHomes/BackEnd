@@ -26,7 +26,7 @@ public class SessionValueArgumentResolver implements HandlerMethodArgumentResolv
             HttpSession session = webRequest.getNativeRequest(jakarta.servlet.http.HttpServletRequest.class).getSession();
             return session.getAttribute(sessionValueAnnotation.value());
         } else {
-            throw new PreconditionRequiredException("필수 조건이 입력되지 않았습니다.");
+            throw new PreconditionRequiredException("세션에 저장된 필수 정보가 없습니다. 처음으로 돌아가야 합니다.");
         }
     }
 }
