@@ -56,6 +56,7 @@ public class MainController {
     private final FavoriteHouseService favoriteHouseService;
     private final RecentlyViewedHouseService recentlyViewedHouseService;
     private final FavoriteHouseRepository favoriteHouseRepository;
+
     @PostMapping("/api/search/man-con")
     public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         securityService.validateToken(httpRequest);
@@ -75,8 +76,7 @@ public class MainController {
     @PostMapping("/api/search/user-chat")
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
-    @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")}
-    )
+    @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")})
     public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
         securityService.validateToken(httpRequest);
         HttpSession session = securityService.getSession(httpRequest);
@@ -94,10 +94,7 @@ public class MainController {
         }
 
         // 사용자 입력 추가 및 대화 응답 조정
-        String command = createChatCommand(
-                userChatRequest.getUserInput(),
-                FacilityCategory.getAllData() + PublicData.getAllData()
-        );
+        String command = createChatCommand(userChatRequest.getUserInput(), FacilityCategory.getAllData() + PublicData.getAllData());
         conversation.append(command);
 
         // GPT에게 요청 보내기 (여기서 gptService를 사용하여 GPT 응답을 가져옵니다)
@@ -118,17 +115,9 @@ public class MainController {
     }
 
     @GetMapping("/api/search/complete")
-    @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" +
-            "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
-            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")
-    })
-    public ResponseEntity<SearchResponse> getHouseList(
-            HttpServletRequest httpRequest,
-            @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
-    ) {
+    @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" + "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."), @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")})
+    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
         securityService.validateToken(httpRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
@@ -173,15 +162,8 @@ public class MainController {
 
     @GetMapping("/api/search/statistics")
     @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다"),
-    })
-    public ResponseEntity<StatisticsResponse> getStatistics(
-            HttpServletRequest httpRequest,
-            @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
-            @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
-    ) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다"),})
+    public ResponseEntity<StatisticsResponse> getStatistics(HttpServletRequest httpRequest, @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions, @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions) {
         securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
@@ -191,11 +173,7 @@ public class MainController {
     // 최근 본 매물 조회 API
     @GetMapping("/api/house/recently-viewed")
     @Operation(summary = "최근 본 매물", description = "사용자가 최근에 본 매물을 최신순으로 반환합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 최근 본 매물을 반환함"),
-            @ApiResponse(responseCode = "401", description = "인증 오류"),
-            @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 최근 본 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")})
     public ResponseEntity<List<House>> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
         List<House> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId);
@@ -205,11 +183,7 @@ public class MainController {
     // 찜한 방 매물 조회 API
     @GetMapping("/api/house/favorite")
     @Operation(summary = "찜한 방 ", description = "사용자가 찜한 매물을 반환합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"),
-            @ApiResponse(responseCode = "401", description = "인증 오류"),
-            @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")})
     public ResponseEntity<List<House>> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
         List<House> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId);
@@ -219,13 +193,8 @@ public class MainController {
     // 찜하기 API
     @PostMapping("/api/house/favorite/{houseId}")
     @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "찜하기 처리 완료"),
-            @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
-    })
-    public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(
-            HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action
-    ) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "찜하기 처리 완료"), @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")})
+    public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action) {
         securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
         String userId = securityService.getUserId(httpRequest);
@@ -236,28 +205,21 @@ public class MainController {
         } else {
             throw new ClientIllegalArgumentException("잘못된 action 값입니다. add 또는 remove를 사용하세요.");
         }
-        return new ResponseEntity<>(new HouseDetailResponse(null, true, 200, "찜하기 처리 완료"), HttpStatus.OK);
+        return new ResponseEntity<>(new HouseDetailResponse(null, false, true, 200, "찜하기 처리 완료"), HttpStatus.OK);
 
     }
 
     // 매물 상세페이지 API
     @GetMapping("/api/house/{houseId}")
     @Operation(summary = "매물 상세페이지", description = "매물을 클릭하고 상세페이지로 이동합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
-            @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")
-    })
-    public ResponseEntity<HouseDetailResponse> getHouseDetail(
-            HttpServletRequest httpRequest, @PathVariable int houseId
-    ) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "유효한 session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."), @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")})
+    public ResponseEntity<HouseDetailResponse> getHouseDetail(HttpServletRequest httpRequest, @PathVariable int houseId) {
         securityService.validateToken(httpRequest);
         securityService.getSession(httpRequest);
         String userId = securityService.getUserId(httpRequest);
         // 최근 본 방에 추가
         recentlyViewedHouseService.saveOrUpdateRecentlyViewedHouse(userId, houseId);
         HouseDetailResponse houseDetailResponse = favoriteHouseService.getHouseDetailwithFavoriteFlag(userId, houseId);
-
         return new ResponseEntity<>(houseDetailResponse, HttpStatus.OK);
     }
 }
