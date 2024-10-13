@@ -57,6 +57,10 @@ public class SecurityService {
         }
         return session;
     }
+    public HttpSession getNewSession(HttpServletRequest httpRequest) {
+        HttpSession session = httpRequest.getSession(true); // 세션이 없으면 새로 생성
+        return session;
+    }
 
     public void addSessionIdOnCookie(String sessionId, HttpServletResponse response) {
         // 쿠키에 세션 ID 추가
