@@ -123,4 +123,26 @@ public class AllConditions {
                 "\n[publicConditionDataList]\n" + publicConditionDataList.stream().map(PublicConditionData::toString).collect(Collectors.joining("\n")) +
                 "\n[userRequestLocationDataList]\n" + userRequestLocationDataList.stream().map(UserRequestLocationData::toString).collect(Collectors.joining("\n"));
     }
+
+    public String summarize() {
+        String result = "";
+
+        if (!houseConditionDataList.isEmpty()) {
+            result += "매물 조건: " + houseConditionDataList.stream().map(e -> e.getHouseConditionEnum().name()).collect(Collectors.joining(", ")) + "\n";
+        }
+        if (!houseOptionDataList.isEmpty()) {
+            result += "매물 옵션: " + houseOptionDataList.stream().map(e -> e.getOption().name()).collect(Collectors.joining(", ")) + "\n";
+        }
+        if (!publicConditionDataList.isEmpty()) {
+            result += "공공 데이터" + publicConditionDataList.stream().map(e -> e.getPublicDataEnum().name()).collect(Collectors.joining(", ")) + "\n";
+        }
+        if (!facilityConditionDataList.isEmpty()) {
+            result += "시설 데이터: " + facilityConditionDataList.stream().map(e -> e.getFacilityCategoryEnum().name()).collect(Collectors.joining(", ")) + "\n";
+        }
+        if (!userRequestLocationDataList.isEmpty()) {
+            result += "기타: " + userRequestLocationDataList.stream().map(e -> e.getLocationName()).collect(Collectors.joining(", "));
+        }
+
+        return result.trim();
+    }
 }

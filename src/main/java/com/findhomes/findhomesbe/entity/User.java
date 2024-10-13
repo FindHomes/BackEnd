@@ -1,6 +1,7 @@
 package com.findhomes.findhomesbe.entity;
 
 
+import com.findhomes.findhomesbe.searchlog.SearchLog;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,4 +47,6 @@ public class User {
     private List<FavoriteHouse> favoriteHouseList = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<SearchLog> searchLogList = new ArrayList<>();
 }

@@ -14,6 +14,7 @@ import com.findhomes.findhomesbe.repository.FavoriteHouseRepository;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,7 +59,11 @@ public class MainController {
     private final FavoriteHouseRepository favoriteHouseRepository;
 
     @PostMapping("/api/search/man-con")
-    public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
+    public ResponseEntity<ManConResponse> setManConSearch(
+            @RequestBody ManConRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse response
+    ) {
         HttpSession session = securityService.getNewSession(httpRequest);
         String sessionId = session.getId();
         securityService.addSessionIdOnCookie(sessionId, response);
@@ -76,7 +81,11 @@ public class MainController {
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
     @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")})
-    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
+    public ResponseEntity<UserChatResponse> userChat(
+            @RequestBody UserChatRequest userChatRequest,
+            HttpServletRequest httpRequest,
+            @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
+    ) {
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -114,8 +123,14 @@ public class MainController {
 
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" + "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."), @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")})
-    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest, @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest) {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
+            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
+            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")})
+    public ResponseEntity<SearchResponse> getHouseList(
+            HttpServletRequest httpRequest,
+            @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
+    ) {
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -157,8 +172,10 @@ public class MainController {
     @GetMapping("/api/search/statistics")
     @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다"),})
-    public ResponseEntity<StatisticsResponse> getStatistics(HttpServletRequest httpRequest, @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions, @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions) {
-        securityService.getSession(httpRequest);
+    public ResponseEntity<StatisticsResponse> getStatistics(
+            @Parameter(hidden = true) @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
+            @Parameter(hidden = true) @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
+    ) {
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
     }
 
@@ -188,7 +205,6 @@ public class MainController {
     @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "찜하기 처리 완료"), @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")})
     public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action) {
-        securityService.getSession(httpRequest);
         String userId = securityService.getUserId(httpRequest);
         if (action.equalsIgnoreCase("add")) {
             favoriteHouseService.addFavoriteHouse(userId, houseId);

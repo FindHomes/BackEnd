@@ -29,12 +29,18 @@ public class ConditionService {
     private final FavoriteHouseService favoriteHouseService;
 
     public List<HouseWithCondition> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords, HttpSession session, String userId) {
-        ManConRequest.Region region = manConRequest.getRegion();
 
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
         AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput, keywords);
         session.setAttribute(ALL_CONDITIONS, allConditions);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
+
+        return exec2(allConditions, userId);
+    }
+
+    // 검색 기록 저장한 곳에서 바로 매물 추천 결과 가져오기 위해서 함수 따로 뺐음.
+    public List<HouseWithCondition> exec2(AllConditions allConditions, String userId) {
+        ManConRequest.Region region = allConditions.getManConRequest().getRegion();
 
         // 1. 필터링 조건으로 매물 필터링해서 매물 가져오기 (필수 조건, 매물 자체 조건, 매물 필수 옵션)
         List<House> houses = PerformanceUtil.measurePerformance(
