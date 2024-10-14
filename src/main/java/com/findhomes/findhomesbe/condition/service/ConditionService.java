@@ -88,6 +88,9 @@ public class ConditionService {
             }
             preScore = curScore;
         }
+        for (int i = 0; i < Math.min(100, houseWithConditions.size()); i++) {
+            houseWithConditions.get(i).getHouse().setRanking(i + 1);
+        }
 
         // 7. 즐겨찾기 처리
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
