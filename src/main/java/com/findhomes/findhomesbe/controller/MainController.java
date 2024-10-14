@@ -125,7 +125,7 @@ public class MainController {
         for (UserChat chat : previousChats) {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
         }
-        // 대화에서 키워드 추출하기
+        // 대화에서 키워드 추출 하기
         String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
         String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
         List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();

@@ -74,4 +74,21 @@ public class LoginController {
             throw new RuntimeException("카카오에서 고유 id를 얻어오는데 실패하였습니다.", e);
         }
     }
+    @GetMapping("/api/test/oauth/kakao")
+    @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
+    public ResponseEntity<LoginResponse> testKakaoCallback() {
+        // 1. 테스트용 사용자 조회 또는 저장
+        User user = userRepository.findByKakaoId("testKakaoId")
+                .orElseGet(() -> {
+                    User newUser = new User("testKakaoId", "테스트 사용자", "kakao", "ACTIVE", LocalDateTime.now());
+                    return userRepository.save(newUser);
+                });
+
+        // 2. JWT 생성
+        String jwtToken = jwtTokenProvider.createToken(user.getUserId());
+        LoginResponse loginResponse = new LoginResponse(true, 200, "테스트 토큰을 성공적으로 반환하였습니다.", new LoginResponse.JwtToken(jwtToken, "Bearer", "36000000"));
+
+        // 3. 클라이언트에 JWT 반환
+        return ResponseEntity.ok(loginResponse);
+    }
 }
