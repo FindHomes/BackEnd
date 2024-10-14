@@ -18,7 +18,7 @@ public class FavoriteHouse {
     public FavoriteHouse(User user, House house) {
         this.user = user;
         this.house = house;
-        this.creteadAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     @Id
@@ -33,5 +33,5 @@ public class FavoriteHouse {
     @JoinColumn(name = "house_id")
     private House house;
 
-    private LocalDateTime creteadAt;
+    private LocalDateTime createdAt;
 }

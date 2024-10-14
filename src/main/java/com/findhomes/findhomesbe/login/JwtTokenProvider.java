@@ -15,7 +15,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
-    private long validityInMilliseconds = 3600000; // 1 hour in milliseconds
+    private long validityInMilliseconds = 36000000; // 10 hour in milliseconds
 
     private Key key;
 
@@ -49,9 +49,18 @@ public class JwtTokenProvider {
         }
     }
 
-    // JWT 토큰에서 사용자 ID 추출
+
     public String getUserId(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return claims.getSubject();
+        try {
+            // JWT에서 사용자 ID 추출
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return claims.getSubject();
+        }
+        catch (IllegalArgumentException e) {
+            throw new UnauthorizedException("JWT 토큰이 비어있거나 잘못되었습니다.");
+        }catch (Exception e){
+            throw new UnauthorizedException("userId를 가져오는데 오류가 발생하였습니다.");
+        }
     }
+
 }

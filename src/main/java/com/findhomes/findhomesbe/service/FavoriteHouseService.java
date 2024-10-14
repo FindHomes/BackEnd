@@ -34,7 +34,7 @@ public class FavoriteHouseService {
             throw new DataNotFoundException("찜한 방 이 존재하지 않습니다");
         }
         // 최근에 찜한 순으로 정렬하여 House 리스트로 변환
-        return favoriteHouseList.stream().sorted(Comparator.comparing(FavoriteHouse::getCreteadAt).reversed()).map(FavoriteHouse::getHouse)  // House 객체로 변환
+        return favoriteHouseList.stream().sorted(Comparator.comparing(FavoriteHouse::getCreatedAt).reversed()).map(FavoriteHouse::getHouse)  // House 객체로 변환
                 .collect(Collectors.toList());
     }
 
