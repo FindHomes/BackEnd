@@ -67,12 +67,12 @@ public class SecurityService {
     }
 
     public HttpSession getNewSession(HttpServletRequest httpRequest) {
-
-        try {
-            return httpRequest.getSession(true);
-        } catch (ExpiredJwtException e) {
-            throw new UnauthorizedException("jwt 토큰이 만료되었습니다.", e);
+        HttpSession currentSession = httpRequest.getSession(false); // 기존 세션을 가져오되 없으면 null 반환
+        if (currentSession != null) {
+            currentSession.invalidate(); // 기존 세션 무효화
         }
+
+        return httpRequest.getSession(true); // 새로운 세션 생성
     }
 
     public void addSessionIdOnCookie(String sessionId, HttpServletResponse response) {

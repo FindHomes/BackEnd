@@ -51,11 +51,12 @@ public class LoginController {
 
         // 3. JWT 생성
         String jwtToken = jwtTokenProvider.createToken(user.getUserId());
-        LoginResponse loginResponse = new LoginResponse(true,200,"토큰값을 성공적으로 반환하였습니다.",new LoginResponse.JwtToken(jwtToken,"Bearer","3600000"));
+        LoginResponse loginResponse = new LoginResponse(true, 200, "토큰값을 성공적으로 반환하였습니다.", new LoginResponse.JwtToken(jwtToken, "Bearer", "3600000"));
 
         // 4. 클라이언트에 JWT 반환
         return ResponseEntity.ok(loginResponse);
     }
+
     // 엑세스 토큰으로 카카오 서버에서 고유 id를 받아오는 함수
     private String getKakaoId(String accessToken) {
         try {
@@ -74,6 +75,7 @@ public class LoginController {
             throw new RuntimeException("카카오에서 고유 id를 얻어오는데 실패하였습니다.", e);
         }
     }
+
     @GetMapping("/api/test/oauth/kakao")
     @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
     public ResponseEntity<LoginResponse> testKakaoCallback() {
@@ -83,12 +85,16 @@ public class LoginController {
                     User newUser = new User("testKakaoId", "테스트 사용자", "kakao", "ACTIVE", LocalDateTime.now());
                     return userRepository.save(newUser);
                 });
-
         // 2. JWT 생성
         String jwtToken = jwtTokenProvider.createToken(user.getUserId());
         LoginResponse loginResponse = new LoginResponse(true, 200, "테스트 토큰을 성공적으로 반환하였습니다.", new LoginResponse.JwtToken(jwtToken, "Bearer", "36000000"));
 
-        // 3. 클라이언트에 JWT 반환
-        return ResponseEntity.ok(loginResponse);
+        // 3. 헤더에 Bearer 토큰을 담아서 클라이언트에 반환
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken);
+
+        return ResponseEntity.ok()
+                .headers(headers)  // Bearer 토큰을 헤더에 추가
+                .body(loginResponse);  // LoginResponse는 응답 본문에 추가
     }
 }
