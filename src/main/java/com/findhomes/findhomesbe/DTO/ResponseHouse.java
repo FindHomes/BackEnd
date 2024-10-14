@@ -10,6 +10,7 @@ import java.util.List;
 
 @Data
 public class ResponseHouse {
+    private Integer ranking;
     private Integer houseId; // Not NULL / 숫자8개
     private String url; // Not NULL / url
     private String priceType; // Not NULL / 매매/전세/월세
@@ -34,6 +35,7 @@ public class ResponseHouse {
     private boolean isFavorite;
 
     public ResponseHouse(House house, Boolean isFavorite) {
+        this.ranking = house.getRanking();
         this.houseId = house.getHouseId();
         this.url = house.getUrl();
         this.priceType = house.getPriceType();
