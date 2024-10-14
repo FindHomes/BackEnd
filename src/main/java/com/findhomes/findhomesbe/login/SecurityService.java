@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.login;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.exception.exception.UnauthorizedException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -66,11 +67,12 @@ public class SecurityService {
     }
 
     public HttpSession getNewSession(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session != null) {
-            session.invalidate();
+
+        try {
+            return httpRequest.getSession(true);
+        } catch (ExpiredJwtException e) {
+            throw new UnauthorizedException("jwt 토큰이 만료되었습니다.", e);
         }
-        return httpRequest.getSession(true);
     }
 
     public void addSessionIdOnCookie(String sessionId, HttpServletResponse response) {

@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.IndustriesAndWeight;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.industry.Industry;
+import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,13 @@ public class HouseWithConditionService {
             return null;
         }
         return new HouseWithCondition(house, districtAndCity[0], districtAndCity[1]);
+    }
+
+    public HouseWithCondition findByHouseId(List<HouseWithCondition> houseWithConditions, int houseId) {
+        return houseWithConditions.stream()
+                .filter(hwc -> hwc.getHouse().getHouseId().equals(houseId))
+                .findFirst()
+                .orElseThrow(() -> new DataNotFoundException("해당 매물이 추천 결과에 없습니다."));
     }
 
     // 점수 계산
