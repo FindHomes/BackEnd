@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class RecentlyViewedHouse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer recentlyViewHouseId;
+    private Integer recentlyViewedHouseId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
