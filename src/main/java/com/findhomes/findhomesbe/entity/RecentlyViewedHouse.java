@@ -33,6 +33,7 @@ public class RecentlyViewedHouse {
     public RecentlyViewedHouse(User user, House house) {
         this.user = user;
         this.house = house;
+        this.viewAt = LocalDateTime.now();
     }
 
     public void updateViewedAt() {
