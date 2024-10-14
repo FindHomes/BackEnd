@@ -30,12 +30,14 @@ public class SearchLogService {
         User user = userService.getUser(userId);
         SearchLog searchLog = new SearchLog(conditions, "ACTIVE", LocalDateTime.now(), user);
         searchLogRepository.save(searchLog);
+        log.info("검색 기록 저장 완료. userId: {}", userId);
     }
 
     // 검색 기록 삭제
     @Transactional
     public void deleteSearchLog(int searchLogId) {
         searchLogRepository.deleteById(searchLogId);
+        log.info("검색 기록 삭제 완료. searchLogId: {}", searchLogId);
     }
 
     // 검색 기록 목록 가져오기

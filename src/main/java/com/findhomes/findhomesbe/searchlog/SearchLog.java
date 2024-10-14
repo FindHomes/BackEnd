@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "search_logs_tbl")
 public class SearchLog {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer searchLogId;
     @Column(columnDefinition = "json")
     private String searchCondition;

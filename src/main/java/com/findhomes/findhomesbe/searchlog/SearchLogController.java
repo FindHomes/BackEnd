@@ -1,21 +1,19 @@
 package com.findhomes.findhomesbe.searchlog;
 
-import com.findhomes.findhomesbe.DTO.HouseDetailSearchResponse;
 import com.findhomes.findhomesbe.DTO.Response;
 import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
 import com.findhomes.findhomesbe.login.SecurityService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.findhomes.findhomesbe.controller.MainController.ALL_CONDITIONS;
+import static com.findhomes.findhomesbe.controller.MainController.HOUSE_RESULTS_KEY;
 
 @RestController
 @RequiredArgsConstructor
@@ -93,7 +92,13 @@ public class SearchLogController {
         SearchLog searchLog = searchLogService.getSearchLog(searchLogId);
         AllConditions allConditions = searchLog.toAllConditions();
 
+        // 결과
         List<HouseWithCondition> result = conditionService.exec2(allConditions, userId);
+
+        // statistics api를 위해 세션에 저장
+        HttpSession session = securityService.getSession(httpRequest);
+        session.setAttribute(HOUSE_RESULTS_KEY, result);
+        session.setAttribute(ALL_CONDITIONS, allConditions);
 
         return new ResponseEntity<>(new SearchResponse(result, true, 200, "응답 . 성공"), HttpStatus.OK);
     }
