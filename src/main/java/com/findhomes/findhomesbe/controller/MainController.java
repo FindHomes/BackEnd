@@ -65,6 +65,8 @@ public class MainController {
             HttpServletResponse response
     ) {
         HttpSession session = securityService.getNewSession(httpRequest);
+        session.setAttribute(MAN_CON_KEY, request);
+
         String sessionId = session.getId();
         securityService.addSessionIdOnCookie(sessionId, response);
 
