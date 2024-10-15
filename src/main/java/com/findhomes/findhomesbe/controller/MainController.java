@@ -204,7 +204,7 @@ public class MainController {
 
     // 찜하기 API
     @PostMapping("/api/houses/{houseId}/favorite")
-    @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다.")
+    @Operation(summary = "찜하기", description = "찜하기 버튼을 눌러 찜을 등록하거나 해제합니다. action 파라미터로는 add 또는 remove 값으로 찜 등록 및 해제를 구분합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "찜하기 처리 완료"), @ApiResponse(responseCode = "404", description = "입력 id에 해당하는 매물이 없습니다")})
     public ResponseEntity<HouseDetailResponse> manageFavoriteOnHouse(HttpServletRequest httpRequest, @PathVariable int houseId, @RequestParam("action") String action) {
         String userId = securityService.getUserId(httpRequest);
