@@ -10,15 +10,16 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.logging.Logger;
 
 @Component
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
-    private long validityInMilliseconds = Long.MAX_VALUE; // 무제한으로 초기화
+    private long validityInMilliseconds = 864000000; // 10일로 설정
 
     private Key key;
-
+    Logger logger;
     @PostConstruct
     protected void init() {
         // HMAC SHA256 서명을 위한 비밀 키 생성
@@ -59,6 +60,7 @@ public class JwtTokenProvider {
         catch (IllegalArgumentException e) {
             throw new UnauthorizedException("JWT 토큰이 비어있거나 잘못되었습니다.");
         }catch (Exception e){
+            logger.info(e.getMessage());
             throw new UnauthorizedException("userId를 가져오는데 오류가 발생하였습니다.");
         }
     }
