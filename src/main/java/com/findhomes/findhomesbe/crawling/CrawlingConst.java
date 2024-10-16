@@ -25,7 +25,7 @@ public abstract class CrawlingConst {
     public static final String basicInfoNameSelector = ".jJKkgc";
     public static final String basicInfoValueSelector = ".iMduqg";
     public static final String optionSelector = ".fZeaKW";
-    public static final String addressSelector = ".hBlCFR";
+    public static final String addressSelector = ".hBlCFR p";
 
     public static List<String> oneTwoUrls = new ArrayList<>();
     public static List<String> aptUrls = new ArrayList<>();

@@ -133,6 +133,7 @@ public class MainController {
             HttpServletRequest httpRequest,
             @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
     ) {
+        System.out.println(manConRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -149,7 +150,12 @@ public class MainController {
         log.info("\n[키워드]\n{}", keywords);
 
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
+//        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
+        // TODO: gpt 아낄라고 임시로 이렇게 해놓음 수정해야됨.
+        String gptResponse = "공기가 맑은 곳@방향-북\n" +
+                "공기가 맑은 곳@CCTV,공기가 맑은 곳@경비원,공기가 맑은 곳@현관보안\n" +
+                "공기가 맑은 곳@병원_all-5\n" +
+                "공기가 맑은 곳@감염병율-5\n";
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         String userId = securityService.getUserId(httpRequest);
