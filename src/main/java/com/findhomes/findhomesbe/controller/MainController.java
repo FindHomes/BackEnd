@@ -133,6 +133,7 @@ public class MainController {
             HttpServletRequest httpRequest,
             @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
     ) {
+        System.out.println(manConRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
@@ -143,13 +144,20 @@ public class MainController {
             conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
         }
         // 대화에서 키워드 추출 하기
-        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
-        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
-        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();
-        log.info("\n[키워드]\n{}", keywords);
+        // TODO: gpt 아낄라고 임시로 이렇게 해놓음 수정해야됨.
+//        String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
+//        String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
+//        List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();
+//        log.info("\n[키워드]\n{}", keywords);
+        List<String> keywords = List.of("공기가 맑은 곳", "안전한 곳");
 
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
+//        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
+        // TODO: gpt 아낄라고 임시로 이렇게 해놓음 수정해야됨.
+        String gptResponse = "공기가 맑은 곳@방향-북\n" +
+                "공기가 맑은 곳@CCTV,공기가 맑은 곳@경비원,공기가 맑은 곳@현관보안\n" +
+                "공기가 맑은 곳@병원_all-5\n" +
+                "공기가 맑은 곳@감염병율-5,안전한 곳@범죄율-8\n";
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         String userId = securityService.getUserId(httpRequest);

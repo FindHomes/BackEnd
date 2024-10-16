@@ -10,9 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,5 +111,23 @@ public class HouseWithConditionService {
     // 정렬
     public void sort(List<HouseWithCondition> houseWithConditions) {
         houseWithConditions.sort(Comparator.comparing(HouseWithCondition::getScore).reversed());
+    }
+
+    // 같은 주소지의 매물을 가장 높은 순위의 것만 남기고 제거
+    public List<HouseWithCondition> deleteDuplicates(List<HouseWithCondition> houseWithConditions, int max) {
+        Set<String> addressSet = new HashSet<>();
+        List<HouseWithCondition> result = new ArrayList<>();
+        int count = 0;
+        for (HouseWithCondition houseWithCondition : houseWithConditions) {
+            if (addressSet.add(houseWithCondition.getHouse().getAddress().split(",")[0])) {
+                count++;
+                result.add(houseWithCondition);
+                if (count >= max) {
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
 }

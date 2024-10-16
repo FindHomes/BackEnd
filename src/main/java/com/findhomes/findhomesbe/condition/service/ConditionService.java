@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 import static com.findhomes.findhomesbe.controller.MainController.ALL_CONDITIONS;
 
@@ -72,35 +72,40 @@ public class ConditionService {
 
         // TODO: 점수가 같을 경우 다른 기준으로 어떻게든 정렬해야 함.
         // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
-        houseWithConditionService.sort(houseWithConditions);
-        log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");
+        PerformanceUtil.measurePerformance(
+                () -> houseWithConditionService.sort(houseWithConditions),
+                "5. 정렬"
+        );
 
-        // 6. 100개로 sublist 및 ranking 입력
-        double preScore = -1;
-        int preRanking = 0;
-        for (int i = 0; i < Math.min(100, houseWithConditions.size()); i++) {
-            HouseWithCondition houseWithCondition = houseWithConditions.get(i);
-            double curScore = houseWithCondition.getHouse().getScore();
-            if (curScore == preScore) {
-                houseWithCondition.getHouse().setRanking(preRanking);
-            } else {
-                preRanking++;
-                houseWithCondition.getHouse().setRanking(preRanking);
-            }
-            preScore = curScore;
-        }
-        for (int i = 0; i < Math.min(100, houseWithConditions.size()); i++) {
-            houseWithConditions.get(i).getHouse().setRanking(i + 1);
-        }
+        // 6. 같은 주소지의 매물을 가장 높은 순위의 것만 남기고 제거
+        List<HouseWithCondition> result = PerformanceUtil.measurePerformance(
+                () -> houseWithConditionService.deleteDuplicates(houseWithConditions, 100),
+                "6. 같은 주소지의 매물을 가장 높은 순위의 것만 남기고 제거"
+        );
 
-        // 7. 즐겨찾기 처리
-        for (HouseWithCondition houseWithCondition : houseWithConditions) {
-            boolean isFavorite = favoriteHouseService.isFavoriteHouse(userId, houseWithCondition.getHouse().getHouseId());
-            houseWithCondition.setFavorite(isFavorite);
-        }
+        // 7. 100개로 sublist 및 ranking 입력
+        PerformanceUtil.measurePerformance(
+                () -> {
+                    for (int i = 0; i < result.size(); i++) {
+                        result.get(i).getHouse().setRanking(i + 1);
+                    }
+                },
+                "7. 100개로 sublist 및 ranking 입력"
+        );
+
+        // 8. 즐겨찾기 처리
+        PerformanceUtil.measurePerformance(
+                () -> {
+                    for (HouseWithCondition houseWithCondition : result) {
+                        boolean isFavorite = favoriteHouseService.isFavoriteHouse(userId, houseWithCondition.getHouse().getHouseId());
+                        houseWithCondition.setFavorite(isFavorite);
+                    }
+                },
+                "8. 즐겨찾기 처리"
+        );
 
         // 반환
-        return houseWithConditions.subList(0, Math.min(100, houseWithConditions.size()));
+        return result;
     }
 
     // 보유 데이터를 문장으로 반환
