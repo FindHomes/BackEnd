@@ -15,7 +15,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
-    private long validityInMilliseconds = 36000000; // 10 hour in milliseconds
+    private long validityInMilliseconds = Long.MAX_VALUE; // 무제한으로 초기화
 
     private Key key;
 
