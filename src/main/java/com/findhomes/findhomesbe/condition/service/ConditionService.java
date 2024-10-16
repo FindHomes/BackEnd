@@ -70,6 +70,7 @@ public class ConditionService {
                 "4. 점수 계산"
         );
 
+        // TODO: 점수가 같을 경우 다른 기준으로 어떻게든 정렬해야 함.
         // 5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬
         houseWithConditionService.sort(houseWithConditions);
         log.info("5. 정렬 - houseWithConditions를 house의 score를 기준으로 내림차순으로 정렬 완료");

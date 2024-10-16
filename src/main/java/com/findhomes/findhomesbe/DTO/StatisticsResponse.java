@@ -54,8 +54,11 @@ public class StatisticsResponse {
                     for (HouseWithCondition.FacilityInfo facilityInfo : houseWithCondition.getFacilityInfoList()) {
                         if (facilityInfo.getFacilityConditionData().equals(facilityConditionData)) {
                             House house = houseWithCondition.getHouse();
+                            List<KeywordInfo.Value> values = new ArrayList<>();
+                            values.add(new KeywordInfo.Value("개수", facilityInfo.getCount().doubleValue()));
+                            values.add(new KeywordInfo.Value("평균 거리(km)", Math.round(facilityInfo.getDistanceSum() * 100 / facilityInfo.getCount()) / 100d));
                             KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(
-                                    house.getHouseId(), house.getRanking(), "개수: " + facilityInfo.getCount().toString() + "개 / 평균 거리: " + Math.round(facilityInfo.getDistanceSum() * 100 / facilityInfo.getCount()) / 100d + "km");
+                                    house.getHouseId(), house.getRanking(), values);
                             dataAndInfo.getHouseAndValues().add(houseAndValue);
                         }
                     }
@@ -74,7 +77,9 @@ public class StatisticsResponse {
                     for (HouseWithCondition.SafetyGradeInfo safetyGradeInfo : houseWithCondition.getSafetyGradeInfoList()) {
                         if (safetyGradeInfo.getKeyword().equals(keyword) && safetyGradeInfo.getPublicData().equals(publicConditionData.getPublicDataEnum())) {
                             House house = houseWithCondition.getHouse();
-                            KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(house.getHouseId(), house.getRanking(), safetyGradeInfo.getGrade().toString());
+                            List<KeywordInfo.Value> values = new ArrayList<>();
+                            values.add(new KeywordInfo.Value("등급", safetyGradeInfo.getGrade().doubleValue()));
+                            KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(house.getHouseId(), house.getRanking(), values);
                             dataAndInfo.getHouseAndValues().add(houseAndValue);
                         }
                     }
@@ -106,7 +111,7 @@ public class StatisticsResponse {
         public static class HouseAndValue {
             private Integer houseId;
             private Integer ranking;
-            private String value;
+            private List<Value> values;
         }
 
         @Data
@@ -117,6 +122,13 @@ public class StatisticsResponse {
 
             private String dataName;
             private List<HouseAndValue> houseAndValues = new ArrayList<>();
+        }
+
+        @Data
+        @AllArgsConstructor
+        public static class Value {
+            private String name;
+            private Double value;
         }
 
     }
