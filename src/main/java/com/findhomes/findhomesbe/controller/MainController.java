@@ -194,21 +194,21 @@ public class MainController {
     @GetMapping("/api/houses/recently-viewed")
     @Operation(summary = "최근 본 매물", description = "사용자가 최근에 본 매물을 최신순으로 반환합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 최근 본 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")})
-    public ResponseEntity<List<House>> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
+    public ResponseEntity<Response> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<House> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId);
-        return new ResponseEntity<>(recentlyViewedHouses, HttpStatus.OK);
+        List<ResponseHouse> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());;
+        return new ResponseEntity<>(new Response(true, 200,"최근 본 매물을 불러오는데 성공하였습니다",recentlyViewedHouses), HttpStatus.OK);
     }
 
     // 찜한 방 매물 조회 API
     @GetMapping("/api/houses/favorite")
     @Operation(summary = "찜한 방 ", description = "사용자가 찜한 매물을 반환합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")})
-    public ResponseEntity<List<ResponseHouse>> getfavoriteHouses(HttpServletRequest httpRequest) {
+    public ResponseEntity<Response> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
         List<ResponseHouse> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());
 
-        return new ResponseEntity<>(favoriteHouses, HttpStatus.OK);
+        return new ResponseEntity<>(new Response(true, 200,"찜한 매물을 불러오는데 성공하였습니다",favoriteHouses), HttpStatus.OK);
     }
 
     // 찜하기 API
