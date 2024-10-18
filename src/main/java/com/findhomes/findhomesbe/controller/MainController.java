@@ -204,9 +204,10 @@ public class MainController {
     @GetMapping("/api/houses/favorite")
     @Operation(summary = "찜한 방 ", description = "사용자가 찜한 매물을 반환합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")})
-    public ResponseEntity<List<House>> getfavoriteHouses(HttpServletRequest httpRequest) {
+    public ResponseEntity<List<ResponseHouse>> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<House> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId);
+        List<ResponseHouse> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());
+
         return new ResponseEntity<>(favoriteHouses, HttpStatus.OK);
     }
 
