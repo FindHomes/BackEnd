@@ -12,6 +12,7 @@ import com.findhomes.findhomesbe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -28,11 +29,7 @@ public class FavoriteHouseService {
 
     public List<House> getFavoriteHouses(String userId) {
         User user = userService.getUser(userId);
-        // 최근 본 매물 리스트가 비어 있으면 예외 발생
         List<FavoriteHouse> favoriteHouseList = user.getFavoriteHouseList();
-        if (favoriteHouseList.isEmpty()) {
-            throw new DataNotFoundException("찜한 방 이 존재하지 않습니다");
-        }
         // 최근에 찜한 순으로 정렬하여 House 리스트로 변환
         return favoriteHouseList.stream().sorted(Comparator.comparing(FavoriteHouse::getCreatedAt).reversed()).map(FavoriteHouse::getHouse)  // House 객체로 변환
                 .collect(Collectors.toList());

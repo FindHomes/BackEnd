@@ -197,6 +197,10 @@ public class MainController {
     public ResponseEntity<Response> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
         List<ResponseHouse> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());;
+        // 최근 본 매물이 없는 경우, 빈 리스트 반환
+        if (recentlyViewedHouses.isEmpty()) {
+            return new ResponseEntity<>(new Response(true, 200, "최근 본 매물이 없습니다", Collections.emptyList()), HttpStatus.OK);
+        }
         return new ResponseEntity<>(new Response(true, 200,"최근 본 매물을 불러오는데 성공하였습니다",recentlyViewedHouses), HttpStatus.OK);
     }
 
@@ -207,7 +211,10 @@ public class MainController {
     public ResponseEntity<Response> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
         List<ResponseHouse> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());
-
+        // 찜한 방이 없는 경우, 빈 리스트 반환
+        if (favoriteHouses.isEmpty()) {
+            return new ResponseEntity<>(new Response(true, 200, "찜한 방이 없습니다", Collections.emptyList()), HttpStatus.OK);
+        }
         return new ResponseEntity<>(new Response(true, 200,"찜한 매물을 불러오는데 성공하였습니다",favoriteHouses), HttpStatus.OK);
     }
 
