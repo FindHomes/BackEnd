@@ -129,6 +129,9 @@ public class HouseService {
         return house;
     }
 
+    public boolean isHouseExist(int houseId) {
+        return houseRepository.existsById(houseId);
+    }
 
 
 

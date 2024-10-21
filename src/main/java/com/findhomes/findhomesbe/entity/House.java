@@ -117,11 +117,16 @@ public class House {
                 ", washroomNum=" + washroomNum +
                 ", direction='" + direction + '\'' +
                 ", completionDate=" + completionDate +
-                ", option='" + houseOption + '\'' +
+                ", houseOption='" + houseOption + '\'' +
                 ", address='" + address + '\'' +
                 ", longitude=" + longitude +
                 ", latitude=" + latitude +
-                ", score=" + score +
+                ", imgUrl='" + imgUrl + '\'' +
+                ", coordinate=" + coordinate +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", status='" + status + '\'' +
+                ", checkedAt=" + checkedAt +
                 '}';
     }
 }

@@ -58,9 +58,11 @@ public class Crawling {
         }
         options.setAcceptInsecureCerts(true);
         options.addArguments("--ignore-certificate-errors");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("disable-gpu"); // GPU 비활성화 (일부 환경에서 필요)
+        options.addArguments("no-sandbox"); // 샌드박스 비활성화
         options.addArguments("--disable-dev-shm-usage"); // /dev/shm 메모리 사용 비활성화
-        options.addArguments("--disable-gpu"); // GPU 비활성화
-        options.addArguments("--no-sandbox"); // 샌드박스 모드 비활성화
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36");
         if (!isShowing) {
             options.addArguments("--headless");
         }

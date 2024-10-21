@@ -59,6 +59,9 @@ dependencies {
 
     // JTS (Java Topology Suite) 의존성
     implementation 'org.locationtech.jts:jts-core:1.18.2'
+
+    // GeoLatte 라이브러리
+    implementation 'org.geolatte:geolatte-geom:1.8.2'
 }
 
 tasks.named('test') {

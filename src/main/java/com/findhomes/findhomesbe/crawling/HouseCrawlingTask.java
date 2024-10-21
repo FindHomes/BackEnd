@@ -1,14 +1,19 @@
 package com.findhomes.findhomesbe.crawling;
 
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
+import org.geolatte.geom.crs.CoordinateReferenceSystems;
 import org.openqa.selenium.*;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,35 +39,54 @@ import static com.findhomes.findhomesbe.crawling.CrawlingConst.*;
 public class HouseCrawlingTask {
     private final HouseService houseService;
 
+    private Crawling oneTwoCrawling;
+    private Crawling aptCrawling;
+    private Crawling houseCrawling;
+    private Crawling officeCrawling;
+
     public void exec() throws InterruptedException {
         // CompletableFuture로 비동기 병렬처리
         CompletableFuture.allOf(
-                runAsync(shuffledOneTwoUrls),
-                runAsync(shuffledAptUrls),
-                runAsync(shuffledHouseUrls),
-                runAsync(shuffledOfficeUrls)
+                runAsync(shuffledOneTwoUrls, oneTwoCrawling),
+                runAsync(shuffledAptUrls, aptCrawling),
+                runAsync(shuffledHouseUrls, houseCrawling),
+                runAsync(shuffledOfficeUrls, officeCrawling)
         ).join(); // 모든 비동기 작업이 종료될 때까지 부모 대기
     }
 
-    private CompletableFuture<Void> runAsync(Supplier<List<String>> supplier) {
+    @PreDestroy
+    public void closeChrome() {
+        oneTwoCrawling.quitDriver();
+        aptCrawling.quitDriver();
+        houseCrawling.quitDriver();
+        officeCrawling.quitDriver();
+    }
+
+    private CompletableFuture<Void> runAsync(Supplier<List<String>> supplier, Crawling crawling) {
         List<String> urls = supplier.get();
         return CompletableFuture.runAsync(() -> {
             try {
-                execOne(supplier.get());
+                execOne(supplier.get(), crawling);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         });
     }
 
-    private void execOne(List<String> urls) throws InterruptedException {
+    private void execOne(List<String> urls, Crawling mainCrawling) throws InterruptedException {
         Integer count = 0;
-        Crawling mainCrawling = new Crawling()
-                .setDriver(true, true)
+        mainCrawling = new Crawling()
+                .setDriver(false, true)
                 .setWaitTime(MAX_WAIT_TIME);
         mainCrawling.getDriver().manage().window().maximize();
         for (int i = 0; i < urls.size(); i++) {
             try {
+                if (i != 0 && i % 5 == 0) {
+                    mainCrawling.quitDriver();
+                    mainCrawling = new Crawling()
+                            .setDriver(false, true)
+                            .setWaitTime(MAX_WAIT_TIME);
+                }
                 String url = urls.get(i);
                 log.info("[[{} thread - {} index start]]", Thread.currentThread().threadId(), i);
                 mainCrawling.openUrlNewTab(url);
@@ -310,13 +335,9 @@ public class HouseCrawlingTask {
             el = null;
         }
 
-        // img url
-//        WebElement firstImgElement = curCrawling.getElementByCssSelector(".styled__Photo-sc-173484h-2");
-//        if (firstImgElement != null) {
-//
-//        }
-
         //
+        double longitude = Double.parseDouble(curCoordinate.split("/")[0]);
+        double latitude = Double.parseDouble(curCoordinate.split("/")[1]);
         House house = new House(
                 houseId,
                 curUrl,
@@ -335,20 +356,30 @@ public class HouseCrawlingTask {
                 completionDate,
                 option.toString(),
                 curAddress,
-                Double.parseDouble(curCoordinate.split("/")[0]),
-                Double.parseDouble(curCoordinate.split("/")[1]),
+                longitude,
+                latitude,
                 String.join("@@@", imgUrls)
         );
+
+        House dbHouse = null;
+        try {
+            dbHouse = houseService.getHouse(houseId);
+        } catch (DataNotFoundException ignored) {
+
+        }
+        if (dbHouse == null || dbHouse.getCreatedAt() == null) {
+            house.setCreatedAt(LocalDateTime.now());
+        } else {
+            house.setUpdatedAt(LocalDateTime.now());
+        }
+        house.setCheckedAt(LocalDateTime.now());
+        Point<G2D> point = new Point<>(new G2D(longitude, latitude), CoordinateReferenceSystems.WGS84);
+        house.setCoordinate(point);  // 좌표 저장
+
         houseService.saveHouse(house);
+//        System.out.println(house);
 
         count++;
-
-        if (count % 500 == 0) {
-            log.info("[[{} thread - {} count crawling complete]]", Thread.currentThread().threadId(), count);
-        }
-//        System.out.println(++count);
-//        System.out.println(house);
-//        results.add(house);
     }
 
     public static int convertToNumber(String text) {

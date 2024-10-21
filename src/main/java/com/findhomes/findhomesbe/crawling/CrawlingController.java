@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.crawling.statusupdate.HouseStatusUpdate;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.crawling.HouseCrawlingTask;
 import com.findhomes.findhomesbe.repository.HouseRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,12 @@ public class CrawlingController {
     private final HouseCrawlingTask houseCrawlingTask;
     private final IndustryCrawlingTask industryCrawlingTask;
     private final HouseRepository houseRepository;
+
+//    // 애플리케이션 시작 후 자동으로 실행되는 메서드
+//    @PostConstruct
+//    public void init() throws InterruptedException {
+//        houseCrawlingTask.exec(); // 크롤링 작업 자동 실행
+//    }
 
     @GetMapping("/api/crawling")
     public ResponseEntity<Void> crawlingHouse(
