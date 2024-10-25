@@ -34,6 +34,17 @@ public class AllConditions {
     // 사용자 요청 위치 조건
     private List<UserRequestLocationData> userRequestLocationDataList = new ArrayList<>();
 
+    public int getWeightSum() {
+        int weight = 0;
+        for (FacilityConditionData facilityConditionData : facilityConditionDataList) {
+            weight += facilityConditionData.getWeight();
+        }
+        for (PublicConditionData publicConditionData : publicConditionDataList) {
+            weight += publicConditionData.getWeight();
+        }
+        return weight;
+    }
+
     public interface KeywordContains {
         String getKeyword();
     }

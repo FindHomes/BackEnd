@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.service.HouseService;
+import com.findhomes.findhomesbe.service.PerformanceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,47 +45,73 @@ public class HouseWithConditionService {
     }
 
     // 점수 계산
-    public void calculate(List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
+    public void calculate(int weightSum, List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
         // 공공 데이터 점수 계산
-        calculatePublicDataScore(houseWithConditions);
+        PerformanceUtil.measurePerformance(
+                () -> calculatePublicDataScore(weightSum, houseWithConditions),
+                "4.1 공공 데이터 점수 계산"
+        );
 
         // 시설 데이터 점수 계산
-        calculateFacilityDataScore(houseWithConditions, industriesAndWeights);
+        PerformanceUtil.measurePerformance(
+                () -> calculateFacilityDataScore(weightSum, houseWithConditions, industriesAndWeights),
+                "4.1 공공 데이터 점수 계산"
+        );
     }
 
-    private void calculatePublicDataScore(List<HouseWithCondition> houseWithConditions) {
+    private void calculatePublicDataScore(int weightSum, List<HouseWithCondition> houseWithConditions) {
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
             for (HouseWithCondition.SafetyGradeInfo safetyGradeInfo : houseWithCondition.getSafetyGradeInfoList()) {
-                double score = safetyGradeInfo.getPublicData().calculateScore(safetyGradeInfo.getGrade(), safetyGradeInfo.getWeight());
+                double score = safetyGradeInfo.getPublicData().calculateScore(safetyGradeInfo.getGrade(), safetyGradeInfo.getWeight() / (weightSum * 1d));
                 houseWithCondition.getHouse().addScore(score);
                 houseWithCondition.getHouse().addPublicDataScore(score);
             }
         }
     }
 
-    private void calculateFacilityDataScore(List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
-        houseWithConditions.parallelStream()
-                .forEach(houseWithCondition -> industriesAndWeights.parallelStream()
-                        .forEach(industriesAndWeight -> {
-                            HouseWithCondition.FacilityInfo newFacilityInfo
-                                    = new HouseWithCondition.FacilityInfo(industriesAndWeight.getFacilityConditionData(), 0, 0d);
-                            Integer weight = industriesAndWeight.getWeight();
-                            industriesAndWeight.getIndustries().parallelStream()
-                                    .forEach(industry -> {
-                                        House house = houseWithCondition.getHouse();
-                                        // 집과 해당 시설 간의 거리 계산
-                                        double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
-                                        if (distance <= industriesAndWeight.getMaxRadius()) {
-                                            newFacilityInfo.addCount();
-                                            newFacilityInfo.addDistance(distance);
-                                            // 매물 하나하나에 대해 다 더하면 너무 많아서 학습률 0.1을 곱함 ㅋㅋ
-                                            double score = (industriesAndWeight.getMaxRadius() - distance) * weight * 0.005;
-                                            house.addScore(score);
-                                            house.addFacilityDataScore(score);
-                                        }
-                                    });
-                            houseWithCondition.getFacilityInfoList().add(newFacilityInfo);
-                        }));
+    private void calculateFacilityDataScore(int weightSum, List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
+        industriesAndWeights.parallelStream()
+                .forEach(industriesAndWeight -> {
+                    Integer weight = industriesAndWeight.getWeight();
+                    double industryMaxScore = 100.0 * weight / weightSum; // 해당 industry의 최대 점수 비율
+
+                    // industriesAndWeight에 포함된 industries에 대해 각 houseWithCondition의 점수를 계산
+                    houseWithConditions.parallelStream()
+                            .forEach(houseWithCondition -> {
+                                House house = houseWithCondition.getHouse();
+                                HouseWithCondition.FacilityInfo newFacilityInfo
+                                        = new HouseWithCondition.FacilityInfo(industriesAndWeight.getFacilityConditionData(), 0, 0d);
+                                double facilityDataScore = 0;
+
+                                // industry 점수 계산 및 합산
+                                for (Industry industry : industriesAndWeight.getIndustries()) {
+                                    double distance = calculateDistance(house.getLatitude(), house.getLongitude(), industry.getLatitude(), industry.getLongitude());
+
+                                    if (distance <= industriesAndWeight.getMaxRadius()) {
+                                        newFacilityInfo.addCount();
+                                        newFacilityInfo.addDistance(distance);
+                                        facilityDataScore += (industriesAndWeight.getMaxRadius() - distance) * weight;
+                                    }
+                                }
+
+                                // 합산된 점수를 해당 집의 facilityDataScore로 설정
+                                house.setFacilityDataScore(facilityDataScore);
+                                houseWithCondition.getFacilityInfoList().add(newFacilityInfo);
+                            });
+
+                    // 해당 industriesAndWeight에 대해 모든 houseWithCondition의 최대 facilityDataScore 찾기
+                    double maxFacilityDataScore = houseWithConditions.stream()
+                            .mapToDouble(houseWithCondition -> houseWithCondition.getHouse().getFacilityDataScore())
+                            .max()
+                            .orElse(1.0); // 최대값이 0이 되지 않도록 기본값 설정
+
+                    // 정규화하여 각 house의 최종 점수에 추가
+                    houseWithConditions.parallelStream().forEach(houseWithCondition -> {
+                        House house = houseWithCondition.getHouse();
+                        double normalizedScore = (house.getFacilityDataScore() / maxFacilityDataScore) * industryMaxScore;
+                        house.addScore(normalizedScore);
+                    });
+                });
     }
 
     public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

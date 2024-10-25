@@ -11,21 +11,21 @@ import java.util.stream.Collectors;
 @Getter
 public enum PublicData {
     // gpt한테 제공할 이름 & 테이블에서의 필드명
-    교통사고율((grade, weight) -> (2.5d - grade) * weight),
-    화재율((grade, weight) -> (2.5d - grade) * weight),
-    범죄율((grade, weight) -> (2.5d - grade) * weight),
-    생활안전((grade, weight) -> (2.5d - grade) * weight),
-    자살율((grade, weight) -> (2.5d - grade) * weight),
-    감염병율((grade, weight) -> (2.5d - grade) * weight);
+    교통사고율((grade, ratio) -> (5d - grade) * 25 * ratio),
+    화재율((grade, ratio) -> (5d - grade) * 25 * ratio),
+    범죄율((grade, ratio) -> (5d - grade) * 25 * ratio),
+    생활안전((grade, ratio) -> (5d - grade) * 25 * ratio),
+    자살율((grade, ratio) -> (5d - grade) * 25 * ratio),
+    감염병율((grade, ratio) -> (5d - grade) * 25 * ratio);
 
-    private final BiFunction<Integer, Integer, Double> scoreFunction;
+    private final BiFunction<Integer, Double, Double> scoreFunction;
 
-    PublicData(BiFunction<Integer, Integer, Double> scoreFunction) {
+    PublicData(BiFunction<Integer, Double, Double> scoreFunction) {
         this.scoreFunction = scoreFunction;
     }
 
-    public Double calculateScore(Integer grade, Integer weight) {
-        return scoreFunction.apply(grade, weight);
+    public Double calculateScore(Integer grade, Double ratio) {
+        return scoreFunction.apply(grade, ratio);
     }
 
     public static String getAllData() {

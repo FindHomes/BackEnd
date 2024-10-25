@@ -66,7 +66,7 @@ public class ConditionService {
 
         // 4. 점수 계산
         PerformanceUtil.measurePerformance(
-                () -> houseWithConditionService.calculate(houseWithConditions, industriesAndWeights),
+                () -> houseWithConditionService.calculate(allConditions.getWeightSum(), houseWithConditions, industriesAndWeights),
                 "4. 점수 계산"
         );
 
