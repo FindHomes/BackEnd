@@ -51,10 +51,10 @@ public class ManConRequest {
                 sb.append("만원");
             }
             if (ws != null && ws.deposit > 0 && ws.rent > 0) {
-                sb.append(" / 월세 보증금(deposit) 최대: ");
+                sb.append(" / 월세 보증금 최대: ");
                 sb.append(ws.deposit);
                 sb.append("만원");
-                sb.append(" & 월세(rent): ");
+                sb.append(" & 월세 최대: ");
                 sb.append(ws.rent);
                 sb.append("만원");
             }

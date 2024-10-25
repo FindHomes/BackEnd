@@ -146,7 +146,7 @@ public class HouseWithConditionService {
         List<HouseWithCondition> result = new ArrayList<>();
         int count = 0;
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
-            if (addressSet.add(houseWithCondition.getHouse().getAddress().split(",")[0])) {
+            if (addressSet.add(houseWithCondition.getHouse().getAddress().split(",")[0].trim())) {
                 count++;
                 result.add(houseWithCondition);
                 if (count >= max) {
