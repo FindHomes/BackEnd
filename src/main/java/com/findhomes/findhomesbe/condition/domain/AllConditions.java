@@ -34,7 +34,7 @@ public class AllConditions {
     // 사용자 요청 위치 조건
     private List<UserRequestLocationData> userRequestLocationDataList = new ArrayList<>();
 
-    public int getWeightSum() {
+    public int calculateWeightSum() {
         int weight = 0;
         for (FacilityConditionData facilityConditionData : facilityConditionDataList) {
             weight += facilityConditionData.getWeight();

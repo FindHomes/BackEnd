@@ -4,7 +4,6 @@ import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.service.FavoriteHouseService;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.PerformanceUtil;
@@ -66,7 +65,7 @@ public class ConditionService {
 
         // 4. 점수 계산
         PerformanceUtil.measurePerformance(
-                () -> houseWithConditionService.calculate(allConditions.getWeightSum(), houseWithConditions, industriesAndWeights),
+                () -> houseWithConditionService.calculate(allConditions.calculateWeightSum(), houseWithConditions, industriesAndWeights),
                 "4. 점수 계산"
         );
 

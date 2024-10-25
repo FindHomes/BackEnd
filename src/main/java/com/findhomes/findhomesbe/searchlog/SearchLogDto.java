@@ -10,5 +10,8 @@ import lombok.NoArgsConstructor;
 public class SearchLogDto {
     private Integer searchLogId;
     private String date;
-    private String condition;
+    private String keyword;
+    private String regionInfo;
+    private String typeInfo;
+    private String priceInfo;
 }

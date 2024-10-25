@@ -10,10 +10,19 @@ public class ManConRequest {
     private Prices prices;
     private Region region;
 
+    public String typeInfoToString() {
+        return String.join(", ", housingTypes);
+    }
+
     @Data
     public static class Region {
         private String district;
         private String city;
+
+        @Override
+        public String toString() {
+            return district + " " + city;
+        }
     }
 
     @Data
@@ -26,6 +35,30 @@ public class ManConRequest {
         public static class Ws {
             private int deposit;
             private int rent;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (mm > 0) {
+                sb.append("매매 가격 최대: ");
+                sb.append(mm);
+                sb.append("만원");
+            }
+            if (js > 0) {
+                sb.append(" / 전세 가격 최대: ");
+                sb.append(js);
+                sb.append("만원");
+            }
+            if (ws != null && ws.deposit > 0 && ws.rent > 0) {
+                sb.append(" / 월세 보증금(deposit) 최대: ");
+                sb.append(ws.deposit);
+                sb.append("만원");
+                sb.append(" & 월세(rent): ");
+                sb.append(ws.rent);
+                sb.append("만원");
+            }
+            return sb.toString();
         }
     }
 

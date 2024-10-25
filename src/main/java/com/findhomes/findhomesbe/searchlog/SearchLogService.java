@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ public class SearchLogService {
         User user = userService.getUser(userId);
         return user.getSearchLogList().stream()
                 .map(this::convertLogToDto)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -58,15 +60,21 @@ public class SearchLogService {
     }
 
     private SearchLogDto convertLogToDto(SearchLog searchLog) {
+        AllConditions allConditions = searchLog.toAllConditions();
+        if (allConditions == null)
+            return null;
+
         return new SearchLogDto(
                 searchLog.getSearchLogId(),
                 FindHomesUtils.calculateTimeAgo(searchLog.getCreatedAt()),
-                summarizeAllConditions(searchLog)
+                getKeywordsOfAllConditions(allConditions),
+                allConditions.getManConRequest().getRegion().toString(),
+                allConditions.getManConRequest().typeInfoToString(),
+                allConditions.getManConRequest().getPrices().toString()
         );
     }
 
-    private String summarizeAllConditions(SearchLog searchLog) {
-        AllConditions allConditions = searchLog.toAllConditions();
-        return allConditions.summarize();
+    private String getKeywordsOfAllConditions(AllConditions allConditions) {
+        return String.join(", ", allConditions.getKeywords());
     }
 }

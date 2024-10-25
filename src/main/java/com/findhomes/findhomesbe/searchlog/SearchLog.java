@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.searchlog;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.User;
 import jakarta.persistence.*;
@@ -38,6 +39,8 @@ public class SearchLog {
     // AllConditions 객체를 JSON 문자열로 변환
     public String getSearchConditionFromAllConditions(AllConditions conditions) {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule()); // Java 8 날짜/시간 모듈 등록
+
         try {
             return objectMapper.writeValueAsString(conditions);
         } catch (JsonProcessingException e) {
