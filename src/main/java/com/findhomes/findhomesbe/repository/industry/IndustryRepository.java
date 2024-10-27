@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface IndustryRepository<T extends Industry> {
 
-    List<T> findIndustryWithinBoundary(String districtName, String cityName);
+    List<T> findIndustryInRegion(String districtName, String cityName);
+    List<T> findIndustryInSpecialRegion(String districtName, String cityName);
+
     List<T> findByDetailName(@Param("detailName") String detailName);
 
 }

@@ -18,7 +18,13 @@ public interface HospitalIndustryRepository extends JpaRepository<HospitalIndust
     @Query("SELECT i FROM HospitalIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<HospitalIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<HospitalIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM HospitalIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<HospitalIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
 
     @Query("SELECT h FROM HospitalIndustry h WHERE " +
             "h.placeName LIKE %:keyword% OR " +

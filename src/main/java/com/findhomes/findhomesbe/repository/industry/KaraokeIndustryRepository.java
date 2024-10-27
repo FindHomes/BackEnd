@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.repository.industry;
 import com.findhomes.findhomesbe.entity.industry.BakeryIndustry;
 import com.findhomes.findhomesbe.entity.industry.BeautyIndustry;
 import com.findhomes.findhomesbe.entity.industry.KaraokeIndustry;
+import com.findhomes.findhomesbe.entity.industry.PharmacyIndustry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,5 +19,10 @@ public interface KaraokeIndustryRepository extends JpaRepository<KaraokeIndustry
     @Query("SELECT i FROM KaraokeIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<KaraokeIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<KaraokeIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM KaraokeIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<KaraokeIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

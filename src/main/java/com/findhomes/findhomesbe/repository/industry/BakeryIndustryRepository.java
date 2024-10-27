@@ -18,5 +18,10 @@ public interface BakeryIndustryRepository extends JpaRepository<BakeryIndustry,I
     @Query("SELECT i FROM BakeryIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BakeryIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BakeryIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM BakeryIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<BakeryIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

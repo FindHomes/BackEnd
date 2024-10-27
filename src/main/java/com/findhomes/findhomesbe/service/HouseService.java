@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.repository.HouseJdbcTemplateRepository;
+import com.findhomes.findhomesbe.house.SpecialRegion;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.repository.UserRepository;
@@ -22,9 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,8 +42,9 @@ public class HouseService {
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
 
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();
+
         // 방식 1
-        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
+//        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
         // 방식 2
 //        ManConRequest.Prices prices = allConditions.getManConRequest().getPrices();
 //        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE",
@@ -51,9 +53,17 @@ public class HouseService {
         // 방식 3
 //        List<House> houseList = houseJdbcTemplateRepository.searchHousesByAllCon(allConditions);
 
-        log.info("0.선호지역으로 필터링된 후 매물의 개수: " + houseList.size());
+        List<House> houses = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+//        List<House> houses = isSpecialRegion(region) ? houseRepository.findHouseWithSpecialRegion(region.getDistrict(), region.getCity(), "ACTIVE") : houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+        log.info("선호지역 반영한 매물 개수: "+houses.size());
+        return houses;
+    }
 
-        return houseList;
+    public boolean isSpecialRegion(ManConRequest.Region region) {
+        return Arrays.stream(SpecialRegion.values())
+                .map(Enum::name)
+                .toList()
+                .contains(region.getCity());
     }
 
     @Transactional
@@ -137,7 +147,6 @@ public class HouseService {
     public boolean isHouseExist(int houseId) {
         return houseRepository.existsById(houseId);
     }
-
 
 
 }

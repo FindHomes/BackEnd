@@ -18,5 +18,10 @@ public interface BathhouseIndustryRepository extends JpaRepository<BathhouseIndu
     @Query("SELECT i FROM BathhouseIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BathhouseIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BathhouseIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM BathhouseIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<BathhouseIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

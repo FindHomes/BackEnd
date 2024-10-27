@@ -1,5 +1,6 @@
 package com.findhomes.findhomesbe.repository.industry;
 
+import com.findhomes.findhomesbe.entity.industry.PharmacyIndustry;
 import com.findhomes.findhomesbe.entity.industry.RestaurantIndustry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -16,10 +17,14 @@ public interface RestaurantIndustryRepository extends JpaRepository<RestaurantIn
 
 //
     @Query("SELECT i FROM RestaurantIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<RestaurantIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM RestaurantIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<RestaurantIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
-
+    List<RestaurantIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
     List<RestaurantIndustry> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);

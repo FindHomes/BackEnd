@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.repository.industry;
 
 import com.findhomes.findhomesbe.entity.industry.BakeryIndustry;
 import com.findhomes.findhomesbe.entity.industry.BeautyIndustry;
+import com.findhomes.findhomesbe.entity.industry.CinemaIndustry;
 import com.findhomes.findhomesbe.entity.industry.PharmacyIndustry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,5 +19,10 @@ public interface BeautyIndustryRepository extends JpaRepository<BeautyIndustry,I
     @Query("SELECT i FROM BeautyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BeautyIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BeautyIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM BeautyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<BeautyIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

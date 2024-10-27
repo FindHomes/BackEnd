@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.FacilityCategory;
 import com.findhomes.findhomesbe.entity.industry.Industry;
 import com.findhomes.findhomesbe.repository.industry.IndustryRepository;
+import com.findhomes.findhomesbe.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +20,7 @@ import java.util.List;
 public class FacilityCategoryService {
 
     private final ApplicationContext applicationContext;
+    private final HouseService houseService;
 
     public List<Industry> getIndustries(FacilityCategory facilityCategoryEnum, String detailName, ManConRequest.Region region) {
         // FacilityCategory의 빈 이름 가져오기
@@ -30,16 +32,15 @@ public class FacilityCategoryService {
         if (repository instanceof IndustryRepository industryRepository) {
             // detailName이 "all"인 경우
             if (detailName.toLowerCase().equals("all")) {
-                result = industryRepository.findIndustryWithinBoundary(region.getDistrict(), region.getCity());
+//                result = houseService.isSpecialRegion(region) ? industryRepository.findIndustryInSpecialRegion(region.getDistrict(), region.getCity()) : industryRepository.findIndustryInRegion(region.getDistrict(), region.getCity());
+                result = industryRepository.findIndustryInRegion(region.getDistrict(),region.getCity());
+                return result;
+            } else {
+                // detailName이 all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
+                result = industryRepository.findByDetailName(detailName);
                 return result;
             }
-            // detailName이 all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
-            result = industryRepository.findByDetailName(detailName);
-//      enum을 통한 detailname 탐색 :   result = facilityCategoryEnum.getIndustryListWhenNotAll(repository, detailName);
-            return result;
-
-        }
-        else {
+        } else {
             long startTime = System.currentTimeMillis();
             result = (List<Industry>) repository.findAll();
             long endTime = System.currentTimeMillis();
