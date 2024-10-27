@@ -16,7 +16,7 @@ public interface HouseRepository extends JpaRepository<House, Integer>, JpaSpeci
     List<House> findByHousingTypeAndStatus(String housingType, String status);
 
     @Query(value = "SELECT h.* FROM houses_tbl AS h, regions_tbl as rg " +
-            "WHERE rg.city = :cityName"+
+            "WHERE rg.city = :cityName "+
             "AND rg.district = :districtName " +
             "AND ST_Contains(rg.boundary, h.coordinate)" +
             "AND h.status=:status", nativeQuery = true)

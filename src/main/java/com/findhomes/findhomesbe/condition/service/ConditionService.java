@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.entity.House;
+import com.findhomes.findhomesbe.repository.FavoriteHouseRepository;
 import com.findhomes.findhomesbe.service.FavoriteHouseService;
 import com.findhomes.findhomesbe.service.HouseService;
 import com.findhomes.findhomesbe.service.PerformanceUtil;
@@ -26,6 +27,7 @@ public class ConditionService {
     private final PublicDataService publicDataService;
     private final IndustryService industryService;
     private final FavoriteHouseService favoriteHouseService;
+    private final FavoriteHouseRepository favoriteHouseRepository;
 
     public List<HouseWithCondition> exec(ManConRequest manConRequest, String gptOutput, List<String> keywords, HttpSession session, String userId) {
 
@@ -92,11 +94,13 @@ public class ConditionService {
                 "7. 100개로 sublist 및 ranking 입력"
         );
 
+
         // 8. 즐겨찾기 처리
+        Set<Integer> favoriteHouseIds = Optional.ofNullable(favoriteHouseRepository.findFavoriteHouseIdsByUserId(userId)).orElse(Collections.emptySet());
         PerformanceUtil.measurePerformance(
                 () -> {
                     for (HouseWithCondition houseWithCondition : result) {
-                        boolean isFavorite = favoriteHouseService.isFavoriteHouse(userId, houseWithCondition.getHouse().getHouseId());
+                        boolean isFavorite = favoriteHouseIds.contains(houseWithCondition.getHouse().getHouseId());
                         houseWithCondition.setFavorite(isFavorite);
                     }
                 },

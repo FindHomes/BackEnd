@@ -47,6 +47,7 @@ public class HouseService {
 //        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();
         List<House> houses = isSpecialRegion(region) ? houseRepository.findHouseWithSpecialRegion(region.getDistrict(), region.getCity(), "ACTIVE") : houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+        log.info("선호지역 반영한 매물 개수: "+houses.size());
         return houses;
     }
 
