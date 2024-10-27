@@ -1,11 +1,11 @@
 package com.findhomes.findhomesbe.service;
 
-import com.findhomes.findhomesbe.DTO.HouseDetailResponse;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
+import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.User;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
+import com.findhomes.findhomesbe.repository.HouseJdbcTemplateRepository;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.repository.UserRepository;
@@ -17,13 +17,11 @@ import org.geolatte.geom.Point;
 import org.geolatte.geom.builder.DSL;
 import org.geolatte.geom.crs.CoordinateReferenceSystems;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,17 +36,24 @@ public class HouseService {
     private final RegionsRepository regionsRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final HouseJdbcTemplateRepository houseJdbcTemplateRepository;
+
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
 
-        // Todo: 매물에 관한 옵션들은 Specification이 findHouseWithRegion에 쿼리문으로 추가해야할 듯 합니다.
-//        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();
+        // 방식 1
         List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
+        // 방식 2
+//        ManConRequest.Prices prices = allConditions.getManConRequest().getPrices();
+//        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE",
+//                allConditions.getManConRequest().getHousingTypes(),
+//                prices.getMm(), prices.getJs(), prices.getWs().getDeposit(), prices.getWs().getRent());
+        // 방식 3
+//        List<House> houseList = houseJdbcTemplateRepository.searchHousesByAllCon(allConditions);
 
-        log.info("0.선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
+        log.info("0.선호지역으로 필터링된 후 매물의 개수: " + houseList.size());
 
         return houseList;
-
     }
 
     @Transactional
