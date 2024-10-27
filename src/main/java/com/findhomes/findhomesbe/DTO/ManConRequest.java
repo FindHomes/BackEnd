@@ -39,26 +39,36 @@ public class ManConRequest {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder();
+            String[] result = new String[]{"", "", ""};
             if (mm > 0) {
-                sb.append("매매 가격 최대: ");
-                sb.append(mm);
-                sb.append("만원");
+                if (mm > 200000) {
+                    result[0] = "매매가 무제한";
+                } else {
+                    result[0] = "매매가 최대: " + mm + "만원";
+                }
             }
             if (js > 0) {
-                sb.append(" / 전세 가격 최대: ");
-                sb.append(js);
-                sb.append("만원");
+                if (js > 100000) {
+                    result[1] = "전세가 무제한";
+                } else {
+                    result[1] = "전세가 최대: " + js + "만원";
+                }
             }
             if (ws != null && ws.deposit > 0 && ws.rent > 0) {
-                sb.append(" / 월세 보증금 최대: ");
-                sb.append(ws.deposit);
-                sb.append("만원");
-                sb.append(" & 월세 최대: ");
-                sb.append(ws.rent);
-                sb.append("만원");
+                String wsStr = "";
+                if (ws.deposit > 100000) {
+                    wsStr += "월세 보증금 무제한";
+                } else {
+                    wsStr += "월세 보증금 최대: " + ws.deposit + "만원";
+                }
+                if (ws.rent > 1000) {
+                    wsStr += " & 월세 무제한";
+                } else {
+                    wsStr += " & 월세 최대" + ws.rent + "만원";
+                }
+                result[2] = wsStr;
             }
-            return sb.toString();
+            return String.join(" / ", result);
         }
     }
 

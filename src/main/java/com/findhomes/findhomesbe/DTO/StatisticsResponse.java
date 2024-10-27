@@ -71,7 +71,7 @@ public class StatisticsResponse {
                 if (!publicConditionData.getKeyword().equals(keyword)) {
                     continue;
                 }
-                KeywordInfo.DataAndInfo dataAndInfo = new KeywordInfo.DataAndInfo(publicConditionData.getPublicDataEnum().name());
+                KeywordInfo.DataAndInfo dataAndInfo = new KeywordInfo.DataAndInfo(publicConditionData.getPublicDataEnum().name() + " (1~5 등급)");
 
                 for (HouseWithCondition houseWithCondition : houses) {
                     for (HouseWithCondition.SafetyGradeInfo safetyGradeInfo : houseWithCondition.getSafetyGradeInfoList()) {
