@@ -94,9 +94,9 @@ public class ConditionService {
                 "7. 100개로 sublist 및 ranking 입력"
         );
 
-
         // 8. 즐겨찾기 처리
-        Set<Integer> favoriteHouseIds = Optional.ofNullable(favoriteHouseRepository.findFavoriteHouseIdsByUserId(userId)).orElse(Collections.emptySet());
+        Set<Integer> favoriteHouseIds = Optional.ofNullable(favoriteHouseRepository.findFavoriteHouseIdsByUserId(userId))
+                .orElse(Collections.emptySet());
         PerformanceUtil.measurePerformance(
                 () -> {
                     for (HouseWithCondition houseWithCondition : result) {
