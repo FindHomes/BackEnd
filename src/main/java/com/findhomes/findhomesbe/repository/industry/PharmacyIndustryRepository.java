@@ -18,5 +18,10 @@ public interface PharmacyIndustryRepository extends JpaRepository<PharmacyIndust
     @Query("SELECT i FROM PharmacyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<PharmacyIndustry> findIndustryWithinBoundary(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<PharmacyIndustry> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+
+    @Query("SELECT i FROM PharmacyIndustry i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
+            "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
+    @Override
+    List<PharmacyIndustry> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

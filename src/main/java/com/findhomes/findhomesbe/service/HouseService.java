@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.User;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
+import com.findhomes.findhomesbe.house.SpecialRegion;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.repository.UserRepository;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,17 +40,21 @@ public class HouseService {
     private final RegionsRepository regionsRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+
     public List<House> getHouseByAllConditions(AllConditions allConditions) {
 
         // Todo: 매물에 관한 옵션들은 Specification이 findHouseWithRegion에 쿼리문으로 추가해야할 듯 합니다.
 //        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();
-        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
+        List<House> houses = isSpecialRegion(region) ? houseRepository.findHouseWithSpecialRegion(region.getDistrict(), region.getCity(), "ACTIVE") : houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+        return houses;
+    }
 
-        log.info("0.선호지역으로 필터링된 후 매물의 개수: "+houseList.size());
-
-        return houseList;
-
+    public boolean isSpecialRegion(ManConRequest.Region region) {
+        return Arrays.stream(SpecialRegion.values())
+                .map(Enum::name)
+                .toList()
+                .contains(region.getCity());
     }
 
     @Transactional
@@ -132,7 +138,6 @@ public class HouseService {
     public boolean isHouseExist(int houseId) {
         return houseRepository.existsById(houseId);
     }
-
 
 
 }
