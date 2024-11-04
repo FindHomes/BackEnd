@@ -66,6 +66,7 @@ public class MainController {
     ) {
         HttpSession session = securityService.getNewSession(httpRequest);
         session.setAttribute(MAN_CON_KEY, request);
+        log.info("MANCON: {}", request.toSentence());
 
         String sessionId = session.getId();
         securityService.addSessionIdOnCookie(sessionId, response);
