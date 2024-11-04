@@ -33,13 +33,24 @@ public class HouseDetailSearchResponse {
     public static class HouseAndStat {
         public HouseAndStat(ResponseHouse responseHouse, List<HouseWithCondition.SafetyGradeInfo> safetyGradeInfoList, List<HouseWithCondition.FacilityInfo> facilityInfoList) {
             this.responseHouse = responseHouse;
-            this.safetyGradeInfoList = safetyGradeInfoList;
-            this.facilityInfoList = facilityInfoList;
+
+            for (HouseWithCondition.SafetyGradeInfo info : safetyGradeInfoList) {
+                String newStat = info.getPublicData().name() + ": " + info.getGrade() + "등급";
+                stats.add(newStat);
+            }
+            for (HouseWithCondition.FacilityInfo info : facilityInfoList) {
+                String facilityDetailName = info.getFacilityConditionData().getDetailName();
+                String newStat = info.getFacilityConditionData().getMaxRadius() + "km 이내-" +
+                        info.getFacilityConditionData().getFacilityCategoryEnum().name() + "-" +
+                        (facilityDetailName.equalsIgnoreCase("all") ? "전체" : facilityDetailName) + ": " +
+                        info.getCount() + "개, 평균 거리 " +
+                        info.getAvgDistance() + "km";
+                stats.add(newStat);
+            }
         }
 
         private ResponseHouse responseHouse;
-        private List<HouseWithCondition.SafetyGradeInfo> safetyGradeInfoList;
-        private List<HouseWithCondition.FacilityInfo> facilityInfoList;
+        private List<String> stats = new ArrayList<>();
     }
 
 }

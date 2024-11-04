@@ -127,9 +127,10 @@ public class MainController {
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" + "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료"),
-            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다."),
-            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.")})
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SearchResponse.class))}),
+            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
+    })
     public ResponseEntity<SearchResponse> getHouseList(
             HttpServletRequest httpRequest,
             @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
@@ -182,7 +183,11 @@ public class MainController {
 
     @GetMapping("/api/search/statistics")
     @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료"), @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다"),})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = StatisticsResponse.class))}),
+            @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
+    })
     public ResponseEntity<StatisticsResponse> getStatistics(
             @Parameter(hidden = true) @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
             @Parameter(hidden = true) @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
