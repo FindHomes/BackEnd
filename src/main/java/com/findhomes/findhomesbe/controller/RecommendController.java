@@ -6,9 +6,11 @@ import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
+import com.findhomes.findhomesbe.exception.exception.PreconditionRequiredException;
 import com.findhomes.findhomesbe.login.SecurityService;
 import com.findhomes.findhomesbe.service.FavoriteHouseService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,9 +44,12 @@ public class RecommendController {
             @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다. 처음 화면으로 돌아가야 합니다.")
     })
     public ResponseEntity<HouseDetailSearchResponse> getHouseDetailSearch(
-            @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
+            @Parameter(hidden = true) @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
             @PathVariable int houseId
     ) {
+        if (houseWithConditions == null) {
+            throw new PreconditionRequiredException("매물 탐색 데이터가 세션에 없습니다.");
+        }
         HouseWithCondition result = houseWithConditionService.findByHouseId(houseWithConditions, houseId);
 
         return new ResponseEntity<>(new HouseDetailSearchResponse(result, true, 200, "응답 성공"), HttpStatus.OK);
