@@ -72,23 +72,43 @@ public class LoginController {
     public ResponseEntity<?> refreshAccessToken(@RequestParam String refreshToken) {
 
         // 1. RefreshToken 유효성 검증
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        User user = userRepository.findByRefreshToken(refreshToken).orElse(null);
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
         }
-        // 2. RefreshToken에서 사용자 정보 추출
-        String userId = jwtTokenProvider.getUserId(refreshToken);
-        // 3. 새로운 AccessToken 생성 및 선택적으로 새로운 RefreshToken 발급
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
 
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
+        }
+        // 2. 새로운 AccessToken 생성 및 선택적으로 새로운 RefreshToken 발급
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        LocalDateTime refreshTokenExpiry = LocalDateTime.now().plusDays(7);
+
+        // 리프레시 토큰 업데이트 후 저장
+        user.updateRefreshToken(newRefreshToken, refreshTokenExpiry);
+        userRepository.save(user);
+        // 3. 응답 객체 생성
         LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(newAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
         LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(newRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
-
-        // 4. 응답 객체 생성
         LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 
+    @PostMapping("/api/oauth/logout")
+    public ResponseEntity<?> logout(@RequestParam String accessToken) {
+        // 1. 사용자 정보 요청
+        String kakaoId = securityService.getKakaoId(accessToken);
+        // 2. 사용자 조회 및 회원가입 처리
+        Optional<User> userOptional = userRepository.findByKakaoId(kakaoId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.clearRefreshToken(); // 리프레시 토큰 삭제
+            userRepository.save(user); // 변경사항 저장
+        }
+        return ResponseEntity.ok("로그아웃이 성공적으로 처리되었습니다.");
+    }
 
     @GetMapping("/api/oauth/test")
     @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
