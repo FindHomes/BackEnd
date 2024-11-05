@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 특정 URL 경로에 대해 필터를 건너뛰도록 설정
-        if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/api/test/oauth/kakao") || requestURI.startsWith("/api/oauth/kakao)")) {
+        if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-ui") || requestURI.contains("oauth")) {
             filterChain.doFilter(request, response);
             return;
         }
