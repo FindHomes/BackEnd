@@ -1,30 +1,36 @@
 package com.findhomes.findhomesbe.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Data
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class LoginResponse {
     private Boolean success;
     private Integer code;
     private String message;
-    private JwtToken result;
-    @AllArgsConstructor
+    private Tokens result;
     @Data
-    public static class JwtToken{
-        @Schema(description = "토큰 값 입니다.", example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1ZTllODM3Ny03YWY5LTQwZDYtOTI1NC0xNTMzZjllYTMxOTciLCJpYXQiOjE3MjQ5MjM5NTksImV4cCI6MTcyNDkyNzU1OX0.54RvBsPMqaeiSDfXr1sjb3LyVop1MhsjXz2Dyb8pHN8")
-        String token;
-        @Schema(description = "토큰 타입입니다.", example = "Bearer")
-        String type;
-        @Schema(description = "토큰 만료시간입니다.", example = "3600000")
-        String expires_in;
+    @AllArgsConstructor
+    @Builder
+    public static class Tokens {
+        private JwtToken accessToken;
+        private JwtToken refreshToken;
+    }
 
+    @Data
+    @AllArgsConstructor
+    @Builder
+    public static class JwtToken {
+        @Schema(description = "토큰 값", example = "eyJhbGciOiJIUzI1NiJ9...")
+        private String token;
+        @Schema(description = "토큰 타입", example = "Bearer")
+        private String type;
+        @Schema(description = "토큰 만료 시간 (초 단위)", example = "3600")
+        private long expiresIn;
     }
 
 

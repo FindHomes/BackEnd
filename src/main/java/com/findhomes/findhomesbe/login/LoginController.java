@@ -24,15 +24,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 public class LoginController {
-
+    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 60분
+    private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-
+    private final SecurityService securityService;
     private final String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
 
     @GetMapping("/api/oauth/kakao")
@@ -40,61 +42,40 @@ public class LoginController {
     @ApiResponse(responseCode = "200", description = "JWT 토큰을 반환합니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))})
     public ResponseEntity<LoginResponse> kakaoCallback(@RequestParam String accessToken) {
         // 1. 사용자 정보 요청
-        String kakaoId = getKakaoId(accessToken);
+        String kakaoId = securityService.getKakaoId(accessToken);
 
         // 2. 사용자 조회 및 회원가입 처리
-        User user = userRepository.findByKakaoId(kakaoId)
-                .orElseGet(() -> {
-                    User newUser = new User(kakaoId, "심심한 무지", "kakao", "ACTIVE", LocalDateTime.now());
-                    return userRepository.save(newUser);
-                });
+        User user = userRepository.findByKakaoId(kakaoId).orElseGet(() -> {
+            String randomNickname = "User_" + UUID.randomUUID().toString().substring(0, 8); // 랜덤 닉네임 생성
+            User newUser = new User(kakaoId, randomNickname, "kakao", "ACTIVE", LocalDateTime.now());
+            return userRepository.save(newUser);
+        });
 
         // 3. JWT 생성
-        String jwtToken = jwtTokenProvider.createToken(user.getUserId());
-        LoginResponse loginResponse = new LoginResponse(true, 200, "토큰값을 성공적으로 반환하였습니다.", new LoginResponse.JwtToken(jwtToken, "Bearer", "3600000"));
+        String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(jwtAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
+        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(jwtRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
 
-        // 4. 클라이언트에 JWT 반환
+        // 4. 응답 객체 생성
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 
-    // 엑세스 토큰으로 카카오 서버에서 고유 id를 받아오는 함수
-    private String getKakaoId(String accessToken) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
-
-            HttpEntity<String> request = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(userInfoUrl, request, String.class);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("id").asText(); // 사용자의 카카오 고유 ID 추출
-        } catch (Exception e) {
-            throw new RuntimeException("카카오에서 고유 id를 얻어오는데 실패하였습니다.", e);
-        }
-    }
 
     @GetMapping("/api/test/oauth/kakao")
     @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
     public ResponseEntity<LoginResponse> testKakaoCallback() {
-        // 1. 테스트용 사용자 조회 또는 저장
-        User user = userRepository.findByKakaoId("testKakaoId")
-                .orElseGet(() -> {
-                    User newUser = new User("testKakaoId", "테스트 사용자", "kakao", "ACTIVE", LocalDateTime.now());
-                    return userRepository.save(newUser);
-                });
-        // 2. JWT 생성
-        String jwtToken = jwtTokenProvider.createToken(user.getUserId());
-        LoginResponse loginResponse = new LoginResponse(true, 200, "테스트 토큰을 성공적으로 반환하였습니다.", new LoginResponse.JwtToken(jwtToken, "Bearer", "36000000"));
-
-        // 3. 헤더에 Bearer 토큰을 담아서 클라이언트에 반환
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken);
-
-        return ResponseEntity.ok()
-                .headers(headers)  // Bearer 토큰을 헤더에 추가
-                .body(loginResponse);  // LoginResponse는 응답 본문에 추가
+        User user = userRepository.findByKakaoId("testKakaoId").orElseGet(() -> {
+            User newUser = new User("testKakaoId", "테스트 사용자", "kakao", "ACTIVE", LocalDateTime.now());
+            return userRepository.save(newUser);
+        });
+        String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(jwtAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
+        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(jwtRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
+        return ResponseEntity.ok(loginResponse);
     }
 }

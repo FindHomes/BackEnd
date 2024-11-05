@@ -1,5 +1,7 @@
 package com.findhomes.findhomesbe.login;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.exception.exception.UnauthorizedException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -9,7 +11,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import static com.findhomes.findhomesbe.controller.MainController.MAN_CON_KEY;
 
@@ -18,6 +24,7 @@ import static com.findhomes.findhomesbe.controller.MainController.MAN_CON_KEY;
 @RequiredArgsConstructor
 public class SecurityService {
     private final JwtTokenProvider jwtTokenProvider;
+    private final String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
 
     // 클라이언트 요청 헤더에서 JWT 토큰 추출
     public String extractTokenFromRequest(HttpServletRequest request) {
@@ -81,5 +88,24 @@ public class SecurityService {
         sessionCookie.setHttpOnly(true);
         sessionCookie.setPath("/");
         response.addCookie(sessionCookie);
+    }
+
+    // 엑세스 토큰으로 카카오 서버에서 고유 id를 받아오는 함수
+    public String getKakaoId(String accessToken) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(userInfoUrl, request, String.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            return jsonNode.get("id").asText(); // 사용자의 카카오 고유 ID 추출
+        } catch (Exception e) {
+            throw new RuntimeException("카카오에서 고유 id를 얻어오는데 실패하였습니다.", e);
+        }
     }
 }

@@ -20,7 +20,7 @@ class FindHomesBeApplicationTests {
         // 테스트용 사용자 ID
         String testUserId = "testUser";
         // 토큰 생성
-        String testToken = jwtTokenProvider.createToken(testUserId);
+        String testToken = jwtTokenProvider.createAccessToken(testUserId);
         System.out.println("생성된 토큰: " + testToken);
     }
 }

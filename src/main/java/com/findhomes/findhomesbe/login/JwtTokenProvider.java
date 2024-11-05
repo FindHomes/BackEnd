@@ -16,20 +16,21 @@ import java.util.logging.Logger;
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
-    private long validityInMilliseconds = 864000000; // 10일로 설정
-
+    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 60분
+    private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
     private Key key;
+
     @PostConstruct
     protected void init() {
         // HMAC SHA256 서명을 위한 비밀 키 생성
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    // JWT 토큰 생성
-    public String createToken(String userId) {
+    // JWT 엑세스 토큰 생성
+    public String createAccessToken(String userId) {
         Claims claims = Jwts.claims().setSubject(userId);
         Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        Date validity = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -39,6 +40,18 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // JWT 리프레시 토큰 생성
+    public String createRefreshToken(String userId) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION);
+
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
     // JWT 토큰의 유효성 검증
     public boolean validateToken(String token) {
         try {
@@ -49,18 +62,15 @@ public class JwtTokenProvider {
         }
     }
 
-
     public String getUserId(String token) {
         try {
             // JWT에서 사용자 ID 추출
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             return claims.getSubject();
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new UnauthorizedException("JWT 토큰이 비어있거나 잘못되었습니다.");
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new UnauthorizedException("userId를 가져오는데 오류가 발생하였습니다.");
         }
     }
-
 }
