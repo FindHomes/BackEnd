@@ -13,7 +13,7 @@ public class MyBatisHouseRepository {
 
     private final HouseMapper houseMapper;
 
-    public List<House> findHouse(AllConditions allConditions, String status) {
+    public List<House> findHouse(AllConditions allConditions, int areaLevel, String status) {
 
         boolean isAirConOption = allConditions.getHouseOptionDataList().stream()
                 .anyMatch(option -> "벽걸이형".equals(option.getOption().getHouseOption())
@@ -25,6 +25,6 @@ public class MyBatisHouseRepository {
                         && !"스탠드형".equals(option.getOption().getHouseOption())
                         && !"천장형".equals(option.getOption().getHouseOption()));
 
-        return houseMapper.findHouse(allConditions, status, isAirConOption, isNonAirConOption);
+        return houseMapper.findHouse(allConditions, areaLevel, status, isAirConOption, isNonAirConOption);
     }
 }

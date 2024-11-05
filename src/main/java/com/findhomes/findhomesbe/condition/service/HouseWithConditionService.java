@@ -108,7 +108,7 @@ public class HouseWithConditionService {
                     // 정규화하여 각 house의 최종 점수에 추가
                     houseWithConditions.parallelStream().forEach(houseWithCondition -> {
                         House house = houseWithCondition.getHouse();
-                        double normalizedScore = (house.getFacilityDataScore() / maxFacilityDataScore) * industryMaxScore;
+                        double normalizedScore = (maxFacilityDataScore == 0 ? 0 : (house.getFacilityDataScore() / maxFacilityDataScore) * industryMaxScore);
                         house.addScore(normalizedScore);
                     });
                 });

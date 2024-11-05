@@ -11,6 +11,7 @@ import java.util.List;
 public interface HouseMapper {
     List<House> findHouse(
             @Param("allConditions") AllConditions allConditions,
+            @Param("areaLevel") int areaLevel,
             @Param("status") String status,
             @Param("isAirConOption") boolean isAirConOption,
             @Param("isNonAirConOption") boolean isNonAirConOption

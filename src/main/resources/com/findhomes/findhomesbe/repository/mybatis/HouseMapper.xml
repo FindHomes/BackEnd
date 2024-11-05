@@ -10,10 +10,21 @@
             h.status = #{status}
 
             <!-- city와 district 조건 추가 -->
-            <if test="allConditions.manConRequest.region != null">
-                AND rg.city = #{allConditions.manConRequest.region.city}
-                AND rg.district = #{allConditions.manConRequest.region.district}
-            </if>
+            <choose>
+                <!-- areaLevel이 1인 경우: city와 district로 필터링 -->
+                <when test="areaLevel == 1">
+                    AND rg.city = #{allConditions.manConRequest.region.city}
+                    AND rg.district = #{allConditions.manConRequest.region.district}
+                </when>
+                <!-- areaLevel이 2인 경우: city로만 필터링 -->
+                <when test="areaLevel == 2">
+                    AND rg.district = #{allConditions.manConRequest.region.district}
+                </when>
+                <!-- areaLevel이 3인 경우: 지역 조건 없이 전체 검색 -->
+                <otherwise>
+                    <!-- 지역 조건 없음 -->
+                </otherwise>
+            </choose>
 
             <!-- housingTypes 필터 -->
             <if test="allConditions.manConRequest.housingTypes != null and !allConditions.manConRequest.housingTypes.isEmpty()">
