@@ -27,14 +27,18 @@ public class SearchLogService {
     private final UserService userService;
 
     // 검색 기록 추가
-    @Profile("!test")
+    @Transactional
     public void addSearchLog(AllConditions conditions, String userId) {
         User user = userService.getUser(userId);
         SearchLog searchLog = new SearchLog(conditions, "ACTIVE", LocalDateTime.now(), user);
 
-        boolean exists = searchLogRepository.existsByUserAndSearchConditionAndStatus(userId, searchLog.getSearchCondition(), "ACTIVE");
+//        boolean exists = searchLogRepository.existsByUserAndSearchConditionAndStatus(userId, searchLog.getSearchCondition(), "ACTIVE");
+        boolean exists = user.getSearchLogList().stream()
+                .anyMatch(e -> e.getStatus().equals("ACTIVE") && conditions.equals(e.toAllConditions()));
+
         if (!exists) {
             searchLogRepository.save(searchLog);
+            user.getSearchLogList().add(searchLog);
             log.info("[{}] 검색 기록 저장 완료. userId: {}", userId, userId);
         } else {
             log.info("[{}] 이미 같은 검색 기록이 있음.", userId);
