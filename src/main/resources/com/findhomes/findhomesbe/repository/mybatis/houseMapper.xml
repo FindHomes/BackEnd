@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.findhomes.findhomesbe.repository.mybatis.HouseMapper">
+    <select id="findHouse" resultType="House">
+        SELECT h.*
+        FROM houses_tbl AS h
+        JOIN regions_tbl AS rg ON ST_Contains(rg.boundary, h.coordinate)
+        <where>
+            h.status = #{status}
+
+            <!-- city와 district 조건 추가 -->
+            <if test="allConditions.manConRequest.region != null">
+                AND rg.city = #{allConditions.manConRequest.region.city}
+                AND rg.district = #{allConditions.manConRequest.region.district}
+            </if>
+
+            <!-- housingTypes 필터 -->
+            <if test="allConditions.manConRequest.housingTypes != null and !allConditions.manConRequest.housingTypes.isEmpty()">
+                AND h.housing_type IN
+                <foreach item="type" collection="allConditions.manConRequest.housingTypes" open="(" separator="," close=")">
+                    #{type}
+                </foreach>
+            </if>
+
+            <!-- Price 조건 추가 -->
+            <if test="allConditions.manConRequest.prices != null">
+                AND (
+                <trim prefix="" suffix="" suffixOverrides="OR">
+                    <!-- 매매 조건 -->
+                    <if test="allConditions.manConRequest.prices.mm != null">
+                        (
+                        h.price_type = '매매' AND h.price &lt;= #{allConditions.manConRequest.prices.mm}
+                        )
+                        OR
+                    </if>
+
+                    <!-- 전세 조건 -->
+                    <if test="allConditions.manConRequest.prices.js != null">
+                        (
+                        h.price_type = '전세' AND h.price &lt;= #{allConditions.manConRequest.prices.js}
+                        )
+                        OR
+                    </if>
+
+                    <!-- 월세 조건 -->
+                    <if test="allConditions.manConRequest.prices.ws != null">
+                        (
+                        h.price_type = '월세' AND h.price &lt;= #{allConditions.manConRequest.prices.ws.deposit} AND h.price_for_ws &lt;= #{allConditions.manConRequest.prices.ws.rent}
+                        )
+                        OR
+                    </if>
+                </trim>
+                )
+            </if>
+
+
+            <!-- 매물 옵션 조건 추가 -->
+            <if test="(isAirConOption or isNonAirConOption)">
+                AND (
+                <trim prefix="" suffix="" prefixOverrides="AND|OR">
+                    <!-- "벽걸이형", "스탠드형", "천장형" 옵션을 OR 조건으로 처리 -->
+                    <if test="isAirConOption">
+                        (<trim prefix="" suffix="" prefixOverrides="OR">
+                            <foreach item="option" collection="allConditions.houseOptionDataList" separator=" OR ">
+                                <if test="option.option.houseOption == '벽걸이형' or option.option.houseOption == '스탠드형' or option.option.houseOption == '천장형'">
+                                    h.house_option LIKE CONCAT('%', #{option.option.houseOption}, '%')
+                                </if>
+                            </foreach>
+                        </trim>)
+                    </if>
+
+                    <!-- Group separator if both groups have options -->
+                    <if test="isAirConOption and isNonAirConOption">
+                        AND
+                    </if>
+
+                    <!-- 나머지 옵션들은 AND 조건으로 처리 -->
+                    <if test="isNonAirConOption">
+                        (<trim prefix="" suffix="" prefixOverrides="AND">
+                            <foreach item="option" collection="allConditions.houseOptionDataList" separator=" AND ">
+                                <if test="option.option.houseOption != '벽걸이형' and option.option.houseOption != '스탠드형' and option.option.houseOption != '천장형'">
+                                    h.house_option LIKE CONCAT('%', #{option.option.houseOption}, '%')
+                                </if>
+                            </foreach>
+                        </trim>)
+                    </if>
+                </trim>
+                )
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -164,6 +164,7 @@ public class MainController {
         // 매물 점수 계산해서 가져오기
         String userId = securityService.getUserId(httpRequest);
         List<HouseWithCondition> resultHouses = conditionService.exec(manConRequest, gptResponse, keywords, session, userId);
+
         // 세션에 저장
         session.setAttribute(HOUSE_RESULTS_KEY, resultHouses);
 

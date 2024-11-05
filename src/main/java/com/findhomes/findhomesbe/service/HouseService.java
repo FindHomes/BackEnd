@@ -2,7 +2,6 @@ package com.findhomes.findhomesbe.service;
 
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
-import com.findhomes.findhomesbe.condition.domain.HouseOption;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.repository.HouseJdbcTemplateRepository;
@@ -10,6 +9,7 @@ import com.findhomes.findhomesbe.house.SpecialRegion;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.repository.UserRepository;
+import com.findhomes.findhomesbe.repository.mybatis.MyBatisHouseRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,6 @@ import org.geolatte.geom.Point;
 import org.geolatte.geom.builder.DSL;
 import org.geolatte.geom.crs.CoordinateReferenceSystems;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +31,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class HouseService {
     private final HouseRepository houseRepository;
+    private final MyBatisHouseRepository myBatisHouseRepository;
     @Autowired
     private HouseSpecification houseSpecification;
     private final RegionsRepository regionsRepository;
@@ -53,8 +53,9 @@ public class HouseService {
         // 방식 3
 //        List<House> houseList = houseJdbcTemplateRepository.searchHousesByAllCon(allConditions);
 
-        List<House> houses = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+//        List<House> houses = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
 //        List<House> houses = isSpecialRegion(region) ? houseRepository.findHouseWithSpecialRegion(region.getDistrict(), region.getCity(), "ACTIVE") : houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+        List<House> houses = myBatisHouseRepository.findHouse(allConditions, "ACTIVE");
         log.info("선호지역 반영한 매물 개수: " + houses.size());
         return houses;
     }
