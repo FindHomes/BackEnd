@@ -9,6 +9,7 @@ import com.findhomes.findhomesbe.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,15 +33,11 @@ public class SearchLogService {
         User user = userService.getUser(userId);
         SearchLog searchLog = new SearchLog(conditions, "ACTIVE", LocalDateTime.now(), user);
 
-//        boolean exists = searchLogRepository.existsByUserAndSearchConditionAndStatus(userId, searchLog.getSearchCondition(), "ACTIVE");
-        boolean exists = user.getSearchLogList().stream()
-                .anyMatch(e -> e.getStatus().equals("ACTIVE") && conditions.equals(e.toAllConditions()));
-
-        if (!exists) {
+        try {
             searchLogRepository.save(searchLog);
-            user.getSearchLogList().add(searchLog);
             log.info("[{}] 검색 기록 저장 완료. userId: {}", userId, userId);
-        } else {
+        } catch (DataIntegrityViolationException e) {
+            // 유니크 제약 조건 위반으로 인한 예외 처리
             log.info("[{}] 이미 같은 검색 기록이 있음.", userId);
         }
     }
