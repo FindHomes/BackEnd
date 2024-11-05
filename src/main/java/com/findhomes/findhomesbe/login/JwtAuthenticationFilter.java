@@ -21,46 +21,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 요청 URL 확인
         String requestURI = request.getRequestURI();
-        
-        
-        // 테스트를 위해 임시로 풀어놓기
-        if (requestURI.startsWith("/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        //TODO: 개발 끝나면 필터정상화
-//        // /api/login 또는 /api/oauth/kakao 경로에 대해서는 필터를 건너뛰도록 설정
-//        if (requestURI.equals("/api/login") || requestURI.equals("/api/oauth/kakao")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
 
-        // 스웨거 관련 URL에 대해서는 필터를 건너뛰도록 설정
-        if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-ui")) {
+        // 특정 URL 경로에 대해 필터를 건너뛰도록 설정
+        if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/api/test/oauth/kakao") || requestURI.startsWith("/api/oauth/kakao)")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // JWT 추출
         String token = extractTokenFromRequest(request);
+        System.out.println(token);
+        try {
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                // 유효한 토큰이면 사용자 정보 추출
+                String userId = jwtTokenProvider.getUserId(token);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 토큰이 유효하다면 사용자 정보 추출
-            String userId = jwtTokenProvider.getUserId(token);
-
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // 사용자 ID를 기반으로 인증 객체 생성
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, null);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println("id:"+userId+" 인증완료");
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userId, null, null);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("id:" + userId + " 인증완료");
+                }
+            } else {
+                // 유효하지 않은 토큰일 경우
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다");
+                return;
             }
-        } else {
-            // 토큰이 유효하지 않으면 401 에러 응답을 반환
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 유효하지 않습니다");
+        } catch (Exception e) {
+            // 예외 발생 시 401 응답 반환
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰 처리 중 오류가 발생했습니다.");
             return;
         }
 
@@ -76,4 +67,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
 }

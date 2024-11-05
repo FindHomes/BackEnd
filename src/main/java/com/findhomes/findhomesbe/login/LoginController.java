@@ -15,15 +15,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
@@ -62,9 +65,29 @@ public class LoginController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @PostMapping("/api/oauth/refresh")
+    public ResponseEntity<?> refreshAccessToken(@RequestParam String refreshToken) {
+
+        // 1. RefreshToken 유효성 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
+        }
+        // 2. RefreshToken에서 사용자 정보 추출
+        String userId = jwtTokenProvider.getUserId(refreshToken);
+        // 3. 새로운 AccessToken 생성 및 선택적으로 새로운 RefreshToken 발급
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
+
+        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(newAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
+        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(newRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
+
+        // 4. 응답 객체 생성
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
+        return ResponseEntity.ok(loginResponse);
+    }
 
 
-    @GetMapping("/api/test/oauth/kakao")
+    @GetMapping("/api/oauth/test")
     @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
     public ResponseEntity<LoginResponse> testKakaoCallback() {
         User user = userRepository.findByKakaoId("testKakaoId").orElseGet(() -> {

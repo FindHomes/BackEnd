@@ -56,11 +56,22 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
+            return true; // 유효한 토큰
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("토큰이 만료되었습니다."); // 만료된 토큰에 대한 로그
+            throw new UnauthorizedException("토큰이 만료되었습니다."); // 만료된 토큰 예외 메시지
+        } catch (io.jsonwebtoken.SignatureException e) {
+            System.out.println("토큰 서명이 유효하지 않습니다."); // 서명 검증 실패
+            throw new UnauthorizedException("토큰 서명이 유효하지 않습니다.");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            System.out.println("토큰 형식이 잘못되었습니다."); // 잘못된 형식의 토큰
+            throw new UnauthorizedException("토큰 형식이 잘못되었습니다.");
         } catch (Exception e) {
-            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
+            System.out.println("알 수 없는 이유로 토큰이 유효하지 않습니다.");
+            throw new UnauthorizedException("알 수 없는 이유로 토큰이 유효하지 않습니다.");
         }
     }
+
 
     public String getUserId(String token) {
         try {
