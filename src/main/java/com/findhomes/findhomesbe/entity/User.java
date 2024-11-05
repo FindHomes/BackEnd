@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="users_tbl")
+@Table(name = "users_tbl")
 public class User {
     @Id
     private String userId;
@@ -27,6 +27,8 @@ public class User {
     private String userNickname;
     private String loginApi;
     private String status;
+    private String refreshToken;
+    private LocalDateTime refreshTokenExpiryDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -40,7 +42,6 @@ public class User {
     }
 
 
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Condition> conditionList;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -49,4 +50,15 @@ public class User {
     private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<SearchLog> searchLogList = new ArrayList<>();
+
+
+    public void updateRefreshToken(String refreshToken, LocalDateTime expiryDate) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiryDate = expiryDate;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+        this.refreshTokenExpiryDate = null;
+    }
 }

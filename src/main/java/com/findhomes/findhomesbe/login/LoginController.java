@@ -57,10 +57,13 @@ public class LoginController {
         // 3. JWT 생성
         String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        // 4. 리프레시 토큰 저장
+        LocalDateTime refreshTokenExpiry = LocalDateTime.now().plusDays(7);
+        user.updateRefreshToken(jwtRefreshToken, refreshTokenExpiry);
+        userRepository.save(user);
+        // 5. 응답 객체 생성
         LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(jwtAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
         LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(jwtRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
-
-        // 4. 응답 객체 생성
         LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
