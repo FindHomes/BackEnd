@@ -55,7 +55,7 @@ public class HouseWithConditionService {
         // 시설 데이터 점수 계산
         PerformanceUtil.measurePerformance(
                 () -> calculateFacilityDataScore(weightSum, houseWithConditions, industriesAndWeights),
-                "4.1 공공 데이터 점수 계산"
+                "4.2 시설 데이터 점수 계산"
         );
     }
 

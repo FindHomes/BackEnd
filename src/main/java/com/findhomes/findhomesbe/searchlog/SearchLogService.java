@@ -8,6 +8,7 @@ import com.findhomes.findhomesbe.repository.SearchLogRepository;
 import com.findhomes.findhomesbe.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +27,18 @@ public class SearchLogService {
     private final UserService userService;
 
     // 검색 기록 추가
-    @Transactional
+    @Profile("!test")
     public void addSearchLog(AllConditions conditions, String userId) {
         User user = userService.getUser(userId);
         SearchLog searchLog = new SearchLog(conditions, "ACTIVE", LocalDateTime.now(), user);
-        searchLogRepository.save(searchLog);
-        log.info("검색 기록 저장 완료. userId: {}", userId);
+
+        boolean exists = searchLogRepository.existsByUserAndSearchConditionAndStatus(userId, searchLog.getSearchCondition(), "ACTIVE");
+        if (!exists) {
+            searchLogRepository.save(searchLog);
+            log.info("[{}] 검색 기록 저장 완료. userId: {}", userId, userId);
+        } else {
+            log.info("[{}] 이미 같은 검색 기록이 있음.", userId);
+        }
     }
 
     // 검색 기록 삭제
