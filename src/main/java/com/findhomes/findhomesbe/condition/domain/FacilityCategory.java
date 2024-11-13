@@ -18,7 +18,11 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum FacilityCategory {
-
+    학교("SchoolIndustryRepository",
+            (repository, detailName) ->
+                    ((SchoolIndustryRepository) repository).findByDetailName(detailName),
+            1d
+    ),
     동물병원("animalHospitalIndustryRepository",
             (repository, detailName) ->
                     ((AnimalHospitalIndustryRepository) repository).findByDetailName(detailName),
