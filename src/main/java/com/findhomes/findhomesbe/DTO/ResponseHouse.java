@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.entity.User;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class ResponseHouse {
     private List<String> imgUrl; // Nullable
     private Double score = 0d;
     private boolean isFavorite;
+    private String updateDate;
 
     public ResponseHouse(House house, Boolean isFavorite) {
         this.ranking = house.getRanking();
@@ -58,5 +60,8 @@ public class ResponseHouse {
         this.imgUrl = house.getImgUrl() == null || house.getImgUrl().isEmpty() ? new ArrayList<>() : List.of(house.getImgUrl().split("@@@"));
         this.score = house.getScore();
         this.isFavorite = isFavorite;
+        // 원하는 형식 정의
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.");
+        this.updateDate = "정보 갱신: " + house.getCheckedAt().format(formatter);
     }
 }

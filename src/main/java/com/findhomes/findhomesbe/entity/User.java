@@ -48,7 +48,7 @@ public class User {
     private List<FavoriteHouse> favoriteHouseList = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<SearchLog> searchLogList = new ArrayList<>();
 
 

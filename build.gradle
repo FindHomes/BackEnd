@@ -39,7 +39,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
-
+    // crawling
     implementation ("org.seleniumhq.selenium:selenium-java:4.20.0")
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "net.lightbody.bmp:browsermob-core:2.1.5"
@@ -51,18 +51,18 @@ dependencies {
     implementation 'commons-io:commons-io:2.4'
     // 좌표 변환
     implementation 'org.locationtech.proj4j:proj4j:1.1.5'
-
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
-
     // Hibernate Spatial 의존성
     implementation 'org.hibernate:hibernate-spatial:6.4.4.Final' // Hibernate 버전에 맞게 조정
-
     // JTS (Java Topology Suite) 의존성
     implementation 'org.locationtech.jts:jts-core:1.18.2'
-
     // GeoLatte 라이브러리
     implementation 'org.geolatte:geolatte-geom:1.8.2'
+    // MyBatis 추가
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+    //H2 데이터베이스 추가
+    runtimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {

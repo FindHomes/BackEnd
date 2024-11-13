@@ -1,15 +1,15 @@
 package com.findhomes.findhomesbe.service;
 
-import com.findhomes.findhomesbe.DTO.HouseDetailResponse;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.entity.House;
-import com.findhomes.findhomesbe.entity.User;
 import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
+import com.findhomes.findhomesbe.repository.HouseJdbcTemplateRepository;
 import com.findhomes.findhomesbe.house.SpecialRegion;
 import com.findhomes.findhomesbe.repository.HouseRepository;
 import com.findhomes.findhomesbe.repository.RegionsRepository;
 import com.findhomes.findhomesbe.repository.UserRepository;
+import com.findhomes.findhomesbe.repository.mybatis.MyBatisHouseRepository;
 import com.findhomes.findhomesbe.specification.HouseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,37 +18,45 @@ import org.geolatte.geom.Point;
 import org.geolatte.geom.builder.DSL;
 import org.geolatte.geom.crs.CoordinateReferenceSystems;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class HouseService {
     private final HouseRepository houseRepository;
+    private final MyBatisHouseRepository myBatisHouseRepository;
     @Autowired
     private HouseSpecification houseSpecification;
     private final RegionsRepository regionsRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final HouseJdbcTemplateRepository houseJdbcTemplateRepository;
 
-    public List<House> getHouseByAllConditions(AllConditions allConditions) {
+    public List<House> getHouseByAllConditions(AllConditions allConditions, int areaLevel) {
 
-        // Todo: 매물에 관한 옵션들은 Specification이 findHouseWithRegion에 쿼리문으로 추가해야할 듯 합니다.
-//        return houseRepository.findAll(houseSpecification.searchHousesByAllCon(allConditions));
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();
-        List<House> houses = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
+
+        // 방식 1
+//        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(),region.getCity(), "ACTIVE");
+        // 방식 2
+//        ManConRequest.Prices prices = allConditions.getManConRequest().getPrices();
+//        List<House> houseList = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE",
+//                allConditions.getManConRequest().getHousingTypes(),
+//                prices.getMm(), prices.getJs(), prices.getWs().getDeposit(), prices.getWs().getRent());
+        // 방식 3
+//        List<House> houseList = houseJdbcTemplateRepository.searchHousesByAllCon(allConditions);
+
+//        List<House> houses = houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
 //        List<House> houses = isSpecialRegion(region) ? houseRepository.findHouseWithSpecialRegion(region.getDistrict(), region.getCity(), "ACTIVE") : houseRepository.findHouseWithRegion(region.getDistrict(), region.getCity(), "ACTIVE");
-        log.info("선호지역 반영한 매물 개수: "+houses.size());
+        List<House> houses = myBatisHouseRepository.findHouse(allConditions, areaLevel, "ACTIVE");
+        log.info("선호지역 반영한 매물 개수: " + houses.size());
         return houses;
     }
 

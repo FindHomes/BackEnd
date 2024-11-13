@@ -55,7 +55,7 @@ public class HouseWithConditionService {
         // 시설 데이터 점수 계산
         PerformanceUtil.measurePerformance(
                 () -> calculateFacilityDataScore(weightSum, houseWithConditions, industriesAndWeights),
-                "4.1 공공 데이터 점수 계산"
+                "4.2 시설 데이터 점수 계산"
         );
     }
 
@@ -108,7 +108,7 @@ public class HouseWithConditionService {
                     // 정규화하여 각 house의 최종 점수에 추가
                     houseWithConditions.parallelStream().forEach(houseWithCondition -> {
                         House house = houseWithCondition.getHouse();
-                        double normalizedScore = (house.getFacilityDataScore() / maxFacilityDataScore) * industryMaxScore;
+                        double normalizedScore = (maxFacilityDataScore == 0 ? 0 : (house.getFacilityDataScore() / maxFacilityDataScore) * industryMaxScore);
                         house.addScore(normalizedScore);
                     });
                 });

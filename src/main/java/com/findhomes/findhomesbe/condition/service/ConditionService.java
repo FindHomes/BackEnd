@@ -45,9 +45,23 @@ public class ConditionService {
 
         // 1. 필터링 조건으로 매물 필터링해서 매물 가져오기 (필수 조건, 매물 자체 조건, 매물 필수 옵션)
         List<House> houses = PerformanceUtil.measurePerformance(
-                () -> houseService.getHouseByAllConditions(allConditions),
-                "1. 필터링 조건으로 매물 필터링해서 매물 가져오기"
+                () -> houseService.getHouseByAllConditions(allConditions, 1),
+                "1-1. 필터링 조건으로 매물 필터링해서 매물 가져오기"
         );
+        // 1-2. 매물이 없을 경우
+        if (houses == null || houses.isEmpty()) {
+            houses = PerformanceUtil.measurePerformance(
+                    () -> houseService.getHouseByAllConditions(allConditions, 2),
+                    "1-2. 지역 전체로 해서 매물 필터링해서 매물 가져오기"
+            );
+        }
+        // 1-3. 매물이 없을 경우
+        if (houses == null || houses.isEmpty()) {
+            houses = PerformanceUtil.measurePerformance(
+                    () -> houseService.getHouseByAllConditions(allConditions, 3),
+                    "1-3. 지역 전체로 해서 매물 필터링해서 매물 가져오기"
+            );
+        }
 
         // HouseWithCondition 리스트로 바꿔주기
         List<HouseWithCondition> houseWithConditions = houseWithConditionService.convertHouseList(houses);

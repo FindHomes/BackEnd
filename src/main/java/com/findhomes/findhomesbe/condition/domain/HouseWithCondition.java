@@ -64,6 +64,10 @@ public class HouseWithCondition {
         public void addDistance(double distance) {
             distanceSum += distance;
         }
+
+        public Double getAvgDistance() {
+            return Math.round(distanceSum * 100 / count) / 100d;
+        }
     }
 
 

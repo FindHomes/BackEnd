@@ -2,6 +2,7 @@ package com.findhomes.findhomesbe.DTO;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -39,19 +40,19 @@ public class ManConRequest {
 
         @Override
         public String toString() {
-            String[] result = new String[]{"", "", ""};
+            List<String> result = new ArrayList<>();
             if (mm > 0) {
                 if (mm > 200000) {
-                    result[0] = "매매가 무제한";
+                    result.add("매매가 무제한");
                 } else {
-                    result[0] = "매매가 최대: " + mm + "만원";
+                    result.add("매매가 최대: " + mm + "만원");
                 }
             }
             if (js > 0) {
                 if (js > 100000) {
-                    result[1] = "전세가 무제한";
+                    result.add("전세가 무제한");
                 } else {
-                    result[1] = "전세가 최대: " + js + "만원";
+                    result.add("전세가 최대: " + js + "만원");
                 }
             }
             if (ws != null && ws.deposit > 0 && ws.rent > 0) {
@@ -66,7 +67,7 @@ public class ManConRequest {
                 } else {
                     wsStr += " & 월세 최대" + ws.rent + "만원";
                 }
-                result[2] = wsStr;
+                result.add(wsStr);
             }
             return String.join(" / ", result);
         }

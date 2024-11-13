@@ -56,7 +56,7 @@ public class StatisticsResponse {
                             House house = houseWithCondition.getHouse();
                             List<KeywordInfo.Value> values = new ArrayList<>();
                             values.add(new KeywordInfo.Value("개수", facilityInfo.getCount().doubleValue()));
-                            values.add(new KeywordInfo.Value("평균 거리(km)", Math.round(facilityInfo.getDistanceSum() * 100 / facilityInfo.getCount()) / 100d));
+                            values.add(new KeywordInfo.Value("평균 거리(km)", facilityInfo.getAvgDistance()));
                             KeywordInfo.HouseAndValue houseAndValue = new KeywordInfo.HouseAndValue(
                                     house.getHouseId(), house.getRanking(), values);
                             dataAndInfo.getHouseAndValues().add(houseAndValue);
