@@ -1,7 +1,6 @@
-package com.findhomes.findhomesbe.service;
+package com.findhomes.findhomesbe.userchat;
 
 import com.findhomes.findhomesbe.entity.UserChat;
-import com.findhomes.findhomesbe.repository.UserChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +24,20 @@ public class UserChatService {
         userChat.setGptResponse(gptResponse);
         userChat.setCreatedAt(LocalDateTime.now());
         userChatRepository.save(userChat);
+    }
+
+    public StringBuilder buildConversation(List<UserChat> previousChats) {
+        if (previousChats == null || previousChats.isEmpty()) {
+            return new StringBuilder("[이전 대화 기록 없음]");
+        }
+
+        StringBuilder conversation = new StringBuilder("[이전 대화 기록]\n");
+        for (UserChat chat : previousChats) {
+            conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
+            if (chat.getGptResponse() != null) {
+                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
+            }
+        }
+        return conversation;
     }
 }

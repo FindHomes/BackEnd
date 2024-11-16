@@ -1,16 +1,13 @@
-package com.findhomes.findhomesbe.login;
+package com.findhomes.findhomesbe.auth;
 
 import com.findhomes.findhomesbe.exception.exception.UnauthorizedException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.logging.Logger;
 
 @Component
 public class JwtTokenProvider {
@@ -75,13 +72,22 @@ public class JwtTokenProvider {
 
     public String getUserId(String token) {
         try {
-            // JWT에서 사용자 ID 추출
+            // JWT 토큰에서 사용자 ID 추출
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             return claims.getSubject();
         } catch (IllegalArgumentException e) {
             throw new UnauthorizedException("JWT 토큰이 비어있거나 잘못되었습니다.");
+        } catch (MalformedJwtException e) {
+            throw new UnauthorizedException("잘못된 형식의 JWT 토큰입니다.");
+        } catch (ExpiredJwtException e) {
+            throw new UnauthorizedException("JWT 토큰이 만료되었습니다.");
+        } catch (UnsupportedJwtException e) {
+            throw new UnauthorizedException("지원되지 않는 JWT 토큰 형식입니다.");
+        } catch (SignatureException e) {
+            throw new UnauthorizedException("JWT 서명 검증에 실패하였습니다.");
         } catch (Exception e) {
-            throw new UnauthorizedException("userId를 가져오는데 오류가 발생하였습니다.");
+            throw new UnauthorizedException("JWT 토큰을 파싱하는 중 알 수 없는 오류가 발생하였습니다.");
         }
     }
+
 }

@@ -1,17 +1,16 @@
 package com.findhomes.findhomesbe.controller;
 
 import com.findhomes.findhomesbe.DTO.*;
+import com.findhomes.findhomesbe.userchat.UserChatRequest;
+import com.findhomes.findhomesbe.userchat.UserChatResponse;
+import com.findhomes.findhomesbe.userchat.UserChatService;
 import com.findhomes.findhomesbe.condition.domain.*;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
-import com.findhomes.findhomesbe.condition.service.HouseWithConditionService;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.entity.UserChat;
 import com.findhomes.findhomesbe.exception.exception.ClientIllegalArgumentException;
 import com.findhomes.findhomesbe.gpt.ChatGPTServiceImpl;
-import com.findhomes.findhomesbe.login.JwtTokenProvider;
-import com.findhomes.findhomesbe.login.SecurityService;
-import com.findhomes.findhomesbe.repository.FavoriteHouseRepository;
-import com.findhomes.findhomesbe.repository.HouseRepository;
+import com.findhomes.findhomesbe.auth.SecurityService;
 import com.findhomes.findhomesbe.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,31 +40,17 @@ import static com.findhomes.findhomesbe.gpt.CommandService.*;
 @SecurityRequirement(name = "bearerAuth")
 public class MainController {
 
-    public static final double RADIUS = 5d;
-    public static final String MAN_CON_KEY = "man-con";
-    public static final String HOUSE_RESULTS_KEY = "house-result";
-    public static final String ALL_CONDITIONS = "all-conditions";
-
     private final ChatGPTServiceImpl chatGPTServiceImpl;
     private final UserChatService userChatService;
     private final ConditionService conditionService;
-    private final JwtTokenProvider jwtTokenProvider;
     private final SecurityService securityService;
-    private final HouseRepository houseRepository;
-    private final HouseWithConditionService houseWithConditionService;
-    private final HouseService houseService;
     private final FavoriteHouseService favoriteHouseService;
     private final RecentlyViewedHouseService recentlyViewedHouseService;
-    private final FavoriteHouseRepository favoriteHouseRepository;
 
     @PostMapping("/api/search/man-con")
-    public ResponseEntity<ManConResponse> setManConSearch(
-            @RequestBody ManConRequest request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse response
-    ) {
+    public ResponseEntity<ManConResponse> setManConSearch(@RequestBody ManConRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         HttpSession session = securityService.getNewSession(httpRequest);
-        session.setAttribute(MAN_CON_KEY, request);
+        session.setAttribute(SessionKeys.MAN_CON_KEY, request);
         log.info("MANCON: {}", request.toSentence());
 
         String sessionId = session.getId();
@@ -84,24 +69,13 @@ public class MainController {
     @Operation(summary = "사용자 채팅", description = "사용자 입력을 받고, 챗봇의 응답을 반환합니다.")
     @ApiResponse(responseCode = "200", description = "챗봇 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserChatResponse.class))})
     @ApiResponse(responseCode = "204", description = "챗봇 대화 종료", content = {@Content(mediaType = "application/json")})
-    public ResponseEntity<UserChatResponse> userChat(
-            @RequestBody UserChatRequest userChatRequest,
-            HttpServletRequest httpRequest,
-            @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
-    ) {
+    public ResponseEntity<UserChatResponse> userChat(@RequestBody UserChatRequest userChatRequest, HttpServletRequest httpRequest, @Parameter(hidden = true) @SessionAttribute(value = SessionKeys.MAN_CON_KEY, required = false) ManConRequest manConRequest) {
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
         // 이전 대화 내용을 가져오기
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
-        StringBuilder conversation = new StringBuilder();
-        conversation.append("[이전 대화 기록]");
-        for (UserChat chat : previousChats) {
-            conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-            if (chat.getGptResponse() != null) {
-                conversation.append("챗봇: ").append(chat.getGptResponse()).append("\n");
-            }
-        }
+        StringBuilder conversation = userChatService.buildConversation(previousChats);
 
         // 사용자 입력 추가 및 대화 응답 조정
         String command = createChatCommand(userChatRequest.getUserInput(), FacilityCategory.getAllData() + PublicData.getAllData());
@@ -113,11 +87,6 @@ public class MainController {
 
         // 사용자 입력과 GPT 응답 저장
         userChatService.saveUserChat(chatSessionId, userChatRequest.getUserInput(), gptResponse);
-        // 대화 종료 조건 확인
-//        if (gptResponse.contains("대화 종료")) {
-//            // 대화 종료를 클라이언트에 알리기
-//            return ResponseEntity.noContent().build();
-//        }
 
         // 응답 반환
         UserChatResponse response = new UserChatResponse(true, 200, "성공", new UserChatResponse.ChatResponse(gptResponse));
@@ -126,27 +95,16 @@ public class MainController {
 
     @GetMapping("/api/search/complete")
     @Operation(summary = "조건 입력 완료", description = "조건 입력을 완료하고 매물을 반환받습니다.\n\n" + "최대 100개의 매물을 점수를 기준으로 내림차순으로 반환합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SearchResponse.class))}),
-            @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
-            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
-    })
-    public ResponseEntity<SearchResponse> getHouseList(
-            HttpServletRequest httpRequest,
-            @Parameter(hidden = true) @SessionAttribute(value = MAN_CON_KEY, required = false) ManConRequest manConRequest
-    ) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SearchResponse.class))}), @ApiResponse(responseCode = "401", description = "session이 없습니다. 필수 조건 입력 창으로 돌아가야 합니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}), @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})})
+    public ResponseEntity<SearchResponse> getHouseList(HttpServletRequest httpRequest, @Parameter(hidden = true) @SessionAttribute(value = SessionKeys.MAN_CON_KEY, required = false) ManConRequest manConRequest) {
         System.out.println(manConRequest);
         HttpSession session = securityService.getSession(httpRequest);
         String chatSessionId = session.getId();
 
         // 이전 대화 내용을 가져오기
         List<UserChat> previousChats = userChatService.getUserChatsBySessionId(chatSessionId);
-        StringBuilder conversation = new StringBuilder();
-        for (UserChat chat : previousChats) {
-            conversation.append("사용자: ").append(chat.getUserInput()).append("\n");
-        }
+        StringBuilder conversation = userChatService.buildConversation(previousChats);
         // 대화에서 키워드 추출 하기
-        // TODO: gpt 아낄라고 임시로 이렇게 해놓음 수정해야됨.
         String input = conversation.toString() + "\n" + EXTRACT_KEYWORD_COMMAND;
         String keywordStr = chatGPTServiceImpl.getGptOutput(input, ROLE1, ROLE2, COMPLETE_CONTENT, 0.8);
         List<String> keywords = Arrays.stream(keywordStr.split(",")).map(e -> e.replaceAll("[^가-힣0-9 ]", "").trim()).toList();
@@ -166,7 +124,7 @@ public class MainController {
         List<HouseWithCondition> resultHouses = conditionService.exec(manConRequest, gptResponse, keywords, session, userId);
 
         // 세션에 저장
-        session.setAttribute(HOUSE_RESULTS_KEY, resultHouses);
+        session.setAttribute(SessionKeys.HOUSE_RESULTS_KEY, resultHouses);
 
         // 결과 반환
         if (resultHouses.isEmpty()) {
@@ -184,15 +142,8 @@ public class MainController {
 
     @GetMapping("/api/search/statistics")
     @Operation(summary = "통계 정보 가져오기", description = "현재 결과에 반영된 데이터 정보를 가져옵니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = StatisticsResponse.class))}),
-            @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
-            @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
-    })
-    public ResponseEntity<StatisticsResponse> getStatistics(
-            @Parameter(hidden = true) @SessionAttribute(value = HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions,
-            @Parameter(hidden = true) @SessionAttribute(value = ALL_CONDITIONS, required = false) AllConditions allConditions
-    ) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "매물 응답 완료", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = StatisticsResponse.class))}), @ApiResponse(responseCode = "401", description = "세션이 유효하지 않습니다", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}), @ApiResponse(responseCode = "428", description = "세션에 필수 데이터가 없습니다.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})})
+    public ResponseEntity<StatisticsResponse> getStatistics(@Parameter(hidden = true) @SessionAttribute(value = SessionKeys.HOUSE_RESULTS_KEY, required = false) List<HouseWithCondition> houseWithConditions, @Parameter(hidden = true) @SessionAttribute(value = SessionKeys.ALL_CONDITIONS, required = false) AllConditions allConditions) {
         return new ResponseEntity<>(StatisticsResponse.of(houseWithConditions, allConditions, true, 200, "응답 성공"), HttpStatus.OK);
     }
 
@@ -203,12 +154,13 @@ public class MainController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 최근 본 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "최근 본 매물이 없습니다")})
     public ResponseEntity<Response> getRecentlyViewedHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<ResponseHouse> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());;
+        List<ResponseHouse> recentlyViewedHouses = recentlyViewedHouseService.getRecentlyViewedHouses(userId).stream().map(house -> new ResponseHouse(house, true)).collect(Collectors.toList());
+        ;
         // 최근 본 매물이 없는 경우, 빈 리스트 반환
         if (recentlyViewedHouses.isEmpty()) {
             return new ResponseEntity<>(new Response(true, 200, "최근 본 매물이 없습니다", Collections.emptyList()), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new Response(true, 200,"최근 본 매물을 불러오는데 성공하였습니다",recentlyViewedHouses), HttpStatus.OK);
+        return new ResponseEntity<>(new Response(true, 200, "최근 본 매물을 불러오는데 성공하였습니다", recentlyViewedHouses), HttpStatus.OK);
     }
 
     // 찜한 방 매물 조회 API
@@ -217,12 +169,12 @@ public class MainController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 찜한 매물을 반환함"), @ApiResponse(responseCode = "401", description = "인증 오류"), @ApiResponse(responseCode = "404", description = "찜한 방이 없습니다")})
     public ResponseEntity<Response> getfavoriteHouses(HttpServletRequest httpRequest) {
         String userId = securityService.getUserId(httpRequest);
-        List<ResponseHouse> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId).stream().map(house -> new ResponseHouse(house,true)).collect(Collectors.toList());
+        List<ResponseHouse> favoriteHouses = favoriteHouseService.getFavoriteHouses(userId).stream().map(house -> new ResponseHouse(house, true)).collect(Collectors.toList());
         // 찜한 방이 없는 경우, 빈 리스트 반환
         if (favoriteHouses.isEmpty()) {
             return new ResponseEntity<>(new Response(true, 200, "찜한 방이 없습니다", Collections.emptyList()), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new Response(true, 200,"찜한 매물을 불러오는데 성공하였습니다",favoriteHouses), HttpStatus.OK);
+        return new ResponseEntity<>(new Response(true, 200, "찜한 매물을 불러오는데 성공하였습니다", favoriteHouses), HttpStatus.OK);
     }
 
     // 찜하기 API

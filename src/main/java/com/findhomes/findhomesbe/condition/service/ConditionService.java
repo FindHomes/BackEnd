@@ -3,6 +3,7 @@ package com.findhomes.findhomesbe.condition.service;
 import com.findhomes.findhomesbe.DTO.ManConRequest;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.domain.*;
+import com.findhomes.findhomesbe.controller.SessionKeys;
 import com.findhomes.findhomesbe.entity.House;
 import com.findhomes.findhomesbe.repository.FavoriteHouseRepository;
 import com.findhomes.findhomesbe.service.FavoriteHouseService;
@@ -14,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
-import static com.findhomes.findhomesbe.controller.MainController.ALL_CONDITIONS;
 
 @Service
 @Slf4j
@@ -33,7 +32,7 @@ public class ConditionService {
 
         // 0. gpt output 파싱해서 AllCondition 객체에 정보 넣기
         AllConditions allConditions = parsingService.parsingGptOutput(manConRequest, gptOutput, keywords);
-        session.setAttribute(ALL_CONDITIONS, allConditions);
+        session.setAttribute(SessionKeys.ALL_CONDITIONS, allConditions);
         log.info("\n===========조건 파싱 결과===========\n{}", allConditions);
 
         return exec2(allConditions, userId);

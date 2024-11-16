@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.repository;
+package com.findhomes.findhomesbe.userchat;
 
 import com.findhomes.findhomesbe.entity.UserChat;
 import org.springframework.data.jpa.repository.JpaRepository;

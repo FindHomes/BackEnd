@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.login;
+package com.findhomes.findhomesbe.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +18,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityService securityService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -30,19 +31,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // JWT 추출
-        String token = extractTokenFromRequest(request);
-        System.out.println(token);
+        String token = securityService.extractTokenFromRequest(request);
         try {
             if (token != null && jwtTokenProvider.validateToken(token)) {
                 // 유효한 토큰이면 사용자 정보 추출
                 String userId = jwtTokenProvider.getUserId(token);
 
                 if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userId, null, null);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, null);
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    System.out.println("id:" + userId + " 인증완료");
                 }
             } else {
                 // 유효하지 않은 토큰일 경우
@@ -59,13 +57,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // "Bearer " 이후의 토큰만 추출
-        }
-        return null;
-    }
 
 }

@@ -1,4 +1,4 @@
-package com.findhomes.findhomesbe.DTO;
+package com.findhomes.findhomesbe.userchat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

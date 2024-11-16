@@ -5,7 +5,8 @@ import com.findhomes.findhomesbe.DTO.SearchResponse;
 import com.findhomes.findhomesbe.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.condition.service.ConditionService;
-import com.findhomes.findhomesbe.login.SecurityService;
+import com.findhomes.findhomesbe.controller.SessionKeys;
+import com.findhomes.findhomesbe.auth.SecurityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,8 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.findhomes.findhomesbe.controller.MainController.ALL_CONDITIONS;
-import static com.findhomes.findhomesbe.controller.MainController.HOUSE_RESULTS_KEY;
+import static com.findhomes.findhomesbe.controller.SessionKeys.ALL_CONDITIONS;
 
 @RestController
 @RequiredArgsConstructor
@@ -97,7 +97,7 @@ public class SearchLogController {
 
         // statistics api를 위해 세션에 저장
         HttpSession session = securityService.getSession(httpRequest);
-        session.setAttribute(HOUSE_RESULTS_KEY, result);
+        session.setAttribute(SessionKeys.HOUSE_RESULTS_KEY, result);
         session.setAttribute(ALL_CONDITIONS, allConditions);
 
         return new ResponseEntity<>(new SearchResponse(result, true, 200, "응답 . 성공"), HttpStatus.OK);

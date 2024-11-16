@@ -1,6 +1,6 @@
 package com.findhomes.findhomesbe;
 
-import com.findhomes.findhomesbe.login.JwtTokenProvider;
+import com.findhomes.findhomesbe.auth.JwtTokenProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
