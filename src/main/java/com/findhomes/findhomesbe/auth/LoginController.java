@@ -24,7 +24,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 public class LoginController {
-    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 60분
+    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60 * 5; // 300분
     private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -53,9 +53,7 @@ public class LoginController {
         user.updateRefreshToken(jwtRefreshToken, refreshTokenExpiry);
         userRepository.save(user);
         // 5. 응답 객체 생성
-        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(jwtAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
-        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(jwtRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
-        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(jwtAccessToken).refreshToken(jwtRefreshToken).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -80,9 +78,7 @@ public class LoginController {
         user.updateRefreshToken(newRefreshToken, refreshTokenExpiry);
         userRepository.save(user);
         // 3. 응답 객체 생성
-        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(newAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
-        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(newRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
-        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(newAccessToken).refreshToken(refreshToken).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -110,9 +106,7 @@ public class LoginController {
         });
         String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
-        LoginResponse.JwtToken accessTokenResponse = new LoginResponse.JwtToken(jwtAccessToken, "Bearer", ACCESS_TOKEN_EXPIRATION);
-        LoginResponse.JwtToken refreshTokenResponse = new LoginResponse.JwtToken(jwtRefreshToken, "Bearer", REFRESH_TOKEN_EXPIRATION);
-        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().accessToken(accessTokenResponse).refreshToken(refreshTokenResponse).build()).build();
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(jwtAccessToken).refreshToken(jwtRefreshToken).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 }

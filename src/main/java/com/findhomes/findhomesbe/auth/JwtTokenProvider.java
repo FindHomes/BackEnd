@@ -13,7 +13,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
-    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 60분
+    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60 * 3; // 60분
     private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
     private Key key;
 
