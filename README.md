@@ -8,4 +8,4 @@ Spring Boot, MySQL, AWS Lightsail
 ### 최종 발표 및 시연 영상
 [영상 링크](https://www.youtube.com/watch?v=FGVVkx-fuQA)
 ### 최종 포스터
-<img src="C:\Users\Ding\Desktop\4_2\FP\제출자료\전시회\A3 (300 DPI)@2x.svg" alt="최종포스터" style="width: 100%;">
+![Image](https://github.com/user-attachments/assets/bb04a566-3f6c-460e-b4d4-6da2cebbbb67)
