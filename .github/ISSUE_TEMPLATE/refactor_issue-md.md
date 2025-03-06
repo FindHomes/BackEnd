@@ -1,6 +1,6 @@
 ---
 name: refactor_issue.md
-about: 코드 개선 및 리팩톹링
+about: 코드 개선 및 리팩토링
 title: "[refactor]"
 labels: refactor
 assignees: ''
