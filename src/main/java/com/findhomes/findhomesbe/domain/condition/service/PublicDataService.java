@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.domain.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.domain.condition.domain.HouseWithCondition;
 import com.findhomes.findhomesbe.domain.condition.domain.PublicData;
 import com.findhomes.findhomesbe.domain.condition.domain.SafetyGrade;
+import com.findhomes.findhomesbe.global.performance.MeasurePerformance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import java.util.List;
 @Slf4j
 public class PublicDataService {
     private final SafetyGradeService safetyGradeService;
-
+    @MeasurePerformance
     public void injectPublicDataInList(List<HouseWithCondition> houseWithConditions, List
             <AllConditions.PublicConditionData> publicConditionDataList) {
         for (HouseWithCondition houseWithCondition : houseWithConditions) {

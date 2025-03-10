@@ -18,72 +18,72 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum FacilityCategory {
-    학교("SchoolIndustryRepository",
+    학교("SchoolAmenitiesRepository",
             (repository, detailName) ->
                     ((SchoolAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    동물병원("animalHospitalIndustryRepository",
+    동물병원("animalHospitalAmenitiesRepository",
             (repository, detailName) ->
                     ((AnimalHospitalAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    베이커리("bakeryIndustryRepository",
+    베이커리("bakeryAmenitiesRepository",
             (repository, detailName) ->
                     ((BakeryAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    목욕탕("bathhouseIndustryRepository",
+    목욕탕("bathhouseAmenitiesRepository",
             (repository, detailName) ->
                     ((BathhouseAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    미용실("beautyIndustryRepository",
+    미용실("beautyAmenitiesRepository",
             (repository, detailName) ->
                     ((BeautyAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    영화관("cinemaIndustryRepository",
+    영화관("cinemaAmenitiesRepository",
             (repository, detailName) ->
                     ((CinemaAmenitiesRepository) repository).findByDetailName(detailName),
             3d
     ),
-    병원("clinicIndustryRepository",
+    병원("clinicAmenitiesRepository",
             (repository, detailName) ->
                     ((ClinicAmenitiesRepository) repository).findByDetailName(detailName),
             2d
     ),
-    공연장("concertHallIndustryRepository",
+    공연장("concertHallAmenitiesRepository",
             (repository, detailName) ->
                     ((ConcertHallAmenitiesRepository) repository).findByDetailName(detailName),
             3d
     ),
-    피시방("gameIndustryRepository",
+    피시방("gameAmenitiesRepository",
             (repository, detailName) ->
                     ((GameAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    헬스장("gymIndustryRepository",
+    헬스장("gymAmenitiesRepository",
             (repository, detailName) ->
                     ((GymAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    종합병원("hospitalIndustryRepository",
+    종합병원("hospitalAmenitiesRepository",
             (repository, detailName) ->
                     ((HospitalAmenitiesRepository) repository).findByDetailName(detailName),
             3d
     ),
-    노래방("karaokeIndustryRepository",
+    노래방("karaokeAmenitiesRepository",
             (repository, detailName) ->
                     ((KaraokeAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    약국("pharmacyIndustryRepository",
+    약국("pharmacyAmenitiesRepository",
             (repository, detailName) ->
                     ((PharmacyAmenitiesRepository) repository).findByDetailName(detailName),
             1d
     ),
-    음식점("restaurantIndustryRepository",
+    음식점("restaurantAmenitiesRepository",
             (repository, detailName) ->
                     ((RestaurantAmenitiesRepository) repository).findByDetailName(detailName),
             1.5d
