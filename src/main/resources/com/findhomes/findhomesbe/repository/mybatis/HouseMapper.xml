@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.findhomes.findhomesbe.repository.mybatis.HouseMapper">
+<mapper namespace="com.findhomes.findhomesbe.domain.house.mybatis.HouseMapper">
     <select id="findHouse" resultType="House">
         SELECT h.*
         FROM houses_tbl AS h

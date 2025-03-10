@@ -1,13 +1,14 @@
 package com.findhomes.findhomesbe.searchlog;
 
-import com.findhomes.findhomesbe.condition.domain.AllConditions;
-import com.findhomes.findhomesbe.entity.User;
-import com.findhomes.findhomesbe.exception.exception.DataNotFoundException;
-import com.findhomes.findhomesbe.repository.SearchLogRepository;
-import com.findhomes.findhomesbe.repository.UserRepository;
-import com.findhomes.findhomesbe.service.UserService;
+import com.findhomes.findhomesbe.domain.condition.domain.AllConditions;
+import com.findhomes.findhomesbe.domain.searchlog.SearchLog;
+import com.findhomes.findhomesbe.domain.searchlog.SearchLogService;
+import com.findhomes.findhomesbe.domain.user.User;
+import com.findhomes.findhomesbe.global.exception.exception.DataNotFoundException;
+import com.findhomes.findhomesbe.domain.searchlog.SearchLogRepository;
+import com.findhomes.findhomesbe.domain.user.UserRepository;
+import com.findhomes.findhomesbe.domain.user.UserService;
 import org.assertj.core.api.Assertions;
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
