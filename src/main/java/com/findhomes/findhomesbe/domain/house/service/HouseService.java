@@ -6,6 +6,7 @@ import com.findhomes.findhomesbe.domain.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.domain.house.domain.HouseSpecification;
 import com.findhomes.findhomesbe.domain.house.domain.House;
 import com.findhomes.findhomesbe.domain.house.repository.HouseRepository;
+import com.findhomes.findhomesbe.global.performance.MeasurePerformance;
 import com.findhomes.findhomesbe.global.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.domain.house.mybatis.HouseJdbcTemplateRepository;
 import com.findhomes.findhomesbe.domain.amenities.repository.RegionsRepository;
@@ -39,7 +40,7 @@ public class HouseService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final HouseJdbcTemplateRepository houseJdbcTemplateRepository;
-
+    @MeasurePerformance
     public List<House> getHouseByAllConditions(AllConditions allConditions, int areaLevel) {
 
         ManConRequest.Region region = allConditions.getManConRequest().getRegion();

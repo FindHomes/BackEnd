@@ -4,6 +4,7 @@ import com.findhomes.findhomesbe.domain.condition.dto.ManConRequest;
 import com.findhomes.findhomesbe.domain.condition.domain.AllConditions;
 import com.findhomes.findhomesbe.domain.condition.domain.IndustriesAndWeight;
 import com.findhomes.findhomesbe.domain.amenities.domain.Amenities;
+import com.findhomes.findhomesbe.global.performance.MeasurePerformance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class IndustryService {
     public final FacilityCategoryService facilityCategoryService;
-
+    @MeasurePerformance
     public List<IndustriesAndWeight> injectFacilityDataInList(List<AllConditions.FacilityConditionData> facilityConditionDataList, ManConRequest.Region region) {
         List<IndustriesAndWeight> industriesAndWeights = new ArrayList<>();
 

@@ -6,7 +6,7 @@ import com.findhomes.findhomesbe.domain.house.domain.House;
 import com.findhomes.findhomesbe.domain.amenities.domain.Amenities;
 import com.findhomes.findhomesbe.global.exception.exception.DataNotFoundException;
 import com.findhomes.findhomesbe.domain.house.service.HouseService;
-import com.findhomes.findhomesbe.global.PerformanceUtil;
+import com.findhomes.findhomesbe.global.performance.MeasurePerformance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,18 +47,12 @@ public class HouseWithConditionService {
     // 점수 계산
     public void calculate(int weightSum, List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
         // 공공 데이터 점수 계산
-        PerformanceUtil.measurePerformance(
-                () -> calculatePublicDataScore(weightSum, houseWithConditions),
-                "4.1 공공 데이터 점수 계산"
-        );
+        calculatePublicDataScore(weightSum, houseWithConditions);
 
         // 시설 데이터 점수 계산
-        PerformanceUtil.measurePerformance(
-                () -> calculateFacilityDataScore(weightSum, houseWithConditions, industriesAndWeights),
-                "4.2 시설 데이터 점수 계산"
-        );
+        calculateFacilityDataScore(weightSum, houseWithConditions, industriesAndWeights);
     }
-
+    @MeasurePerformance
     private void calculatePublicDataScore(int weightSum, List<HouseWithCondition> houseWithConditions) {
         for (HouseWithCondition houseWithCondition : houseWithConditions) {
             for (HouseWithCondition.SafetyGradeInfo safetyGradeInfo : houseWithCondition.getSafetyGradeInfoList()) {
@@ -68,7 +62,7 @@ public class HouseWithConditionService {
             }
         }
     }
-
+    @MeasurePerformance
     private void calculateFacilityDataScore(int weightSum, List<HouseWithCondition> houseWithConditions, List<IndustriesAndWeight> industriesAndWeights) {
         industriesAndWeights.parallelStream()
                 .forEach(industriesAndWeight -> {
@@ -136,10 +130,11 @@ public class HouseWithConditionService {
     }
 
     // 정렬
+    @MeasurePerformance
     public void sort(List<HouseWithCondition> houseWithConditions) {
         houseWithConditions.sort(Comparator.comparing(HouseWithCondition::getScore).reversed());
     }
-
+    @MeasurePerformance
     // 같은 주소지의 매물을 가장 높은 순위의 것만 남기고 제거
     public List<HouseWithCondition> deleteDuplicates(List<HouseWithCondition> houseWithConditions, int max) {
         Set<String> addressSet = new HashSet<>();
