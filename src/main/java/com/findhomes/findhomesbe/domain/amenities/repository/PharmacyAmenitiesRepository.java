@@ -16,10 +16,10 @@ public interface PharmacyAmenitiesRepository extends JpaRepository<PharmacyAmeni
     @Query("SELECT i FROM PharmacyAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<PharmacyAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<PharmacyAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM PharmacyAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<PharmacyAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<PharmacyAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

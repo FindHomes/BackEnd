@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface AmenitiesRepository<T extends Amenities> {
 
-    List<T> findIndustryInRegion(String districtName, String cityName);
-    List<T> findIndustryInSpecialRegion(String districtName, String cityName);
+    List<T> findAmenitiesInRegion(String districtName, String cityName);
+    List<T> findAmenitiesInSpecialRegion(String districtName, String cityName);
 
     List<T> findByDetailName(@Param("detailName") String detailName);
 

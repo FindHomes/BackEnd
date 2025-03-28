@@ -17,9 +17,9 @@ public interface SchoolAmenitiesRepository extends JpaRepository<SchoolAmenities
     //
     @Query("SELECT i FROM SchoolAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " + "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<SchoolAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<SchoolAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM SchoolAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " + "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<SchoolAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<SchoolAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

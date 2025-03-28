@@ -32,7 +32,7 @@ public class FacilityCategoryService {
             // detailName이 "all"인 경우
             if (detailName.toLowerCase().equals("all")) {
 //                result = houseService.isSpecialRegion(region) ? industryRepository.findIndustryInSpecialRegion(region.getDistrict(), region.getCity()) : industryRepository.findIndustryInRegion(region.getDistrict(), region.getCity());
-                result = amenitiesRepository.findIndustryInRegion(region.getDistrict(),region.getCity());
+                result = amenitiesRepository.findAmenitiesInRegion(region.getDistrict(),region.getCity());
                 return result;
             } else {
                 // detailName이 all이 아닌 경우 detailName을 포함하는 List<Industry> 가져오기
