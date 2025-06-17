@@ -16,12 +16,12 @@ public interface HospitalAmenitiesRepository extends JpaRepository<HospitalAmeni
     @Query("SELECT i FROM HospitalAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<HospitalAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<HospitalAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM HospitalAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<HospitalAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<HospitalAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
 
     @Query("SELECT h FROM HospitalAmenities h WHERE " +

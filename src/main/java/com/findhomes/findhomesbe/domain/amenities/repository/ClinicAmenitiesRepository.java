@@ -15,10 +15,10 @@ public interface ClinicAmenitiesRepository extends JpaRepository<ClinicAmenities
     @Query("SELECT i FROM ClinicAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<ClinicAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<ClinicAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM ClinicAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<ClinicAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<ClinicAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

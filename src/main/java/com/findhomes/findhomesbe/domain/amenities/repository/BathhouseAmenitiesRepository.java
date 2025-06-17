@@ -16,10 +16,10 @@ public interface BathhouseAmenitiesRepository extends JpaRepository<BathhouseAme
     @Query("SELECT i FROM BathhouseAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BathhouseAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BathhouseAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM BathhouseAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<BathhouseAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BathhouseAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

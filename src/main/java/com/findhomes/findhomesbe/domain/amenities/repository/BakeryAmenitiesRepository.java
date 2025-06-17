@@ -16,10 +16,10 @@ public interface BakeryAmenitiesRepository extends JpaRepository<BakeryAmenities
     @Query("SELECT i FROM BakeryAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<BakeryAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BakeryAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM BakeryAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<BakeryAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<BakeryAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 }

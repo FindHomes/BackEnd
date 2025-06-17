@@ -18,12 +18,12 @@ public interface RestaurantAmenitiesRepository extends JpaRepository<RestaurantA
     @Query("SELECT i FROM RestaurantAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city LIKE CONCAT('%', :cityName, '%')  ")
     @Override
-    List<RestaurantAmenities> findIndustryInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<RestaurantAmenities> findAmenitiesInSpecialRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query("SELECT i FROM RestaurantAmenities i JOIN Regions rg ON ST_Contains(rg.boundary, i.coordinate) " +
             "WHERE rg.district= :districtName and rg.city = :cityName  ")
     @Override
-    List<RestaurantAmenities> findIndustryInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
+    List<RestaurantAmenities> findAmenitiesInRegion(@Param("districtName") String district, @Param("cityName") String cityName);
 
     @Query(value = "SELECT * FROM backup_restaurant_tbl AS c WHERE ST_CONTAINS(ST_Buffer(ST_PointFromText(CONCAT('POINT(', :latitude, ' ', :longitude, ')'), 4326), :distance), c.coordinate)", nativeQuery = true)
     List<RestaurantAmenities> findWithCoordinate(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("distance") double distance);
