@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
 
     private String secretKey = "Pq/4DfE6881zcauYx+HRkoYNvCdJemvE/65fSYCFSSQ="; // 변경예정 비밀키
     private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60 * 3; // 60분
-    private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
     private Key key;
 
     @PostConstruct
@@ -38,16 +38,9 @@ public class JwtTokenProvider {
     }
 
     // JWT 리프레시 토큰 생성
-    public String createRefreshToken(String userId) {
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION);
-
-        return Jwts.builder()
-                .setSubject(userId)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+    public RefreshToken createRefreshToken(String userId) {
+        String refreshTokenSt = UUID.randomUUID().toString();
+        return new RefreshToken(refreshTokenSt, userId);
     }
     // JWT 토큰의 유효성 검증
     public boolean validateToken(String token) {

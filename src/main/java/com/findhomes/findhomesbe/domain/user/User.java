@@ -5,6 +5,7 @@ import com.findhomes.findhomesbe.domain.condition.domain.Condition;
 import com.findhomes.findhomesbe.domain.house.domain.FavoriteHouse;
 import com.findhomes.findhomesbe.domain.house.domain.RecentlyViewedHouse;
 import com.findhomes.findhomesbe.domain.searchlog.SearchLog;
+import com.findhomes.findhomesbe.global.auth.RefreshToken;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,8 +31,6 @@ public class User {
     private String userNickname;
     private String loginApi;
     private String status;
-    private String refreshToken;
-    private LocalDateTime refreshTokenExpiryDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -53,15 +52,4 @@ public class User {
     private List<RecentlyViewedHouse> recentlyViewedHouseList = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<SearchLog> searchLogList = new ArrayList<>();
-
-
-    public void updateRefreshToken(String refreshToken, LocalDateTime expiryDate) {
-        this.refreshToken = refreshToken;
-        this.refreshTokenExpiryDate = expiryDate;
-    }
-
-    public void clearRefreshToken() {
-        this.refreshToken = null;
-        this.refreshTokenExpiryDate = null;
-    }
 }

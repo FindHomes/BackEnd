@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,6 +30,7 @@ public class LoginController {
     private final JwtTokenProvider jwtTokenProvider;
     private final SecurityService securityService;
     private final String userInfoUrl = "https://kapi.kakao.com/v2/user/me"; // 사용자 정보를 가져오는 API의 URL
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @GetMapping("/api/oauth/kakao")
     @Operation(summary = "토큰 값 반환", description = "클라이언트로부터 전달된 액세스 토큰을 사용해 카카오 사용자 정보를 조회하고 JWT를 반환합니다.")
@@ -46,10 +48,9 @@ public class LoginController {
 
         // 3. JWT 생성
         String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-        String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        RefreshToken jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         // 4. 리프레시 토큰 저장
-        LocalDateTime refreshTokenExpiry = LocalDateTime.now().plusDays(7);
-        user.updateRefreshToken(jwtRefreshToken, refreshTokenExpiry);
+        refreshTokenRepository.save(jwtRefreshToken);
         userRepository.save(user);
         // 5. 응답 객체 생성
         LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(jwtAccessToken).refreshToken(jwtRefreshToken).build()).build();
@@ -58,26 +59,19 @@ public class LoginController {
 
     @PostMapping("/api/oauth/refresh")
     public ResponseEntity<?> refreshAccessToken(@RequestParam String refreshToken) {
+        RefreshToken refreshToken1 = refreshTokenRepository.findById(refreshToken)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        User user = userRepository.findById(refreshToken1.getUserId()).orElse(null);
 
-        // 1. RefreshToken 유효성 검증
-        User user = userRepository.findByRefreshToken(refreshToken).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
-        }
 
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
-        }
-        // 2. 새로운 AccessToken 생성 및 선택적으로 새로운 RefreshToken 발급
-        String newAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
-        LocalDateTime refreshTokenExpiry = LocalDateTime.now().plusDays(7);
-
+        String newAccessToken = jwtTokenProvider.createAccessToken(refreshToken1.getUserId());
+        RefreshToken newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         // 리프레시 토큰 업데이트 후 저장
-        user.updateRefreshToken(newRefreshToken, refreshTokenExpiry);
+        refreshTokenRepository.save(newRefreshToken);
+
         userRepository.save(user);
         // 3. 응답 객체 생성
-        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(newAccessToken).refreshToken(refreshToken).build()).build();
+        LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(newAccessToken).refreshToken(newRefreshToken).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -85,14 +79,7 @@ public class LoginController {
     public ResponseEntity<?> logout(@RequestParam String accessToken) {
         // 1. 사용자 정보 요청
         String kakaoId = securityService.getKakaoId(accessToken);
-        // 2. 사용자 조회 및 회원가입 처리
-        Optional<User> userOptional = userRepository.findByKakaoId(kakaoId);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.clearRefreshToken(); // 리프레시 토큰 삭제
-            userRepository.save(user); // 변경사항 저장
-        }
         return ResponseEntity.ok("로그아웃이 성공적으로 처리되었습니다.");
     }
 
@@ -104,7 +91,7 @@ public class LoginController {
             return userRepository.save(newUser);
         });
         String jwtAccessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-        String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+        RefreshToken jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         LoginResponse loginResponse = LoginResponse.builder().success(true).code(200).message("토큰이 성공적으로 반환되었습니다.").result(LoginResponse.Tokens.builder().token(jwtAccessToken).refreshToken(jwtRefreshToken).build()).build();
         return ResponseEntity.ok(loginResponse);
     }
