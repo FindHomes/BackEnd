@@ -91,12 +91,11 @@ public class ConditionController {
 //        List<String> keywords = List.of("공기가 맑은 곳", "안전한 곳");
 
         // 전체 대화 내용을 기반으로 GPT 응답 반환 (조건 - 데이터 매칭)
-        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
-        // TODO: gpt 아낄라고 임시로 이렇게 해놓음 수정해야됨.
-//        String gptResponse = "공기가 맑은 곳@방향-북\n" +
-//                "공기가 맑은 곳@CCTV,공기가 맑은 곳@경비원,공기가 맑은 곳@현관보안\n" +
-//                "공기가 맑은 곳@병원_all-5\n" +
-//                "공기가 맑은 곳@감염병율-5,안전한 곳@범죄율-8\n";
+//        String gptResponse = chatGPTServiceImpl.getGptOutputComplete(conversation.toString(), keywords);
+        String gptResponse = "공기가 맑은 곳@방향-북\n" +
+                "공기가 맑은 곳@CCTV,공기가 맑은 곳@경비원,공기가 맑은 곳@현관보안\n" +
+                "공기가 맑은 곳@병원_all-5\n" +
+                "공기가 맑은 곳@감염병율-5,안전한 곳@범죄율-8\n";
         log.info("\n<GPT 응답>\n{}", gptResponse);
         // 매물 점수 계산해서 가져오기
         String userId = securityService.getUserId(httpRequest);

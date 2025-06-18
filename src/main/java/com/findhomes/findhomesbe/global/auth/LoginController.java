@@ -77,11 +77,22 @@ public class LoginController {
 
     @PostMapping("/api/oauth/logout")
     public ResponseEntity<?> logout(@RequestParam String accessToken) {
-        // 1. 사용자 정보 요청
+        // 1. 사용자 식별
         String kakaoId = securityService.getKakaoId(accessToken);
+        Optional<User> userOpt = userRepository.findByKakaoId(kakaoId);
 
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저를 찾을 수 없습니다.");
+        }
+
+        // 2. 저장된 Refresh Token 제거
+        String userId = userOpt.get().getUserId();
+        refreshTokenRepository.deleteById(userId);
+
+        // 3. 응답 반환
         return ResponseEntity.ok("로그아웃이 성공적으로 처리되었습니다.");
     }
+
 
     @GetMapping("/api/oauth/test")
     @Operation(summary = "테스트 토큰 반환", description = "테스트 환경에서 바로 JWT를 반환합니다.")
