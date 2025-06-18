@@ -18,6 +18,6 @@ public class LoginResponse {
     @Builder
     public static class Tokens {
         private String token;
-        private String refreshToken;
+        private RefreshToken refreshToken;
     }
 }
